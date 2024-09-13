@@ -1,0 +1,11 @@
+Package: aforoR
+Title: Anàlisi de FORmes d'Otòlits (Shape Analysis of Fish Otoliths)
+Version: 0.0.0.9000
+Authors@R: 
+    person("Jose Luis", "Otero-Ferrer", , "first.last@example.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Shape analysis of fish otoliths. This package provides tools for the analysis of the shape of fish otoliths. It includes functions for the extraction of shape descriptors, the comparison of shapes, and the visualization of the results.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
