@@ -8,6 +8,6 @@ Description: Shape analysis of fish otoliths. This package provides tools for th
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 URL: https://github.com/oterium/aforoR
 BugReports: https://github.com/oterium/aforoR/issues
