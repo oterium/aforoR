@@ -13,9 +13,6 @@
 #' @export
 #'
 process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets = TRUE, ef = TRUE, testing = TRUE, pseudolandmarks = "both", save = TRUE) {
-  library(tiff)
-  library(Momocs)
-  library(EBImage)
 
   # Set working directory
   setwd(folder)
@@ -30,7 +27,7 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets
 
   # Get list of image files
   imag <- list.files(pattern = "\\.jpg$", full.names = TRUE)
-  pb <- txtProgressBar(max = length(imag), style = 3)
+  pb <- utils::txtProgressBar(max = length(imag), style = 3)
 
   # Initialize results
   result <- list()
@@ -40,20 +37,20 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets
     setTxtProgressBar(pb, i)
 
     # Read and process image
-    foto <- readImage(imag[i])
-    foto2 <- channel(foto, "grey")
-    foto2 <- filter2(foto2, makeBrush(size = 31, shape = 'gaussian', sigma = 9))
+    foto <- EBImage::readImage(imag[i])
+    foto2 <- EBImage::channel(foto, "grey")
+    foto2 <- filter2(foto2, EBImage::makeBrush(size = 31, shape = 'gaussian', sigma = 9))
 
     if (is.null(threshold)) {
-      foto2 <- foto2 > otsu(foto2)
+      foto2 <- foto2 > EBImage::otsu(foto2)
     } else {
       foto2 <- foto2 > threshold
     }
 
-    cont <- ocontour(bwlabel(foto2))
+    cont <- EBImage::ocontour(EBImage::bwlabel(foto2))
     contorno <- NULL
     for (x in 1:length(cont)) {
-      if (length(cont[[x]])[1] > 1000 && coo_area(cont[[x]]) > 10^5) {
+      if (length(cont[[x]])[1] > 1000 && Momocs::coo_area(cont[[x]]) > 10^5) {
         contorno <- cont[[x]]
       }
     }
