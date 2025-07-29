@@ -2,6 +2,7 @@
 
 export(calculate_distances)
 export(calculate_wavelets_analysis)
+export(create_result_structure)
 export(dper)
 export(extract_contour)
 export(fatrous1d)
@@ -12,3 +13,4 @@ export(process_images)
 export(regularradius)
 export(save_analysis_results)
 export(save_visualization)
+export(save_visualization_perimeter)
