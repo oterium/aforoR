@@ -4,6 +4,8 @@ Version: 0.0.0.9000
 Authors@R: 
     person("Jose Luis", "Otero-Ferrer", , "joseluisotero@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0000-0000-0000"))
+Author: Jose Luis Otero-Ferrer [aut, cre]
+Maintainer: Jose Luis Otero-Ferrer <joseluisotero@gmail.com>
 Description: Shape analysis of fish otoliths. This package provides tools for the analysis of the shape of fish otoliths. It includes functions for the extraction of shape descriptors, the comparison of shapes, and the visualization of the results.
 License: MIT + file LICENSE
 Encoding: UTF-8
