@@ -1,3 +1,20 @@
+#' Calculate Euclidean Distance Between Two Points
+#'
+#' Calculates the Euclidean distance between two points in 2D space.
+#'
+#' @param p1 A numeric vector of length 2 representing the first point (x, y).
+#' @param p2 A numeric vector of length 2 representing the second point (x, y).
+#' @return A numeric value representing the Euclidean distance between the two points.
+#' @examples
+#' # Example usage:
+#' point1 <- c(0, 0)
+#' point2 <- c(3, 4)
+#' distance <- ild(point1, point2)
+#' print(distance)  # Should be 5
+ild <- function(p1, p2) {
+  sqrt(sum((p1 - p2)^2))
+}
+
 #' Compute Distances to Centroid
 #'
 #' Calculates the distances from points to the centroid and returns the indices, radii, and coordinates of the points.
