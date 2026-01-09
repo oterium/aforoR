@@ -1,4 +1,4 @@
-url: "https://vtuset.github.io/AFOROR"
+url: "https://oterium.github.io/aforoR"
 
 template:
   bslib:
@@ -12,7 +12,7 @@ template:
     code_font: "Fira Code"
     pkgdown-nav-height: 80px
     pkgdown-sidebar-width: 250px
-  css: "pkgdown-extra.css"  # <-- agrega tu CSS aquí
+  css: "extra.css"  # <-- agrega tu CSS aquí
   
 navbar:
   title:
@@ -22,30 +22,32 @@ navbar:
     - text: "Overview"
       menu:
         - text: "Otolith Morphology"
-          href: articles/Otolith _Morphology.html
+          href: articles/Otolith_Morphology.html
         - text: "Knowing Wavelets"
-          href: articles/Knowing _Wavelets.html
+          href: articles/Knowing_Wavelets.html
     - text: "Applications"
       menu:
         - text: "Extracting Contour"
-          href: articles/Obtaining _Contour.html
+          href: articles/Obtaining_Contour.html
         - text: "Working with Wavelets"
-          href: articles/Working _Wavelets.html
-#        - text: "Phenotypes"
-#          href: articles/Phenotypes.html
+          href: articles/Working_Wavelets.html
+        - text: "Phenotypes"
+          href: articles/Phenotypes.html
         - text: "Analyzing Otolith Lobes"
-          href: articles/Analyzing _Lobes.html
+          href: articles/Analyzing_Lobes.html
         - text: "Otolith Morphometry"
-          href: articles/Otolith _Morphometry.html
+          href: articles/Otolith_Morphometry.html
     - text: "Publications"
       menu:
-        - text: "News"
-          href: articles/News.html
-        - text: "References"
-          href: articles/Refecences.html
+#        - text: "News"
+#          href: articles/News.html
+#        - text: "References"
+#          href: articles/Refecences.html
+        - text: "About"
+          href: articles/about.html
   right:
     - icon: fab fa-github
-      href: "https://github.com/vtuset/AFOROR"
+      href: "https://github.com/oterium/aforoR"
       text: "GitHub"
     - search: true
 
