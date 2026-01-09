@@ -1,0 +1,10 @@
+/* Texto general de pkgdown */
+body {
+  font-size: 1.1rem;               /* Tamaño base del texto */
+  font-family: "Arial", monospace;   /* Misma fuente que el código */
+}
+/* Opcional: si quieres mantener monospace pero igual tamaño que el body */
+pre, code, pre code {
+  font-size: 1rem;      /* mismo tamaño */
+  font-family: "Fira Code", monospace; /* o la que uses */
+}

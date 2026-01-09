@@ -1,0 +1,46 @@
+---
+title: "Standardizing"
+author: "Victor M. Tuset & Antoni Lombarte"
+date: 2025-11-27
+output: rmarkdown::html_document
+vignette: >
+  %\VignetteIndexEntry{Otolith Morphology}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Images
+
+Otolith images should be placed with the *sulcus acusticus* facing upward, the *rostrum* to the right, and the dorsal margin at the top (Tuset et al., 2008; Lombarte and Tuset, 2015), according to its natural position.
+
+![](images/Standarization2.png "(image modified from Tuset et al., 2021)"){width="21cm"}
+
+During image acquisition, modeling clay can be helpful for otoliths with pronounced convexity. Low-quality images may compromise the final analysis.
+
+![](images/light.jpg "(image modify from Lombarte and Tuset, 2015)")
+
+Although many ageing laboratories capture images from the lateral side, this is not recommended for morphological studies; however, it is acceptable for otoliths that are flat rather than convex.
+
+The package determine automatically the initial contour point, which represents the maximum distance from the otolith centroid to this point locating to the right. This point is usually the *rostrum*, which is a feature clearly recognized in many species by its peaked shape. Minor image misalignment is acceptable as long as the maximum distance is correctly determined. When this standardization criterion may produce mistakes, users can define an alternative morphological features. For example, in *Pseudotolithus elongatus* the *rostrum* is absent and the anterior margin can have different shapes, in this case can be used the margin postero-ventral of *cauda* ending. For that two approaches are possible: either previously adjust the orientation in all images, or manually select the initial point via the package’s options.
+
+![](images/Standarization3.png){style="display:block; margin-left:auto; margin-right:auto;" width="25.9cm"}
+
+## Light
+
+Automatic contour detection is highly sensitive to illumination conditions, including the type and intensity of lighting, background uniformity (black color) and contrast. To minimize variability and ensure reliable results, we recommend acquiring all images under consistent lighting and background conditions.
+
+## Scale
+
+Although this package does not estimate morphometric measurements, it is recommended that images include a scale reference, preferably the same for all images. It does not influence in the contour extraction.
+
+## Otolith morphometric measurements
+
+Length and width used in this package are derived from **the maximum bounding rectangle of the standarized otolith contour**. Future versions might incorporate the estimation these classical measurements, including area and perimeter.
+
+## Other hard structures
+
+All recommendations are also applicable to any shape.
+
+## Terminology
+
+See Tuset et al. (2008).

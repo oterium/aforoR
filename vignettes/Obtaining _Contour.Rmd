@@ -1,0 +1,40 @@
+---
+title: "Using package"
+author: "José Luís Otero-Ferrer & Amalia Manjabacas"
+date: 2025-11-27
+vignette: >
+  %\VignetteIndexEntry{Obtaining Contour}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## About this tutorial
+
+This tutorial describes how to extract coordinates, normalized distance, elliptic Fourier descriptors, and wavelets at multiple scales.
+
+**DATA**
+
+**IMAGES**
+
+## Extracting shape
+
+**JOSÉ poner código**
+
+**Selecting initial point:** The users have two options, automatic or manual (image by image).
+
+Example código
+
+## Compiling data
+
+| Files | Information |
+|--------------------------|----------------------------------------------|
+| Coords.csv | Positioning of points on otolith contour |
+| Distance_NormEN.csv | Normalized distance is applied to extract wavelets levels |
+| EllipticCoeN.csv | Elliptic Fourier Descriptors |
+| wavelet\_[1-9]EN.csv | Data set with image name and 512 points |
+| Image type 1 | Ilustrate the wavelet 5^th^ for each image, where each colour represent otolith regions: antero-dorsal (1-218), postero.dorsal (219-256), postero-ventral (257-387), and antero-ventral (389-512). Help to the morphological interpretation |
+| Image type 2 | Ilustrate the contours, which must be checked for clarity, as poor image quality or contrast can introduce errors. We recommend testing all images prior to analysis |
+
+## 
+
+#### 
