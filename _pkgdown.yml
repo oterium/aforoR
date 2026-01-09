@@ -31,18 +31,20 @@ navbar:
           href: articles/Obtaining_Contour.html
         - text: "Working with Wavelets"
           href: articles/Working_Wavelets.html
-#        - text: "Phenotypes"
-#          href: articles/Phenotypes.html
+        - text: "Phenotypes"
+          href: articles/Phenotypes.html
         - text: "Analyzing Otolith Lobes"
           href: articles/Analyzing_Lobes.html
         - text: "Otolith Morphometry"
           href: articles/Otolith_Morphometry.html
     - text: "Publications"
       menu:
-        - text: "News"
-          href: articles/News.html
-        - text: "References"
-          href: articles/Refecences.html
+#        - text: "News"
+#          href: articles/News.html
+#        - text: "References"
+#          href: articles/Refecences.html
+        - text: "About"
+          href: articles/about.html
   right:
     - icon: fab fa-github
       href: "https://github.com/oterium/aforoR"
