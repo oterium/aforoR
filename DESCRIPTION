@@ -1,21 +1,30 @@
 Package: aforoR
 Title: Anàlisi de FORmes d'Otòlits (Shape Analysis of Fish Otoliths)
-Version: 0.0.0.9000
-Authors@R: 
-    person("Jose Luis", "Otero-Ferrer", , "joseluisotero@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0000-0000-0000"))
-Author: Jose Luis Otero-Ferrer [aut, cre]
-Maintainer: Jose Luis Otero-Ferrer <joseluisotero@gmail.com>
-Description: Shape analysis of fish otoliths. This package provides tools for the analysis of the shape of fish otoliths. It includes functions for the extraction of shape descriptors, the comparison of shapes, and the visualization of the results.
-License: MIT + file LICENSE
+Authors@R: c(
+    person(given   = "Jose Luis",
+           family  = "Otero Ferrer",
+           email   = "joseluis.oteroferrer@gmail.com",
+           role    = c("aut", "cph"),
+           comment = c(ORCID = "0000-0003-1078-4008")),
+    person(given   = "Victor Manuel",
+           family  = "Tuset",
+           email   = "vtuset@icloud.com",
+           role    = c("aut","cre"),
+           comment = c(ORCID = "0000-0001-9032-2844")),
+    person(given   = "Amalia",
+           family  = "Manjabacas",
+           email   = "manjabacas@icm.csic.es",
+           role    = "aut",
+           comment = c(ORCID = "0000-0001-8685-8697")),
+    person(given   = "Antoni",
+           family  = "Lombarte",
+           email   = "toni@icm.csic.es",
+           role    = "aut",
+           comment = c(ORCID = "0000-0001-5215-4587")))
+Description: This package is developed for the shape analysis of fish otoliths. 
+    The methodology developed by the  AFORO team, based on discrete wavelet transform  (Parisi-Baradad et al., 2005), and originally available through te AFORO website (aforo.cmima.csic.es, Lombarte et al., 2006). Altought workflow is initially focus on otoliths, it can be applied to other biological structures such as limpets, leaves, statoliths, beaks, and more.
+    Graphical outputs are included. Visit the 'aforoR' website for more information, documentation and examples.
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
-URL: https://github.com/oterium/aforoR
+LazyData: true
+URL: https://oterium.github.io/aforoR
 BugReports: https://github.com/oterium/aforoR/issues
-Imports:
-    EBImage,
-    Momocs,
-    utils
-Suggests:
-    devtools
