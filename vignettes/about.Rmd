@@ -1,0 +1,17 @@
+---
+title: "AFOROR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AFOROR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+AFOROR 1.0 es un paquete en R para analizar contornos de otolitos y otras estructuras biológicas.
+
+Permite:
+
+- Extracción de contornos con transformada wavelet discreta.
+- Análisis morfométrico.
+- Comparación entre especies.

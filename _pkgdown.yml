@@ -1,0 +1,53 @@
+url: "https://vtuset.github.io/AFOROR"
+
+template:
+  bslib:
+    version: 5
+    bootswatch: lumen
+    primary: "blue"
+    secondary: "red"
+    bg: "white"
+    fg: "black"
+    base_font: "Arial"
+    code_font: "Fira Code"
+    pkgdown-nav-height: 80px
+    pkgdown-sidebar-width: 250px
+  css: "pkgdown-extra.css"  # <-- agrega tu CSS aquí
+  
+navbar:
+  title:
+    text: "AFOROR"
+    href: index.html            # Apunta a README.Rmd convertido
+  left:
+    - text: "Overview"
+      menu:
+        - text: "Otolith Morphology"
+          href: articles/Otolith _Morphology.html
+        - text: "Knowing Wavelets"
+          href: articles/Knowing _Wavelets.html
+    - text: "Applications"
+      menu:
+        - text: "Extracting Contour"
+          href: articles/Obtaining _Contour.html
+        - text: "Working with Wavelets"
+          href: articles/Working _Wavelets.html
+#        - text: "Phenotypes"
+#          href: articles/Phenotypes.html
+        - text: "Analyzing Otolith Lobes"
+          href: articles/Analyzing _Lobes.html
+        - text: "Otolith Morphometry"
+          href: articles/Otolith _Morphometry.html
+    - text: "Publications"
+      menu:
+        - text: "News"
+          href: articles/News.html
+        - text: "References"
+          href: articles/Refecences.html
+  right:
+    - icon: fab fa-github
+      href: "https://github.com/vtuset/AFOROR"
+      text: "GitHub"
+    - search: true
+
+code:
+  width: 50

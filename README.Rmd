@@ -1,0 +1,47 @@
+---
+output: github_document
+---
+
+# **Anàlisi de FORmes d'Otòlits in R** <img src="man/figures/logo.png" align="right" style="float:right; height:120px;"/>
+
+This package has been developed for **Shape Analysis of Fish Otoliths** following the methodology established by the *AFORO* team (Parisi-Baradad et al., 2005). It includes functions to extract coordinates, elliptic Fourier descriptors, and wavelets at multiple scales; and different tutorials about its application. Comparable information is available through the *AFORO* website (**Anàlisi de FORmes d'Otòlits**, <http://aforo.cmima.csic.es/index.jsp>; Lombarte et al., 2006), although only on an image-by-image basis. The package can also be applied to other biological structures, including limpets, leaves, statoliths, and beaks (Tuset et al., 2020; Varsa et al., 2025).
+
+**Common applications**
+
+-   Species identification (taxonomy, diversity, evolution, paleoecology and trophic ecology)
+-   Stock differentiation (fisheries)
+-   Modelling ontogenetic changes (ecomorphology)
+-   Phenotype detection (fisheries, ecomorphology and evolution)
+
+The **Overview** provides essential guidelines on otolith morphology and the interpretation of wavelets. The **Applications** offers tutorials on extracting contour data (coordinates, elliptic fourier descriptors and wavelets at different scales), and the mathematical protocol used for the wavelet analysis. It also provides tutorials for otolith morphometric analysis. The **Publications** list scientific literature cited. The package is only developed in **Applications/Extracting Contour**.
+
+## Installation
+
+``` r
+## Install the development version from GitHub:
+install.packages("devtools")
+devtools::install_github("oterium/aforoR")
+```
+
+## Getting started
+
+``` r
+## Load package
+library(aforoR)
+```
+
+To obtain correctly results, users need:
+
+-   a **folder** with the images (\*.jpg or \*tif)
+-   a **matrix** of biological data (columns) and specimens (row). These specimens must have the same name that images.
+-   a **matrix** of otolith data (length, width, area and perimeter) for all specimens.These specimens must have the same name that images.
+
+Before extracting the contour, please read **Overview** to assess whether your images are suitable.
+
+## Citation
+
+Please cite this package as: Otero-Ferrer, J.L., Tuset, V.M., Manjabacas, A., Lombarte, A. (2025). *AFOROR*: Anàlisi de FORmes d'Otòlits/Shape Analysis of Fish Otoliths. R package version 0.0.0.9000. <https://github.com/oterium/aforoR>).
+
+## Contributions
+
+JLOF, VMT, AM an AL coded the functions and their help. JLOF, and VMT led tutorial writings. All authors tested the functions and contributed to writing of helps and tutorials. JLOF optimized the package.

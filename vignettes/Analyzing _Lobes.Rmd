@@ -1,0 +1,227 @@
+---
+title: "Studying otolith lobes"
+author: "Víctor Manuel Tuset"
+date: 2025-11-27
+vignette: >
+  %\VignetteIndexEntry{Analyzing Lobes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## About this tutorial
+
+This tutorial shows how to quantify the number, depth, height, and crenulation of lobes from the **2^nd^ scale of wavelet function**. This approach is specially useful when wavelets (\>3^rd^ scale) and Fourier descriptors excessively smooth the contour.
+
+## Framework
+
+Definitions:
+
+-   The lobe depth (*LD*) is estimated as: *LD*~i=1…n~ = normalized distance (*Peak*~i~ - *Valle*y~i~), where *LD*~1~ = *Peak*~1~ - *Valle*y~1~, *LD*~2~ = *Peak*~2~ - *Valley*~2~, and so on,
+-   The height lobes (*HD*) is estimated as: *HD*~i=1…n~ = normalized distance (*Peak*~i~ - *Valle*y~i~), where *HD*~1~ = *Peak*~1~ - *Peak*~2~, *HD*~2~ = *Peak*~2~ - *Peak*~3~, and so on,
+-   The crenulation lobes (*LC)* is estimated as: *LD*~i=1…n~ = distance between points (*Peak*~ip~ - *Peak*~ip~), where *LD*~1~ = *Peak*~1p~ - *Peak*~2p~, *LD*~2~ = *Peak*~2p~ - *Peak*~3p~, and so on.
+
+![](images/lobes-04.png){style="display:block; margin-left:auto; margin-right:auto;" width="353"}
+
+Premises:
+
+-   After a peak must have a valley, the first point of the wavelets is always the first peak,
+-   The second peak (or valley) of two consecutive peaks (or valley) is always removed,
+-   The last value is always a valley.
+
+To estimate the 2^nd^ scale of wavelet function and modify it following premises.
+
+![](images/method%20lobes-02.png){style="display:block; margin-left:auto; margin-right:auto;" width="435"}
+
+## Estimating lobes
+
+``` r
+library(pracma)
+#Select peaks and valleys for multiple images
+
+#Step 1
+fpeaks <- function(Data) {
+  peaks <- findpeaks(Data, nups = 3, ndowns =1) # user define
+  # Get the real distance for the first point
+  first_distance <- Data[1]  # First data point as the real distance
+  # Add the first point as a peak
+  peaks <- rbind(c(first_distance, 1), peaks)  # First point (time = 1) as a peak with a distance of 0
+  peaks <- peaks[!duplicated(peaks[, 2]), ]  # Remove consecutive duplicate peaks (same position)
+  return(peaks)
+}
+
+fvalley <- function(Data) {
+  valleys <- findpeaks(-Data, nups = 3, ndowns =1)  # Use negative values to detect valleys
+  valleys <- valleys[!duplicated(valleys[, 2]), ]  # Remove consecutive duplicate valleys (same position)
+  return(valleys)
+}
+#=======================================================
+#Step 2: apply findpeaks to all columns
+peaks_listData <- apply(Data[ , -1], 2, fpeaks)
+valleys_listData <- apply(Data[ , -1], 2, fvalley)
+
+#=======================================================
+#Step 3: Initialize a list to store the peak-valley distances for each column
+peak_valley_distances <- list()
+
+  # Loop through each sample (column in peaks_listData and walleys_listData)
+for (i in 1:length(peaks_listData)) {
+  
+  # Extract peak data (first column: distance, second column: position)
+  peaks <- peaks_listData[[i]]
+  
+  # Extract valley data (first column: distance, second column: position)
+  valleys <- valleys_listData[[i]]
+  
+  # Adjust the distance for valleys (since they were negated in the findpeaks function)
+  valleys[, 1] <- -valleys[, 1]  # Reverse the negation to get the correct distance
+  
+  # Combine the peaks and valleys into one data frame
+  combined <- data.frame(
+    position = c(peaks[, 2], valleys[, 2]),  # Combine positions
+    distance = c(peaks[, 1], valleys[, 1]),  # Combine distances
+    type = c(rep("peak", nrow(peaks)), rep("valley", nrow(valleys)))  # Type of data (peak or valley)
+  )
+  
+  # Order the combined data by position (ascending order)
+  combined_sorted <- combined[order(combined$position), ]
+  
+  # Store the combined and sorted data in the peak_valley_distances list
+  peak_valley_distances[[i]] <- combined_sorted
+}
+
+peak_valley_distances[[1]]
+
+#=======================================================
+# Step 4:Function to eliminate consecutive peaks or valleys with the same type
+eliminate_consecutive <- function(peak_valley_data) {
+  # Initialize the cleaned data with the first row
+  cleaned_data <- peak_valley_data[1, , drop = FALSE]  # Keep the first row
+  
+  for (j in 2:nrow(peak_valley_data)) {
+    # Get the current and previous row
+    current_row <- peak_valley_data[j, , drop = FALSE]
+    prev_row <- cleaned_data[nrow(cleaned_data), , drop = FALSE]
+    
+    # Only add the row if the "type" is different from the previous row's "type"
+    if (current_row$type != prev_row$type) {
+      cleaned_data <- rbind(cleaned_data, current_row)  # Add the current row
+    } else {
+      # If the same type (consecutive peaks or valleys), compare the absolute values of distance
+      if (abs(current_row$distance) > abs(prev_row$distance)) {
+        # Keep the row with the larger absolute value (discard the previous one)
+        cleaned_data <- cleaned_data[-nrow(cleaned_data), , drop = FALSE]  # Remove the previous row
+        cleaned_data <- rbind(cleaned_data, current_row)  # Add the current row
+      }
+    }
+  }
+  
+  # Order the cleaned data by position (ascending order)
+  cleaned_data_sorted <- cleaned_data[order(cleaned_data$position), ]
+  
+  return(cleaned_data_sorted)
+}
+
+# Loop through each sample in peak_valley_distances to clean the consecutive peaks/valleys
+for (i in 1:length(peak_valley_distances)) {
+  peak_valley_data <- peak_valley_distances[[i]]
+  
+  # Eliminate consecutive peaks or valleys with the same type
+  peak_valley_distances[[i]] <- eliminate_consecutive(peak_valley_data)
+}
+
+# Now peak_valley_distances[[i]] contains the cleaned peaks and valleys without consecutive repeats of type
+
+peak_valley_distances[[1]]
+
+#=======================================================
+# Step 5: Function to remove the last row if it is a peak
+remove_last_peak <- function(peak_valley_data) {
+  # Check if the last row is a "peak"
+  if (nrow(peak_valley_data) > 0 && peak_valley_data[nrow(peak_valley_data), "type"] == "peak") {
+    peak_valley_data <- peak_valley_data[-nrow(peak_valley_data), ]
+  }
+  
+  return(peak_valley_data)
+}
+
+# Loop through each sample in peak_valley_distances to clean the consecutive peaks/valleys and remove the last peak
+for (i in 1:length(peak_valley_distances)) {
+  peak_valley_data <- peak_valley_distances[[i]]
+  
+  # Eliminate consecutive peaks or valleys with the same type
+  peak_valley_data <- eliminate_consecutive(peak_valley_data)
+  
+  # Remove the last peak if it exists
+  peak_valley_distances[[i]] <- remove_last_peak(peak_valley_data)
+}
+
+# Now peak_valley_distances[[i]] contains the cleaned peaks and valleys without consecutive repeats of type and without the last peak
+peak_valley_distances[[1]]
+
+#=======================================================
+#Step 6: Estimando measurements: HD y LC
+# Initialize a list to store the results
+HDLC_df <- list()
+
+# Loop through each element of peak_valley_distances
+for(i in 1:length(peak_valley_distances)) {
+  
+  # Extract the current case
+  HDLC <- peak_valley_distances[[i]]
+  
+  # Compute the height difference between consecutive peaks
+    peak_diff_HD <- peaks$distance[-nrow(peaks)] - peaks$distance[-1]   # amplitude
+    
+  # Compute the (absolute) position difference between consecutive peaks
+    peak_diff_LC <- abs(peaks$position[-nrow(peaks)] - peaks$position[-1])  # position
+    
+  # Create a data frame for this case
+    df_case <- data.frame(
+      Peak_from = peaks$position[-nrow(peaks)],
+      Peak_to   = peaks$position[-1],
+      HD = peak_diff_HD,
+      LC = peak_diff_LC
+    )
+  # Store the result in the list
+  HDLC_df[[i]] <- df_case
+}
+
+# Access the first case
+HDLC_df[[1]]
+
+#=======================================================
+#Step 7: Estimating values: LD
+# Initialize a list to store the results
+LD_df <- list()
+
+# Loop through each element of peak_valley_distances
+for(i in 1:length(peak_valley_distances)) {
+  
+  # Extract the current case (data frame with position, distance, type)
+  LD_data <- peak_valley_distances[[i]]
+  
+  # Extract peaks and valleys separately
+  peaks   <- LD_data[LD_data$type == "peak", ]
+  valleys <- LD_data[LD_data$type == "valley", ]
+  
+  # Ensure the same number of peaks and valleys for pairing:
+  # LD_i = Peak_i - Valley_i  
+  n_pairs <- min(nrow(peaks), nrow(valleys))
+
+    
+    LD_values <- peaks$distance[1:n_pairs] - valleys$distance[1:n_pairs]
+    
+    df_case <- data.frame(
+      Peak_position   = peaks$position[1:n_pairs],
+      Valley_position = valleys$position[1:n_pairs],
+      LD = LD_values
+    )
+  # Store the result for this case
+  LD_df[[i]] <- df_case
+}
+
+# Access the first case
+LD_df[[1]]
+```
+
+From HDLC_df and LD_df, users can perform their analyses.

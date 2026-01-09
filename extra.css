@@ -1,0 +1,11 @@
+/* Hace que todos los bloques de código R tengan el mismo tamaño que el texto */
+pre, code, pre code {
+  font-size: 1rem;      /* 1rem = mismo tamaño que el texto del body */
+  font-family: inherit;  /* hereda la fuente del texto */
+}
+
+/* Opcional: si quieres mantener monospace pero igual tamaño que el body */
+pre, code, pre code {
+  font-size: 1rem;      /* mismo tamaño */
+  font-family: "Fira Code", monospace; /* o la que uses */
+}
