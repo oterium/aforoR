@@ -15,23 +15,28 @@
 #' rd1 <- fatrous1d(ra0, rg_, sng_min, sng_max, 1)
 
 fatrous1d <- function(rx, rh, snmin, snmax, sj) {
-  # sj: scale
-  # Computes the atrous convolution:
-  #
-  # y = x[n] * h?[n];
-  #              *: Convolution product
-  #              h? = h with 2^j-1 zeros between each sample
-  #
-  # Example:
-  #  [ra0, rt] = facb3transient(100, 10, 10e-3, 6e-3, 2, 5120);
-  #  rh_ = sqrt(2) * c(0.125, 0.375, 0.375, 0.125);
-  #  snh_min = -2; snh_max = 1;
-  #  rg_ = sqrt(2) * c(0.5, -0.5);
-  #  sng_min = -1; sng_max = 0;
-  #  ra1 = fatrous1d(ra0, rh_, snh_min, snh_max, 1);
-  #  rd1 = fatrous1d(ra0, rg_, sng_min, sng_max, 1);
-
+  # Input validation
+  if (!is.numeric(rx) || !is.numeric(rh)) {
+    stop("rx and rh must be numeric vectors")
+  }
+  
+  if (length(rx) == 0 || length(rh) == 0) {
+    stop("rx and rh cannot be empty")
+  }
+  
+  if (!is.numeric(snmin) || !is.numeric(snmax) || !is.numeric(sj)) {
+    stop("snmin, snmax, and sj must be numeric values")
+  }
+  
+  if (length(snmin) != 1 || length(snmax) != 1 || length(sj) != 1) {
+    stop("snmin, snmax, and sj must be single values")
+  }
+  
   if (sj < 0) stop("sj tiene que ser >=0")
+  
+  if (snmax < snmin) {
+    stop("snmax must be greater than or equal to snmin")
+  }
 
   sj = sj - 1
   rg = rh[seq(snmax - snmin + 1, 1, -1)]

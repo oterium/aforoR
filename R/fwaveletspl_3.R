@@ -14,6 +14,27 @@
 #' wavelets <- fwaveletspl_3(ra0, sjm)
 #' print(wavelets)
 fwaveletspl_3 <- function(ra0, sjm, det = F) {
+  # Input validation
+  if (!is.numeric(ra0)) {
+    stop("ra0 must be a numeric vector")
+  }
+  
+  if (length(ra0) == 0) {
+    stop("ra0 cannot be empty")
+  }
+  
+  if (!is.numeric(sjm) || length(sjm) != 1 || sjm <= 0) {
+    stop("sjm must be a positive integer")
+  }
+  
+  if (!is.logical(det) || length(det) != 1) {
+    stop("det must be a logical value")
+  }
+  
+  if (any(is.na(ra0))) {
+    stop("ra0 cannot contain NA values")
+  }
+  
   # Filters
   rh_ <- c(0.0625, 0.25, 0.375, 0.25, 0.0625)
   snh_min <- -2
