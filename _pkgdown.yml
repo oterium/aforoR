@@ -25,8 +25,13 @@ navbar:
           href: articles/Otolith_Morphology.html
         - text: "Knowing Wavelets"
           href: articles/Knowing_Wavelets.html
-    - text: " Workflow"
-      href: articles/Workflow.html
+    - text: "Workflow"
+      menu:
+        - text: Image Preprocessing
+        - text: Contour Extraction
+        - text: Distance Measurements
+        - text: Wavelet decomposition
+        - text: Visualization and Export
     - text: "Applications"
       menu:
         - text: "Extracting Contour"
