@@ -35,6 +35,11 @@ fwaveletspl_3 <- function(ra0, sjm, det = F) {
     stop("ra0 cannot contain NA values")
   }
   
+  # Warn if signal is constant or has zero variance
+  if (length(unique(ra0)) == 1 || sd(ra0) == 0) {
+    warning("Input signal is constant or has zero variance. Wavelet analysis may not be meaningful.")
+  }
+  
   # Filters
   rh_ <- c(0.0625, 0.25, 0.375, 0.25, 0.0625)
   snh_min <- -2
@@ -46,7 +51,11 @@ fwaveletspl_3 <- function(ra0, sjm, det = F) {
   # Number of scales
   sj <- ceiling(log(sN, 2))  # This is used for safety, recalculates sjm based on ra0.
 
-  if (sj != sjm) stop("Revisa los parametros")
+  sj_expected <- ceiling(log(sN, 2))
+  if (sj_expected != sjm) {
+    stop(sprintf("Invalid sjm parameter: expected %d based on signal length %d, but got %d", 
+                 sj_expected, sN, sjm))
+  }
 
   raj_1Anterior <- ra0
 

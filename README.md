@@ -1,7 +1,7 @@
 # aforoR: Shape Analysis of Fish Otoliths
 ### *Anàlisi de FORmes d'Otòlits*
 
-[![Version](https://img.shields.io/badge/version-0.0.0.9000-blue.svg)](https://github.com/oterium/aforoR)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/oterium/aforoR)
 [![License: MIT](https://img.shields.io/badge/license-MIT%20%2B%20file%20LICENSE-blue.svg)](https://github.com/oterium/aforoR/blob/main/LICENSE)
 [![R Version](https://img.shields.io/badge/R-%E2%89%A5%204.0.0-blue.svg)](https://cran.r-project.org/)
 [![Roxygen: 7.3.2](https://img.shields.io/badge/roxygen-7.3.2-blue.svg)](https://github.com/oterium/aforoR)
@@ -332,14 +332,14 @@ If you use aforoR in your research, please cite the package as:
   title = {aforoR: Shape Analysis of Fish Otoliths},
   subtitle = {Anàlisi de FORmes d'Otòlits},
   year = {2024},
-  version = {0.0.0.9000},
+  version = {0.1.0},
   url = {https://github.com/oterium/aforoR},
-  note = {R package version 0.0.0.9000}
+  note = {R package version 0.1.0}
 }
 ```
 
 **APA Style:**
-Otero-Ferrer, J. L. (2024). *aforoR: Shape Analysis of Fish Otoliths* (Version 0.0.0.9000) [Computer software]. https://github.com/oterium/aforoR
+Otero-Ferrer, J. L. (2024). *aforoR: Shape Analysis of Fish Otoliths* (Version 0.1.0) [Computer software]. https://github.com/oterium/aforoR
 
 ## 📄 License
 

@@ -32,7 +32,9 @@ fatrous1d <- function(rx, rh, snmin, snmax, sj) {
     stop("snmin, snmax, and sj must be single values")
   }
   
-  if (sj < 0) stop("sj tiene que ser >=0")
+  if (sj < 0) {
+    stop("sj must be >= 0")
+  }
   
   if (snmax < snmin) {
     stop("snmax must be greater than or equal to snmin")

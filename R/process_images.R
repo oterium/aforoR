@@ -1,3 +1,18 @@
+#' Create Zones for Visualization
+#' 
+#' @param n_points Total number of points
+#' @param n_zones Number of zones to create
+#' @return A list of integer vectors representing zone indices
+#' @noRd
+create_zones <- function(n_points, n_zones = 4) {
+  zone_size <- n_points / n_zones
+  lapply(1:n_zones, function(i) {
+    start <- floor((i-1) * zone_size) + 1
+    end <- if (i == n_zones) n_points else floor(i * zone_size)
+    start:end
+  })
+}
+
 #' Preprocess Image for Contour Analysis
 #'
 #' Applies preprocessing steps to an image including grayscale conversion,
@@ -5,6 +20,8 @@
 #'
 #' @param image_path A string specifying the path to the image file.
 #' @param threshold A numeric value for binarization. If NULL, uses Otsu method.
+#' @param gaussian_size Integer specifying the size of the Gaussian filter brush (default: 31).
+#' @param gaussian_sigma Numeric value specifying the sigma parameter for Gaussian filtering (default: 9).
 #' @return A binarized image ready for contour detection.
 #' @export
 #' @examples
@@ -12,7 +29,7 @@
 #' # Example usage:
 #' processed_img <- preprocess_image("path/to/image.jpg")
 #' }
-preprocess_image <- function(image_path, threshold = NULL) {
+preprocess_image <- function(image_path, threshold = NULL, gaussian_size = 31, gaussian_sigma = 9) {
   # Input validation
   if (!is.character(image_path) || length(image_path) != 1) {
     stop("image_path must be a single character string")
@@ -26,11 +43,15 @@ preprocess_image <- function(image_path, threshold = NULL) {
     stop("threshold must be a single numeric value or NULL")
   }
 
+  if (!is.null(threshold) && (threshold < 0 || threshold > 1)) {
+    stop("threshold must be between 0 and 1")
+  }
+
   tryCatch({
     # Read and process image
     foto <- EBImage::readImage(image_path)
     foto2 <- EBImage::channel(foto, "grey")
-    foto2 <- EBImage::filter2(foto2, EBImage::makeBrush(size = 31, shape = 'gaussian', sigma = 9))
+    foto2 <- EBImage::filter2(foto2, EBImage::makeBrush(size = gaussian_size, shape = 'gaussian', sigma = gaussian_sigma))
 
     if (is.null(threshold)) {
       foto2 <- foto2 > EBImage::otsu(foto2)
@@ -50,6 +71,8 @@ preprocess_image <- function(image_path, threshold = NULL) {
 #' size criteria for otolith analysis.
 #'
 #' @param binary_image A binarized image from preprocess_image().
+#' @param min_points Integer specifying the minimum number of points for a valid contour (default: 1000).
+#' @param min_area Numeric value specifying the minimum area for a valid contour (default: 10^5).
 #' @return A matrix containing the contour coordinates, or NULL if no suitable contour found.
 #' @export
 #' @examples
@@ -58,7 +81,7 @@ preprocess_image <- function(image_path, threshold = NULL) {
 #' binary_img <- preprocess_image("path/to/image.jpg")
 #' contour <- extract_contour(binary_img)
 #' }
-extract_contour <- function(binary_image) {
+extract_contour <- function(binary_image, min_points = 1000, min_area = 10^5) {
   # Input validation
   if (is.null(binary_image)) {
     stop("binary_image cannot be NULL")
@@ -74,14 +97,14 @@ extract_contour <- function(binary_image) {
     }
 
     for (x in 1:length(cont)) {
-      if (length(cont[[x]])[1] > 1000 && Momocs::coo_area(cont[[x]]) > 10^5) {
+      if (length(cont[[x]])[1] > min_points && Momocs::coo_area(cont[[x]]) > min_area) {
         contorno <- cont[[x]]
         break
       }
     }
 
     if (is.null(contorno)) {
-      warning("No contour found meeting size criteria (>1000 points and area >10^5)")
+      warning(sprintf("No contour found meeting size criteria (>%d points and area >%g)", min_points, min_area))
     }
 
     return(contorno)
@@ -96,7 +119,24 @@ extract_contour <- function(binary_image) {
 #'
 #' @param contour A matrix containing contour coordinates from extract_contour().
 #' @param n_points An integer specifying the number of points to sample (default: 512).
-#' @return A list containing polar distances, perimeter distances, and their normalized versions.
+#' @return A list containing:
+#'   \describe{
+#'     \item{polar}{List with components:
+#'       \itemize{
+#'         \item radii: numeric vector of distances from centroid
+#'         \item coord: matrix of polar coordinates
+#'         \item normalized: normalized radii values
+#'       }
+#'     }
+#'     \item{perimeter}{List with components:
+#'       \itemize{
+#'         \item dist: numeric vector of perimeter distances
+#'         \item coords: matrix of perimeter coordinates
+#'         \item normalized: normalized distance values
+#'       }
+#'     }
+#'     \item{reordered_coords}{List with x and y coordinate vectors}
+#'   }
 #' @export
 #' @examples
 #' \dontrun{
@@ -265,7 +305,7 @@ save_visualization <- function(binary_image, distances, wavelets, image_name, ou
     points(distances$reordered_coords$x[1], distances$reordered_coords$y[1], col = 2, pch = 16)
 
     # Draw colored zones
-    zones <- list(1:126, 127:256, 257:374, 375:512)
+    zones <- create_zones(n_points = 512, n_zones = 4)
     colors <- c(4, 5, 6, 7)
 
     for (i in 1:length(zones)) {
@@ -389,11 +429,15 @@ write_analysis_csv <- function(data, filename, row_names) {
     stop("row_names must be a character vector")
   }
 
-  if (is.vector(data)) {
-    data <- matrix(data, nrow = 1)
+  if (!is.matrix(data) && !is.data.frame(data)) {
+    if (is.vector(data)) {
+      data <- matrix(data, nrow = 1)
+    } else {
+      stop("data must be a matrix, data frame, or vector")
+    }
   }
 
-  if (nrow(data) != length(row_names)) {
+  if (is.null(nrow(data)) || nrow(data) != length(row_names)) {
     stop("Number of rows in data must match length of row_names")
   }
 
@@ -439,9 +483,11 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets
 
   tryCatch({
     # Change to working directory safely
-    if (!setwd(folder)) {
-      stop(paste("Cannot change to folder:", folder))
-    }
+    tryCatch({
+      setwd(folder)
+    }, error = function(e) {
+      stop(paste("Cannot change to folder:", folder, "-", e$message))
+    })
 
     # Create processing directories if they don't exist
     if (!dir.exists("Procesamiento")) {
@@ -624,7 +670,7 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets, imag
     points(distances$reordered_coords$x[1], distances$reordered_coords$y[1], col = 3, pch = 16)
 
     # Draw colored zones for perimeter coordinates
-    zones <- list(1:126, 127:256, 257:374, 375:512)
+    zones <- create_zones(n_points = 512, n_zones = 4)
     colors <- c(4, 5, 6, 7)
 
     for (i in 1:length(zones)) {
