@@ -1,5 +1,6 @@
 Package: aforoR
 Title: Anàlisi de FORmes d'Otòlits (Shape Analysis of Fish Otoliths)
+Version: 0.1.0
 Authors@R: c(
     person(given   = "Jose Luis",
            family  = "Otero Ferrer",
