@@ -13,10 +13,10 @@ template:
     pkgdown-nav-height: 80px
     pkgdown-sidebar-width: 250px
   css: "extra.css"  # <-- agrega tu CSS aquí
-  
+
 navbar:
   title:
-    text: "AFOROR"
+    text: "aforoR"
     href: index.html            # Apunta a README.Rmd convertido
   left:
     - text: "Overview"
@@ -25,6 +25,8 @@ navbar:
           href: articles/Otolith_Morphology.html
         - text: "Knowing Wavelets"
           href: articles/Knowing_Wavelets.html
+    - text: " Workflow"
+      href: articles/Workflow.html
     - text: "Applications"
       menu:
         - text: "Extracting Contour"
