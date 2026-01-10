@@ -29,3 +29,4 @@ Encoding: UTF-8
 LazyData: true
 URL: https://oterium.github.io/aforoR
 BugReports: https://github.com/oterium/aforoR/issues
+RoxygenNote: 7.3.3

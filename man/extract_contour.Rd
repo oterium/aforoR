@@ -17,7 +17,9 @@ Detects and extracts the largest contour from a binarized image that meets
 size criteria for otolith analysis.
 }
 \examples{
-# Example usage:  
+\dontrun{
+# Example usage:
 binary_img <- preprocess_image("path/to/image.jpg")
 contour <- extract_contour(binary_img)
+}
 }

@@ -15,11 +15,9 @@ regularradius(Rx, Ry, n)
 }
 \value{
 A list containing:
-\itemize{
-\item \code{pixindices}: A numeric vector of indices of the sampled points.
-\item \code{radii}: A numeric vector of radii from the centroid to the sampled points.
-\item \code{coord}: A matrix of coordinates of the sampled points.
-}
+  - `pixindices`: A numeric vector of indices of the sampled points.
+  - `radii`: A numeric vector of radii from the centroid to the sampled points.
+  - `coord`: A matrix of coordinates of the sampled points.
 }
 \description{
 Calculates the distances from points to the centroid and returns the indices, radii, and coordinates of the points.

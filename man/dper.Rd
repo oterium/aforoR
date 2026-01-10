@@ -15,10 +15,8 @@ dper(x, y, n)
 }
 \value{
 A list containing:
-\itemize{
-\item \code{dist}: A numeric vector of distances from the centroid to the sampled points.
-\item \code{coords}: A matrix of coordinates of the sampled points.
-}
+  - `dist`: A numeric vector of distances from the centroid to the sampled points.
+  - `coords`: A matrix of coordinates of the sampled points.
 }
 \description{
 Calculates the distances from the centroid to points along the perimeter of a shape.
