@@ -39,6 +39,10 @@ preprocess_image <- function(image_path, threshold = NULL, gaussian_size = 31, g
     stop(paste("Image file does not exist:", image_path))
   }
 
+  if (!grepl("\\.(jpg|jpeg|png|tif|tiff)$", image_path, ignore.case = TRUE)) {
+    stop("Unsupported image format. Use JPG, JPEG, PNG, TIF, or TIFF.")
+  }
+
   if (!is.null(threshold) && (!is.numeric(threshold) || length(threshold) != 1)) {
     stop("threshold must be a single numeric value or NULL")
   }
@@ -73,7 +77,9 @@ preprocess_image <- function(image_path, threshold = NULL, gaussian_size = 31, g
 #' @param binary_image A binarized image from preprocess_image().
 #' @param min_points Integer specifying the minimum number of points for a valid contour (default: 1000).
 #' @param min_area Numeric value specifying the minimum area for a valid contour (default: 10^5).
-#' @return A matrix containing the contour coordinates, or NULL if no suitable contour found.
+#' @param select_largest Logical value indicating whether to select the largest contour when multiple valid contours exist (default: TRUE).
+#' @param return_all Logical value indicating whether to return all valid contours (default: FALSE).
+#' @return A matrix containing the contour coordinates, a list of contours if return_all=TRUE, or NULL if no suitable contour found.
 #' @export
 #' @examples
 #' \dontrun{
@@ -81,7 +87,7 @@ preprocess_image <- function(image_path, threshold = NULL, gaussian_size = 31, g
 #' binary_img <- preprocess_image("path/to/image.jpg")
 #' contour <- extract_contour(binary_img)
 #' }
-extract_contour <- function(binary_image, min_points = 1000, min_area = 10^5) {
+extract_contour <- function(binary_image, min_points = 1000, min_area = 10^5, select_largest = TRUE, return_all = FALSE) {
   # Input validation
   if (is.null(binary_image)) {
     stop("binary_image cannot be NULL")
@@ -89,25 +95,34 @@ extract_contour <- function(binary_image, min_points = 1000, min_area = 10^5) {
 
   tryCatch({
     cont <- EBImage::ocontour(EBImage::bwlabel(binary_image))
-    contorno <- NULL
 
     if (length(cont) == 0) {
       warning("No contours found in image")
       return(NULL)
     }
 
+    valid_contours <- list()
     for (x in 1:length(cont)) {
       if (length(cont[[x]])[1] > min_points && Momocs::coo_area(cont[[x]]) > min_area) {
-        contorno <- cont[[x]]
-        break
+        valid_contours[[length(valid_contours) + 1]] <- cont[[x]]
       }
     }
 
-    if (is.null(contorno)) {
+    if (length(valid_contours) == 0) {
       warning(sprintf("No contour found meeting size criteria (>%d points and area >%g)", min_points, min_area))
+      return(NULL)
     }
 
-    return(contorno)
+    if (return_all) {
+      return(valid_contours)
+    }
+
+    if (select_largest && length(valid_contours) > 1) {
+      areas <- sapply(valid_contours, Momocs::coo_area)
+      return(valid_contours[[which.max(areas)]])
+    }
+
+    return(valid_contours[[1]])
   }, error = function(e) {
     stop(paste("Error extracting contour:", e$message))
   })
@@ -457,9 +472,11 @@ write_analysis_csv <- function(data, filename, row_names) {
 #' @param testing A logical value indicating whether to save test images. Default is TRUE.
 #' @param pseudolandmarks A string specifying the type of pseudolandmarks. Options are 'curvilinear', 'polar', 'both'. Default is 'both'.
 #' @param save A logical value indicating whether to save the results as CSV files. Default is TRUE.
+#' @param verbose A logical value indicating whether to print progress messages. Default is TRUE.
+#' @param log_file A string specifying the path to a log file. If NULL, no file logging. Default is NULL.
 #' @export
 #'
-process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets = TRUE, ef = TRUE, testing = TRUE, pseudolandmarks = "both", save = TRUE) {
+process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets = TRUE, ef = TRUE, testing = TRUE, pseudolandmarks = "both", save = TRUE, verbose = TRUE, log_file = NULL) {
 
   # Input validation
   if (!is.character(folder) || length(folder) != 1) {
@@ -476,6 +493,16 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets
 
   if (!pseudolandmarks %in% c('curvilinear', 'polar', 'both')) {
     stop("pseudolandmarks must be one of: 'curvilinear', 'polar', 'both'")
+  }
+
+  # Logging helper function
+  log_message <- function(msg) {
+    if (verbose) {
+      message(msg)
+      if (!is.null(log_file)) {
+        cat(paste0(Sys.time(), " - ", msg, "\n"), file = log_file, append = TRUE)
+      }
+    }
   }
 
   # Store original directory
@@ -498,12 +525,15 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets
     }
 
     # Get list of image files
-    imag <- list.files(pattern = "\\.jpg$", full.names = TRUE)
+    imag <- list.files(pattern = "\\.(jpg|jpeg|png|tif|tiff)$", 
+                      full.names = TRUE, ignore.case = TRUE)
 
     if (length(imag) == 0) {
-      warning("No .jpg files found in the specified folder")
+      warning("No image files found in the specified folder (supported formats: JPG, JPEG, PNG, TIF, TIFF)")
       return(invisible(NULL))
     }
+
+    log_message(sprintf("Processing %d images from folder: %s", length(imag), folder))
 
     pb <- utils::txtProgressBar(max = length(imag), style = 3)
 
@@ -513,6 +543,7 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets
 
     for (i in 1:length(imag)) {
       utils::setTxtProgressBar(pb, i)
+      log_message(sprintf("Processing image %d/%d: %s", i, length(imag), basename(imag[i])))
 
       tryCatch({
         # Step 1: Preprocess image
