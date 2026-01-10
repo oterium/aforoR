@@ -1,10 +1,12 @@
-# Shape Analysis of Fish Otoliths
-### *Anàlisi de FORmes d'Otòlits*
+# aforoR <img src="man/figures/logo.png" align="right" height="139" />
 
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/oterium/aforoR)
 [![License: MIT](https://img.shields.io/badge/license-MIT%20%2B%20file%20LICENSE-blue.svg)](https://github.com/oterium/aforoR/blob/main/LICENSE)
 [![R Version](https://img.shields.io/badge/R-%E2%89%A5%204.0.0-blue.svg)](https://cran.r-project.org/)
 [![Roxygen: 7.3.2](https://img.shields.io/badge/roxygen-7.3.2-blue.svg)](https://github.com/oterium/aforoR)
+
+## Shape Analysis of Fish Otoliths
+### *Anàlisi de FORmes d'Otòlits in R*
 
 This package has been developed for **Shape Analysis of Fish Otoliths** following the methodology established by the *AFORO* team (Parisi-Baradad et al., 2005). It includes functions to extract coordinates, elliptic Fourier descriptors, and wavelets at multiple scales; and and different tutorials about its application. Comparable information is available through the *AFORO* website (**Anàlisi de FORmes d'Otòlits**, <http://aforo.cmima.csic.es/index.jsp>; Lombarte et al., 2006), although only on an image-by-image basis. The package can also be applied to other closed biological structures, including limpets, leaves, statoliths, and beaks (Tuset et al., 2020; Varsa et al., 2025).
 
