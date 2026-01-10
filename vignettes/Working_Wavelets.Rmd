@@ -36,7 +36,7 @@ Aint <- read.csv("data/Aintermedius/Cartesian/Wavelet_5EN.csv", sep = ";")
 # Step 2: Rename and add columns
 # - first column -> "ID"
 # - columns 2:513 -> W1...W512
-# - add column to idenfy Species (stocks)
+# - add column to identify Species (stocks)
 names(Acar)[1] <- "ID"
 names(Acar)[2:513] <- paste0("W", 1:512)
 Acar$Species<-"Acar"
@@ -49,7 +49,7 @@ Aint$Species<-"Aint"
 str(Acar)# W1..W512 must be numeric variables
 str(Aint)# W1..W512 must be numeric variables
 
-# Step 4: Combine datset
+# Step 4: Combine dataset
 Wavelet<- rbind(Acar, Aint)
 Wavelet$Species<-as.factor(Wavelet$Species)
 
@@ -80,7 +80,7 @@ AintMorpho$Species<-"Aint"
 str(AcarMorpho)# morphometric data must be numeric
 str(AintMorpho)# morphometric data must be numeric
 
-# Step 7: Combine datset
+# Step 7: Combine dataset
 Morpho<- rbind(AcarMorpho, AintMorpho)
 Morpho$Species<-as.factor(Morpho$Species)
 str(Morpho)
@@ -324,7 +324,6 @@ DataT1<-as.data.frame(cbind(new_df, Aphanopus$Species))
 colnames(DataT1)[10]<-"Species"
 rownames(DataT1)<-Aphanopus$ID
 str(DataT1)
-tr(DataT1)
 'data.frame':   143 obs. of  10 variables:
  $ PC1    : num  -0.0706 0.108 0.0386 0.0433 0.1466 ...
  $ PC2    : num  -0.173 -0.034 -0.144 -0.1181 -0.0441 ...
