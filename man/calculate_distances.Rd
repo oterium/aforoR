@@ -18,6 +18,8 @@ A list containing polar distances, perimeter distances, and their normalized ver
 Computes both polar and perimeter distance measures from an otolith contour.
 }
 \examples{
+\dontrun{
 # Example usage:
 distances <- calculate_distances(contour, n_points = 512)
+}
 }

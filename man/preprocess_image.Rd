@@ -19,6 +19,8 @@ Applies preprocessing steps to an image including grayscale conversion,
 Gaussian filtering, and binarization.
 }
 \examples{
+\dontrun{
 # Example usage:
 processed_img <- preprocess_image("path/to/image.jpg")
+}
 }

@@ -4,7 +4,14 @@
 \alias{save_visualization}
 \title{Save Visualization Images for Analysis}
 \usage{
-save_visualization(binary_image, distances, wavelets, image_name, output_dir, wavelet_scale = 5)
+save_visualization(
+  binary_image,
+  distances,
+  wavelets,
+  image_name,
+  output_dir,
+  wavelet_scale = 5
+)
 }
 \arguments{
 \item{binary_image}{The binarized image from preprocessing.}

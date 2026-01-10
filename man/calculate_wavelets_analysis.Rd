@@ -20,6 +20,8 @@ A list containing wavelet transforms for both polar and perimeter distances.
 Computes wavelet transforms for both polar and perimeter distance measures.
 }
 \examples{
+\dontrun{
 # Example usage:
 wavelets <- calculate_wavelets_analysis(distances, n_scales = 9)
+}
 }
