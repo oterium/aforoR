@@ -30,6 +30,7 @@ LazyData: true
 URL: https://oterium.github.io/aforoR
 BugReports: https://github.com/oterium/aforoR/issues
 RoxygenNote: 7.3.3
+biocViews:
 Imports:
     EBImage,
     Momocs,
@@ -37,3 +38,5 @@ Imports:
 Suggests:
     devtools,
     testthat (>= 3.0.0)
+Config/Needs/website: pkgdown
+Additional_repositories: https://bioconductor.org/packages/release/bioc
