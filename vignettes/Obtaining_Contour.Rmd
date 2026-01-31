@@ -1,6 +1,6 @@
 ---
 title: "Obtaining Contour and Shape Analysis"
-author: "Jośe Luís Otero-Ferrer & Amalia Manjabacas"
+author: "José Luis Otero-Ferrer & Amalia Manjabacas"
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteIndexEntry{Obtaining Contour and Shape Analysis}
@@ -21,7 +21,10 @@ This tutorial describes how to use the `aforoR` package to process images, extra
 
 ## 1. Setting up images
 
-The package works by processing all `.jpg` images within a specified folder. For this tutorial, we will use an example image included in the package.
+The package works by processing all `.jpg` images within a specified folder. While we use sample images for this tutorial, full datasets of *Aphanopus carbo* and *A. intermedius* (as used in other vignettes) can be downloaded from Zenodo:
+
+> [!NOTE]
+> **Zenodo Dataset**: [Aphanopus Otolith Images](https://zenodo.org/api/records/18443318/draft/files/images.zip/content)
 
 First, let's look at where the example image is stored:
 
