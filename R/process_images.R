@@ -1,17 +1,19 @@
 #' Preprocess Image for Contour Analysis
 #'
-#' Applies preprocessing steps to an image including grayscale conversion,
-#' Gaussian filtering, and binarization.
+#' Prepares an image for shape analysis by applying grayscale conversion,
+#' Gaussian smoothing to reduce noise, and binarization using the Otsu method (default)
+#' or a fixed threshold.
 #'
-#' @param image_path A string specifying the path to the image file.
-#' @param threshold A numeric value for binarization. If NULL, uses Otsu method.
-#' @return A binarized image ready for contour detection.
+#' @param image_path A string specifying the path to the image file (e.g., .jpg).
+#' @param threshold A numeric value (0-1) for binarization. If NULL, Otsu's method
+#'                  is automatically applied.
+#' @return A \code{pixset} (EBImage) representing the binarized image.
 #' @export
 #' @examples
-#' \dontrun{
-#' # Example usage:
-#' processed_img <- preprocess_image("path/to/image.jpg")
-#' }
+#' # Use the sample otolith image included in the package
+#' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+#' processed_img <- preprocess_image(image_path)
+#' # display(processed_img) # if using EBImage
 preprocess_image <- function(image_path, threshold = NULL) {
   # Input validation
   if (!is.character(image_path) || length(image_path) != 1) {
@@ -49,18 +51,20 @@ preprocess_image <- function(image_path, threshold = NULL) {
 
 #' Extract Main Contour from Binarized Image
 #'
-#' Detects and extracts the largest contour from a binarized image that meets
-#' size criteria for otolith analysis.
+#' Detects all contours in a binary image and identifies the largest one that meets
+#' specific size criteria (points > 200 and area > 5000), typically representing
+#' the fish otolith.
 #'
-#' @param binary_image A binarized image from preprocess_image().
-#' @return A matrix containing the contour coordinates, or NULL if no suitable contour found.
+#' @param binary_image A binarized image produced by \code{preprocess_image()}.
+#' @return A matrix of (X, Y) coordinates of the main contour, or NULL if no
+#'         suitable contour is found.
 #' @export
 #' @examples
-#' \dontrun{
-#' # Example usage:
-#' binary_img <- preprocess_image("path/to/image.jpg")
+#' # Process sample image and extract its contour
+#' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+#' binary_img <- preprocess_image(image_path)
 #' contour <- extract_contour(binary_img)
-#' }
+#' head(contour)
 extract_contour <- function(binary_image) {
   # Input validation
   if (is.null(binary_image)) {
@@ -98,17 +102,25 @@ extract_contour <- function(binary_image) {
 
 #' Calculate Distance Measures from Contour
 #'
-#' Computes both polar and perimeter distance measures from an otolith contour.
+#' Computes two types of distance measures from an otolith contour: polar distances
+#' (radial distances from the centroid) and perimeter-based distances.
+#' These measures are crucial for subsequent wavelet analysis.
 #'
-#' @param contour A matrix containing contour coordinates from extract_contour().
-#' @param n_points An integer specifying the number of points to sample (default: 512).
-#' @return A list containing polar distances, perimeter distances, and their normalized versions.
+#' @param contour A matrix of coordinates from \code{extract_contour()}.
+#' @param n_points Target number of points for resampling (default: 512).
+#' @return A list containing:
+#'   \itemize{
+#'     \item \code{polar}: Radii, coordinates, and normalized radii.
+#'     \item \code{perimeter}: Distances, coordinates, and normalized distances.
+#'     \item \code{reordered_coords}: The contour coordinates reordered from the rightmost point.
+#'   }
 #' @export
 #' @examples
-#' \dontrun{
-#' # Example usage:
-#' distances <- calculate_distances(contour, n_points = 512)
-#' }
+#' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+#' binary_img <- preprocess_image(image_path)
+#' contour <- extract_contour(binary_img)
+#' dists <- calculate_distances(contour, n_points = 512)
+#' plot(dists$polar$normalized, type = "l")
 calculate_distances <- function(contour, n_points = 512) {
   # Input validation
   if (is.matrix(contour)) {
@@ -183,18 +195,20 @@ calculate_distances <- function(contour, n_points = 512) {
 
 #' Calculate Wavelet Analysis for Distance Data
 #'
-#' Computes wavelet transforms for both polar and perimeter distance measures.
+#' Performs multi-scale wavelet decomposition on normalized distance data
+#' (polar or perimeter). This is useful for capturing shape variation at different
+#' frequencies.
 #'
-#' @param distances A list from calculate_distances() containing distance measures.
-#' @param n_scales An integer specifying the number of wavelet scales (default: 9).
-#' @param detail A logical indicating whether to return detail coefficients (default: FALSE).
-#' @return A list containing wavelet transforms for both polar and perimeter distances.
+#' @param distances A list from \code{calculate_distances()} containing normalized data.
+#' @param n_scales Number of wavelet scales to extract (default: 9).
+#' @param detail Logical; if TRUE, returns detail coefficients instead of approximations.
+#' @return A list with wavelet coefficients for 'polar' and 'perimeter' components.
 #' @export
 #' @examples
-#' \dontrun{
-#' # Example usage:
-#' wavelets <- calculate_wavelets_analysis(distances, n_scales = 9)
-#' }
+#' # Example using existing data for wavelet analysis
+#' data(Aphanopus_W5)
+#' # This data frame already contains coefficients at scale 5.
+#' @seealso \code{\link{fwaveletspl_3}}
 calculate_wavelets_analysis <- function(distances, n_scales = 9, detail = FALSE) {
   # Input validation
   if (!is.list(distances)) {
@@ -476,11 +490,11 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets
     setwd(folder)
 
     # Create processing directories if they don't exist
-    if (!dir.exists("Procesamiento")) {
-      dir.create("Procesamiento", recursive = TRUE)
+    if (!dir.exists("Polar")) {
+      dir.create("Polar", recursive = TRUE)
     }
-    if (!dir.exists("Procesamiento2")) {
-      dir.create("Procesamiento2", recursive = TRUE)
+    if (!dir.exists("Cartesian")) {
+      dir.create("Cartesian", recursive = TRUE)
     }
 
     # Get list of image files
@@ -560,8 +574,8 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets
 
             # Step 7: Save visualizations if requested
             if (testing) {
-              save_visualization(binary_image, distances, wavelet_results, basename(imag[i]), "./Procesamiento/")
-              save_visualization_perimeter(binary_image, distances, wavelet_results, basename(imag[i]), "./Procesamiento2/")
+              save_visualization(binary_image, distances, wavelet_results, basename(imag[i]), "./Polar/")
+              save_visualization_perimeter(binary_image, distances, wavelet_results, basename(imag[i]), "./Cartesian/")
             }
           } else {
             warning(paste("No suitable contour found for image:", basename(imag[i])))
@@ -576,8 +590,8 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets
     # Step 8: Save results to CSV files
     if (save) {
       if (length(result) > 0) {
-        save_analysis_results(result, "./Procesamiento/", "polar")
-        save_analysis_results(result2, "./Procesamiento2/", "perimeter")
+        save_analysis_results(result, "./Polar/", "polar")
+        save_analysis_results(result2, "./Cartesian/", "perimeter")
       }
 
       if (length(morpho_results) > 0) {
@@ -589,7 +603,7 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets
           # Reorder to put Image first
           morpho_df <- morpho_df[, c("Image", setdiff(names(morpho_df), "Image"))]
 
-          write.table(morpho_df, file = "./Procesamiento/MorphometricsEN.csv", row.names = FALSE, sep = ";", dec = ".")
+          write.table(morpho_df, file = "./Polar/MorphometricsEN.csv", row.names = FALSE, sep = ";", dec = ".")
         }
       }
     }

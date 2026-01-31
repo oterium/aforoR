@@ -7,20 +7,22 @@
 preprocess_image(image_path, threshold = NULL)
 }
 \arguments{
-\item{image_path}{A string specifying the path to the image file.}
+\item{image_path}{A string specifying the path to the image file (e.g., .jpg).}
 
-\item{threshold}{A numeric value for binarization. If NULL, uses Otsu method.}
+\item{threshold}{A numeric value (0-1) for binarization. If NULL, Otsu's method
+is automatically applied.}
 }
 \value{
-A binarized image ready for contour detection.
+A \code{pixset} (EBImage) representing the binarized image.
 }
 \description{
-Applies preprocessing steps to an image including grayscale conversion,
-Gaussian filtering, and binarization.
+Prepares an image for shape analysis by applying grayscale conversion,
+Gaussian smoothing to reduce noise, and binarization using the Otsu method (default)
+or a fixed threshold.
 }
 \examples{
-\dontrun{
-# Example usage:
-processed_img <- preprocess_image("path/to/image.jpg")
-}
+# Use the sample otolith image included in the package
+image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+processed_img <- preprocess_image(image_path)
+# display(processed_img) # if using EBImage
 }

@@ -51,7 +51,7 @@ test_that("process_images integrates morphometrics", {
     suppressWarnings(process_images(temp_dir, wavelets = FALSE, ef = FALSE, save = TRUE, pixels_per_mm = 100))
 
     # Check for CSV
-    results_file <- file.path(temp_dir, "Procesamiento", "MorphometricsEN.csv")
+    results_file <- file.path(temp_dir, "Polar", "MorphometricsEN.csv")
     expect_true(file.exists(results_file))
 
     # Read CSV and check columns

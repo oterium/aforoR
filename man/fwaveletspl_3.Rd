@@ -2,27 +2,33 @@
 % Please edit documentation in R/fwaveletspl_3.R
 \name{fwaveletspl_3}
 \alias{fwaveletspl_3}
-\title{Wavelet Transform}
+\title{B-Spline Wavelet Transform}
 \usage{
 fwaveletspl_3(ra0, sjm, det = F)
 }
 \arguments{
-\item{ra0}{A numeric vector representing the input signal.}
+\item{ra0}{A numeric vector representing the input signal (must be a power of 2 length
+for some applications, though here it uses the signal length).}
 
-\item{sjm}{An integer specifying the number of scales.}
+\item{sjm}{An integer specifying the number of decomposition scales.}
 
-\item{det}{A logical value indicating whether to return the detail coefficients (TRUE) or the approximation coefficients (FALSE). Default is FALSE.}
+\item{det}{A logical value. If FALSE (default), it returns the approximation
+coefficients (low-frequency). If TRUE, it returns the detail
+coefficients (high-frequency).}
 }
 \value{
-A matrix containing the wavelet coefficients.
+A matrix of dimensions (sjm x length(ra0)) containing the coefficients
+        for each scale.
 }
 \description{
-Computes the wavelet transform of a signal using the specified filters and scales.
+Computes the stationary wavelet transform of a signal using B-spline filters.
+This specific implementation is optimized for 1D signals like otolith radial
+distances.
 }
 \examples{
-# Example usage:
-ra0 <- rnorm(1024)  # Example signal
-sjm <- 5  # Number of scales
-wavelets <- fwaveletspl_3(ra0, sjm)
-print(wavelets)
+# Decompose a signal into 5 scales
+sig <- rnorm(512)
+sjm <- 9 # Number of scales
+wavelets <- fwaveletspl_3(sig, sjm)
+# plot(wavelets[1,], type="l") # Plot first scale
 }

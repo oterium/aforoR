@@ -1,19 +1,38 @@
 #' Calculate Morphometric Indices and Measurements
 #'
-#' Computes morphometric measurements (Area, Perimeter, Length, Width) and shape indices
-#' based on Tuset et al. formulas. Supports scale conversion from pixels to millimeters.
+#' Computes standard otolith morphometric measurements (Area, Perimeter, Length, Width)
+#' and shape indices (Roundness, Circularity, etc.) based on Tuset et al. (2003) formulas.
+#' The function supports scale conversion from pixels to millimeters if a `pixels_per_mm`
+#' value is provided.
 #'
 #' @param contour A matrix or data.frame with 'X' and 'Y' columns representing the contour.
 #' @param pixels_per_mm A numeric value specifying the number of pixels per millimeter.
 #'                      If NULL (default), measurements are returned in pixels.
-#' @return A named list containing measurements and shape indices.
+#' @return A named list containing:
+#'   \itemize{
+#'     \item \code{Area}: Surface area of the otolith.
+#'     \item \code{Perimeter}: Length of the otolith boundary.
+#'     \item \code{Length}: Maximum dimension (major axis).
+#'     \item \code{Width}: Minimum dimension (minor axis).
+#'     \item \code{Units}: Measurement units ("px" or "mm").
+#'     \item \code{Roundness}: (4 * Area) / (pi * Length^2).
+#'     \item \code{FormFactor}: (4 * pi * Area) / Perimeter^2.
+#'     \item \code{Circularity}: Perimeter^2 / Area.
+#'     \item \code{Rectangularity}: Area / (Length * Width).
+#'     \item \code{Ellipticity}: (Length - Width) / (Length + Width).
+#'     \item \code{AspectRatio}: Length / Width.
+#'   }
 #' @export
 #' @examples
-#' \dontrun{
-#' # Example usage:
-#' contour <- ExtractContour(image)
+#' # Example using the built-in Aphanopus dataset
+#' data(Aphanopus)
+#' # Note: For internal calculation, you would typically pass the raw coordinates.
+#' # Here we illustrate the function with sample coordinates from the package:
+#' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+#' binary_img <- preprocess_image(image_path)
+#' contour <- extract_contour(binary_img)
 #' metrics <- calculate_morphometrics(contour, pixels_per_mm = 100)
-#' }
+#' print(metrics)
 calculate_morphometrics <- function(contour, pixels_per_mm = NULL) {
     # Input validation
     if (is.null(contour)) {
