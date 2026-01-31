@@ -39,7 +39,10 @@ print(metrics)
 **Linear models must not be used**. Only power models **Y=*a*X^*b*^** has **biologically meaningful** (Lleonart et al., 1993). Parameter estimation can be performed using log-linear or non-linear regression (NLS). Example with NLS (Giménez et al., 2016; Tuset et al., in press).
 
 ``` r
-#using Aphanopus dataset
+# Using the built-in Aphanopus dataset
+library(aforoR)
+data(Aphanopus)
+
 fit_allometric_Species <- Aphanopus %>%
   group_by(Species) %>%
   do({

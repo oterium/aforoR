@@ -26,24 +26,20 @@ Merging wavelet at 5^th^ and biological and morphological data.
 
 ``` r
 # Load libraries
-library(readr)   # for reading csv
-library(dplyr)   # for clean renaming
+library(aforoR)
+library(dplyr)
 
-# Step 1: Read the file
-Acar <- read.csv("data/Acarbo/Cartesian/Wavelet_5EN.csv", sep = ";")
-Aint <- read.csv("data/Aintermedius/Cartesian/Wavelet_5EN.csv", sep = ";")
+# Step 1: Load the built-in dataset
+# This dataset contains wavelet coefficients at scale 5
+data(Aphanopus_W5)
 
-# Step 2: Rename and add columns
-# - first column -> "ID"
-# - columns 2:513 -> W1...W512
-# - add column to idenfy Species (stocks)
-names(Acar)[1] <- "ID"
-names(Acar)[2:513] <- paste0("W", 1:512)
-Acar$Species<-"Acar"
+# For comparison with the manual protocol, we split it by species
+Acar <- Aphanopus_W5 %>% filter(Species == "Acar")
+Aint <- Aphanopus_W5 %>% filter(Species == "Aint")
 
-names(Aint)[1] <- "ID"
-names(Aint)[2:513] <- paste0("W", 1:512)
-Aint$Species<-"Aint"
+# Step 2: Check structure
+str(Acar) # W1..W512 are numeric variables
+str(Aint)
 
 # Step 3: Check structure
 str(Acar)# W1..W512 must be numeric variables
@@ -118,8 +114,8 @@ The mean and standard deviation wavelets by species.
 
 ``` r
 ## Step 1: Obtain the mean and sd by species
-meanAphanopusM<-aggregate(Aphanopus[, 2:513], list(Aphanopus$Species), mean)
-meanAphanopusSD<-aggregate(Aphanopus[, 2:513], list(Aphanopus$Species), sd)
+meanAphanopusM<-aggregate(Aphanopus_full[, 3:514], list(Aphanopus$Species), mean)
+meanAphanopusSD<-aggregate(Aphanopus_full[, 3:514], list(Aphanopus$Species), sd)
 
 # Step 2: Transforming data
 meanAphanopusM<-as.data.frame(t(meanAphanopusM))
@@ -252,7 +248,7 @@ The first nine components are retained, accounting for 89% of the variance. The 
 # Step 3: To determine if PCA components are affected for otolith length, try no use fish length.
 PCA_new<-data.frame(PCA$x[,1:9])
 str(PCA_new)
-DataT<-as.data.frame(cbind(PCA_new,Aphanopus$Species, Aphanopus$OL))
+DataT<-as.data.frame(cbind(PCA_new, Aphanopus_full$Species, Aphanopus_full$OL))
 colnames(DataT)[10]<-"Species"
 colnames(DataT)[11]<-"OL"
 DataT$Species<-as.factor(DataT$Species)
@@ -320,9 +316,9 @@ head(new_df)
 6  0.07678577 -0.13817150  0.062860916 -0.015142196  0.02617368  0.026061831 -0.022331642
 
 # Step 5: Combine PC components with factor (Species or Stocks) 
-DataT1<-as.data.frame(cbind(new_df, Aphanopus$Species))
+DataT1<-as.data.frame(cbind(new_df, Aphanopus_full$Species))
 colnames(DataT1)[10]<-"Species"
-rownames(DataT1)<-Aphanopus$ID
+rownames(DataT1)<-Aphanopus_full$ID
 str(DataT1)
 tr(DataT1)
 'data.frame':   143 obs. of  10 variables:
@@ -579,7 +575,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 PCVIS<-as.matrix(DataT1[,1:9])
-PCVIS2<-as.matrix(Aphanopus[,2:513])
+PCVIS2<-as.matrix(Aphanopus_full[, 3:514])
 PCVIS3<-cor(PCVIS,PCVIS2)
 PCVIS4<-data.frame(t(PCVIS3))
 PCVIS4<-cbind(col, PCVIS4)
@@ -587,7 +583,7 @@ PCVIS4<-cbind(col, PCVIS4)
 # Step 1: Create a wavelet mean
 Wavelet_mean <- data.frame(
   col = 1:512,  # adjust if different
-  value = as.numeric(Aphanopus[1, 2:513])  # use mean
+  value = colMeans(Aphanopus_full[, 3:514])
 )
 
 # Step 2: Select the PCs you want 
