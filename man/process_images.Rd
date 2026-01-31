@@ -12,7 +12,9 @@ process_images(
   ef = TRUE,
   testing = TRUE,
   pseudolandmarks = "both",
-  save = TRUE
+  save = TRUE,
+  pixels_per_mm = NULL,
+  detect_scale = FALSE
 )
 }
 \arguments{
@@ -31,6 +33,10 @@ process_images(
 \item{pseudolandmarks}{A string specifying the type of pseudolandmarks. Options are 'curvilinear', 'polar', 'both'. Default is 'both'.}
 
 \item{save}{A logical value indicating whether to save the results as CSV files. Default is TRUE.}
+
+\item{pixels_per_mm}{A numeric value specifying the scale (pixels per mm). Default is NULL.}
+
+\item{detect_scale}{A logical value indicating whether to automatically detect the scale bar (1mm) in the image. Default is FALSE.}
 }
 \description{
 This function processes images in a specified folder, applying various transformations and analyses.

@@ -25,6 +25,16 @@ Authors@R: c(
 Description: This package is developed for the shape analysis of fish otoliths. 
     The methodology developed by the  AFORO team, based on discrete wavelet transform  (Parisi-Baradad et al., 2005), and originally available through te AFORO website (aforo.cmima.csic.es, Lombarte et al., 2006). Altought workflow is initially focus on otoliths, it can be applied to other biological structures such as limpets, leaves, statoliths, beaks, and more.
     Graphical outputs are included. Visit the 'aforoR' website for more information, documentation and examples.
+Imports: 
+    Momocs,
+    EBImage,
+    utils,
+    stats,
+    graphics,
+    grDevices
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 URL: https://oterium.github.io/aforoR

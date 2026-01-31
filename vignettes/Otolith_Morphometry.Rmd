@@ -12,7 +12,29 @@ vignette: >
 
 This tutorial is dedicated to provide examples that illustrate alternative approaches to morphometric analyses.
 
-## 1. Fish-otolith length relationship
+## 1. Shape Indices (Tuset et al.)
+
+The `aforoR` package provides a straightforward way to calculate standard otolith shape indices widely used in literature (e.g., Tuset et al., 2003). These indices help in characterizing the geometry of the otolith and are useful for species identification or stock discrimination.
+
+The function `calculate_morphometrics` (or the pipeline `process_images`) computes:
+
+*   **Roundness**: $(4 \cdot Area) / (\pi \cdot Length^2)$
+*   **Form Factor**: $(4 \pi \cdot Area) / Perimeter^2$
+*   **Circularity**: $Perimeter^2 / Area$
+*   **Rectangularity**: $Area / (Length \cdot Width)$
+*   **Ellipticity**: $(Length - Width) / (Length + Width)$
+*   **Aspect Ratio**: $Length / Width$
+
+When providing the `pixels_per_mm` argument, the Area, Perimeter, Length, and Width are converted to real-world units (mm and mm²).
+
+```r
+# Example of calculating morphometrics for a single contour
+# Assuming 'contour' is a data frame with X and Y columns
+metrics <- calculate_morphometrics(contour, pixels_per_mm = 100)
+print(metrics)
+```
+
+## 2. Fish-otolith length relationship
 
 **Linear models must not be used**. Only power models **Y=*a*X^*b*^** has **biologically meaningful** (Lleonart et al., 1993). Parameter estimation can be performed using log-linear or non-linear regression (NLS). Example with NLS (Giménez et al., 2016; Tuset et al., in press).
 
@@ -103,7 +125,7 @@ deviance_results <- fit_allometric_Species %>%
 
 ![](images/Regression.png)
 
-## 2. Otolith relative sizes
+## 3. Otolith relative sizes
 
 Otolith measurements can be used to compute shape and relative size indices. In particular, otolith relative indices are related to life strategies in fishes (Cruz and Lombarte, 2004; Lombate and Cruz, 2007; Tuset et al., in press). There are two indices:
 

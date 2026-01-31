@@ -47,8 +47,13 @@ Before extracting the contour, please read **Overview** to assess whether your i
 1. Image Preprocessing
 2. Contour Extraction
 3. Distance Measurements
-4. Wavelet decomposition
-5. Visualization and Export
+4. **Morphometric Analysis** (Area, Perimeter, Shape Indices)
+5. Wavelet decomposition
+6. Visualization and Export
+
+**New Features (v0.1.0)**:
+*   **Automatic 1mm Scale Detection**: Automatically detects the scale bar in images to convert pixels to mm.
+*   **Shape Indices**: Calculates Roundness, Form Factor, Circularity, etc. based on Tuset et al. formulas.
 
 
 ## Citation
