@@ -53,7 +53,7 @@ Before extracting the contour, please read **Overview** to assess whether your i
 
 ## Citation
 
-Please cite this package as: Otero-Ferrer, J.L., Tuset, V.M., Manjabacas, A., Lombarte, A. (2025). *AFOROR*: Anàlisi de FORmes d'Otòlits/Shape Analysis of Fish Otoliths. R package version 0.0.0.9000. <https://github.com/oterium/aforoR>).
+Please cite this package as: Otero-Ferrer, J.L., Tuset, V.M., Manjabacas, A., Lombarte, A. (2025). *aforoR*: Anàlisi de FORmes d'Otòlits/Shape Analysis of Fish Otoliths. R package version 0.1.0. <https://github.com/oterium/aforoR>. See `CITATION.cff` for Zenodo-ready metadata.
 
 ## Contributions
 

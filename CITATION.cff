@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "aforoR: Anàlisi de FORmes d'Otòlits (Shape Analysis of Fish Otoliths) in R"
+type: software
+version: 0.1.0
+license: MIT
+url: "https://oterium.github.io/aforoR"
+repository-code: "https://github.com/oterium/aforoR"
+authors:
+  - family-names: "Otero Ferrer"
+    given-names: "Jose Luis"
+    email: "joseluis.oteroferrer@gmail.com"
+    orcid: "https://orcid.org/0000-0003-1078-4008"
+  - family-names: "Tuset"
+    given-names: "Victor Manuel"
+    email: "vtuset@icloud.com"
+    orcid: "https://orcid.org/0000-0001-9032-2844"
+  - family-names: "Manjabacas"
+    given-names: "Amalia"
+    email: "manjabacas@icm.csic.es"
+    orcid: "https://orcid.org/0000-0001-8685-8697"
+  - family-names: "Lombarte"
+    given-names: "Antoni"
+    email: "toni@icm.csic.es"
+    orcid: "https://orcid.org/0000-0001-5215-4587"
