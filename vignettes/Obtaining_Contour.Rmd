@@ -70,14 +70,14 @@ process_images(
 
 ## 3. Examining Results
 
-The function creates two subdirectories: `Procesamiento` (Polar coordinates) and `Procesamiento2` (Perimeter coordinates).
+The function creates two subdirectories: `Polar` (Polar coordinates) and `Cartesian` (Perimeter coordinates).
 
 ### 3.1 Morphometric Indices
 
 A new file `MorphometricsEN.csv` is created containing geometric measurements and shape indices.
 
 ```{r morpho_results}
-morpho_file <- file.path(work_dir, "Procesamiento", "MorphometricsEN.csv")
+morpho_file <- file.path(work_dir, "Polar", "MorphometricsEN.csv")
 if (file.exists(morpho_file)) {
   morpho_data <- read.table(morpho_file, header = TRUE, sep = ";", dec = ".")
   knitr::kable(morpho_data, caption = "Morphometric Indices")
@@ -95,7 +95,7 @@ The indices include:
 The wavelet analysis results are saved in multiple CSV files corresponding to different scales.
 
 ```{r wavelet_results}
-wavelet_file <- file.path(work_dir, "Procesamiento", "Wavelet_5EN.csv")
+wavelet_file <- file.path(work_dir, "Polar", "Wavelet_5EN.csv")
 if (file.exists(wavelet_file)) {
   wave5 <- read.table(wavelet_file, header = FALSE, sep = ";", dec = ".")
 
@@ -111,4 +111,4 @@ The package also generates images to verify the contour extraction and analysis 
 *   `zonal [ImageName].jpg`: Shows the contour and valid zones.
 *   `wavelet [ImageName].jpg`: Shows the wavelet transform.
 
-(Images are saved in the `Procesamiento` folder).
+(Images are saved in the `Polar` folder).

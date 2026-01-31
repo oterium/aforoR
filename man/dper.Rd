@@ -2,30 +2,33 @@
 % Please edit documentation in R/distances.R
 \name{dper}
 \alias{dper}
-\title{Compute Perimeter Distances}
+\title{Compute Perimeter Distances (Curvilinear Resampling)}
 \usage{
 dper(x, y, n)
 }
 \arguments{
-\item{x}{A numeric vector representing the x-coordinates of the perimeter points.}
+\item{x}{A numeric vector of x-coordinates.}
 
-\item{y}{A numeric vector representing the y-coordinates of the perimeter points.}
+\item{y}{A numeric vector of y-coordinates.}
 
-\item{n}{An integer specifying the number of points to sample along the perimeter.}
+\item{n}{Number of points to sample along the perimeter.}
 }
 \value{
 A list containing:
-  - `dist`: A numeric vector of distances from the centroid to the sampled points.
-  - `coords`: A matrix of coordinates of the sampled points.
+  \itemize{
+    \item \code{dist}: Radial distances from the centroid to the sampled points.
+    \item \code{coords}: Coordinates of the sampled points.
+  }
 }
 \description{
-Calculates the distances from the centroid to points along the perimeter of a shape.
+Calculates distances from the centroid to points sampled at regular intervals
+along the perimeter of the shape. This provides an alternative to polar sampling
+for shapes with complex bounds.
 }
 \examples{
-# Example usage:
-x <- rnorm(100)
-y <- rnorm(100)
-n <- 50
-result <- dper(x, y, n)
-print(result)
+# Example using sample data
+image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+contour <- extract_contour(preprocess_image(image_path))
+perim_dists <- dper(contour[, 1], contour[, 2], n = 512)
+plot(perim_dists$dist, type = "l", main = "Perimeter-based Distances")
 }

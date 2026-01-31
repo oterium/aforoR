@@ -2,29 +2,32 @@
 % Please edit documentation in R/fatrous1d.R
 \name{fatrous1d}
 \alias{fatrous1d}
-\title{Atrous Convolution}
+\title{Discrete Wavelet Transform (à trous algorithm)}
 \usage{
 fatrous1d(rx, rh, snmin, snmax, sj)
 }
 \arguments{
-\item{rx}{A numeric vector representing the input signal.}
+\item{rx}{A numeric vector representing the input signal (e.g., radial distances).}
 
 \item{rh}{A numeric vector representing the filter coefficients.}
 
-\item{snmin}{The minimum scale index.}
+\item{snmin}{The minimum scale index for the filter.}
 
-\item{snmax}{The maximum scale index.}
+\item{snmax}{The maximum scale index for the filter.}
 
-\item{sj}{The scale factor (must be >= 0).}
+\item{sj}{The current scale index (j >= 1).}
 }
 \value{
-A matrix representing the atrous convolution result.
+A numeric matrix (1 x length(rx)) representing the convolution result.
 }
 \description{
-Computes the atrous convolution of a signal.
+Computes the 1D discrete wavelet transform using the "à trous" (with holes)
+algorithm. This is a non-decimated transform, meaning the signal length
+remains constant across scales.
 }
 \examples{
-# Example usage:
-ra1 <- fatrous1d(ra0, rh_, snh_min, snh_max, 1)
-rd1 <- fatrous1d(ra0, rg_, sng_min, sng_max, 1)
+# Internal use example:
+sig <- rnorm(512)
+filter <- c(0.0625, 0.25, 0.375, 0.25, 0.0625)
+res <- fatrous1d(sig, filter, -2, 2, 1)
 }

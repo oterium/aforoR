@@ -7,19 +7,27 @@
 calculate_distances(contour, n_points = 512)
 }
 \arguments{
-\item{contour}{A matrix containing contour coordinates from extract_contour().}
+\item{contour}{A matrix of coordinates from \code{extract_contour()}.}
 
-\item{n_points}{An integer specifying the number of points to sample (default: 512).}
+\item{n_points}{Target number of points for resampling (default: 512).}
 }
 \value{
-A list containing polar distances, perimeter distances, and their normalized versions.
+A list containing:
+  \itemize{
+    \item \code{polar}: Radii, coordinates, and normalized radii.
+    \item \code{perimeter}: Distances, coordinates, and normalized distances.
+    \item \code{reordered_coords}: The contour coordinates reordered from the rightmost point.
+  }
 }
 \description{
-Computes both polar and perimeter distance measures from an otolith contour.
+Computes two types of distance measures from an otolith contour: polar distances
+(radial distances from the centroid) and perimeter-based distances.
+These measures are crucial for subsequent wavelet analysis.
 }
 \examples{
-\dontrun{
-# Example usage:
-distances <- calculate_distances(contour, n_points = 512)
-}
+image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+binary_img <- preprocess_image(image_path)
+contour <- extract_contour(binary_img)
+dists <- calculate_distances(contour, n_points = 512)
+plot(dists$polar$normalized, type = "l")
 }

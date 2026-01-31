@@ -2,31 +2,34 @@
 % Please edit documentation in R/distances.R
 \name{regularradius}
 \alias{regularradius}
-\title{Compute Distances to Centroid}
+\title{Compute Distances to Centroid (Polar Resampling)}
 \usage{
 regularradius(Rx, Ry, n)
 }
 \arguments{
-\item{Rx}{A numeric vector representing the x-coordinates of the points.}
+\item{Rx}{A numeric vector of x-coordinates.}
 
-\item{Ry}{A numeric vector representing the y-coordinates of the points.}
+\item{Ry}{A numeric vector of y-coordinates.}
 
-\item{n}{An integer specifying the number of points to sample.}
+\item{n}{Number of points to sample (e.g., 512).}
 }
 \value{
 A list containing:
-  - `pixindices`: A numeric vector of indices of the sampled points.
-  - `radii`: A numeric vector of radii from the centroid to the sampled points.
-  - `coord`: A matrix of coordinates of the sampled points.
+  \itemize{
+    \item \code{pixindices}: Indices of the sampled points in the original contour.
+    \item \code{radii}: Distances from the centroid to each sampled point.
+    \item \code{coord}: Coordinates of the sampled points relative to the centroid.
+  }
 }
 \description{
-Calculates the distances from points to the centroid and returns the indices, radii, and coordinates of the points.
+Calculates radial distances from the centroid to a specified number of points
+sampled along the contour using polar coordinates. This method ensures regular
+angular sampling, which is a prerequisite for standard AFORO wavelet analysis.
 }
 \examples{
-# Example usage:
-Rx <- rnorm(100)
-Ry <- rnorm(100)
-n <- 50
-result <- regularradius(Rx, Ry, n)
-print(result)
+# Example using sample data
+image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+contour <- extract_contour(preprocess_image(image_path))
+polar_dists <- regularradius(contour[, 1], contour[, 2], n = 512)
+plot(polar_dists$radii, type = "l", main = "Radial Distances")
 }

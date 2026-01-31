@@ -7,21 +7,25 @@
 calculate_wavelets_analysis(distances, n_scales = 9, detail = FALSE)
 }
 \arguments{
-\item{distances}{A list from calculate_distances() containing distance measures.}
+\item{distances}{A list from \code{calculate_distances()} containing normalized data.}
 
-\item{n_scales}{An integer specifying the number of wavelet scales (default: 9).}
+\item{n_scales}{Number of wavelet scales to extract (default: 9).}
 
-\item{detail}{A logical indicating whether to return detail coefficients (default: FALSE).}
+\item{detail}{Logical; if TRUE, returns detail coefficients instead of approximations.}
 }
 \value{
-A list containing wavelet transforms for both polar and perimeter distances.
+A list with wavelet coefficients for 'polar' and 'perimeter' components.
 }
 \description{
-Computes wavelet transforms for both polar and perimeter distance measures.
+Performs multi-scale wavelet decomposition on normalized distance data
+(polar or perimeter). This is useful for capturing shape variation at different
+frequencies.
 }
 \examples{
-\dontrun{
-# Example usage:
-wavelets <- calculate_wavelets_analysis(distances, n_scales = 9)
+# Example using existing data for wavelet analysis
+data(Aphanopus_W5)
+# This data frame already contains coefficients at scale 5.
 }
+\seealso{
+\code{\link{fwaveletspl_3}}
 }

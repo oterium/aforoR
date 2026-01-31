@@ -7,19 +7,21 @@
 extract_contour(binary_image)
 }
 \arguments{
-\item{binary_image}{A binarized image from preprocess_image().}
+\item{binary_image}{A binarized image produced by \code{preprocess_image()}.}
 }
 \value{
-A matrix containing the contour coordinates, or NULL if no suitable contour found.
+A matrix of (X, Y) coordinates of the main contour, or NULL if no
+        suitable contour is found.
 }
 \description{
-Detects and extracts the largest contour from a binarized image that meets
-size criteria for otolith analysis.
+Detects all contours in a binary image and identifies the largest one that meets
+specific size criteria (points > 200 and area > 5000), typically representing
+the fish otolith.
 }
 \examples{
-\dontrun{
-# Example usage:
-binary_img <- preprocess_image("path/to/image.jpg")
+# Process sample image and extract its contour
+image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+binary_img <- preprocess_image(image_path)
 contour <- extract_contour(binary_img)
-}
+head(contour)
 }

@@ -22,5 +22,5 @@ Calculates the Euclidean distance between two points in 2D space.
 point1 <- c(0, 0)
 point2 <- c(3, 4)
 distance <- ild(point1, point2)
-print(distance)  # Should be 5
+print(distance) # Should be 5
 }

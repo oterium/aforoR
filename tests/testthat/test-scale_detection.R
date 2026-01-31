@@ -22,7 +22,7 @@ test_that("scale detection works on example image", {
 
     suppressWarnings(process_images(temp_dir, wavelets = FALSE, ef = FALSE, save = TRUE, detect_scale = TRUE))
 
-    results_file <- file.path(temp_dir, "Procesamiento", "MorphometricsEN.csv")
+    results_file <- file.path(temp_dir, "Polar", "MorphometricsEN.csv")
     expect_true(file.exists(results_file))
 
     data <- read.table(results_file, header = TRUE, sep = ";", dec = ".")
