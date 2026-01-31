@@ -11,21 +11,21 @@
 #' point1 <- c(0, 0)
 #' point2 <- c(3, 4)
 #' distance <- ild(point1, point2)
-#' print(distance)  # Should be 5
+#' print(distance) # Should be 5
 ild <- function(p1, p2) {
   # Input validation
   if (!is.numeric(p1) || !is.numeric(p2)) {
     stop("Both p1 and p2 must be numeric vectors")
   }
-  
+
   if (length(p1) != 2 || length(p2) != 2) {
     stop("Both p1 and p2 must be vectors of length 2")
   }
-  
+
   if (any(is.na(p1)) || any(is.na(p2))) {
     stop("Points cannot contain NA values")
   }
-  
+
   sqrt(sum((p1 - p2)^2))
 }
 
@@ -53,24 +53,21 @@ regularradius <- function(Rx, Ry, n) {
   if (!is.numeric(Rx) || !is.numeric(Ry)) {
     stop("Rx and Ry must be numeric vectors")
   }
-  
+
   if (length(Rx) != length(Ry)) {
     stop("Rx and Ry must have the same length")
   }
-  
+
   if (!is.numeric(n) || length(n) != 1 || n <= 0) {
     stop("n must be a positive integer")
   }
-  
+
   if (any(is.na(Rx)) || any(is.na(Ry))) {
     stop("Rx and Ry cannot contain NA values")
   }
-  
+
   le <- length(Rx)
-  if (le < n) {
-    stop("Number of points to sample (n) cannot exceed the number of available points")
-  }
-  
+
   M <- matrix(c(Rx, Ry), le, 2)
   M1 <- matrix(c(Rx - mean(Rx), Ry - mean(Ry)), le, 2)
   V1 <- complex(real = M1[, 1], imaginary = M1[, 2])
@@ -106,23 +103,23 @@ dper <- function(x, y, n) {
   if (!is.numeric(x) || !is.numeric(y)) {
     stop("x and y must be numeric vectors")
   }
-  
+
   if (length(x) != length(y)) {
     stop("x and y must have the same length")
   }
-  
+
   if (!is.numeric(n) || length(n) != 1 || n <= 0) {
     stop("n must be a positive integer")
   }
-  
+
   if (any(is.na(x)) || any(is.na(y))) {
     stop("x and y cannot contain NA values")
   }
-  
+
   if (length(x) < 2) {
     stop("Need at least 2 points to calculate perimeter distances")
   }
-  
+
   # x values ordered
   # y values ordered
   # n values of interest (e.g., 512)

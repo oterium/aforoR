@@ -1,40 +1,111 @@
 ---
-title: "Using package"
-author: "José Luís Otero-Ferrer & Amalia Manjabacas"
-date: 2025-11-27
+title: "Obtaining Contour and Shape Analysis"
+author: "Jośe Luís Otero-Ferrer & Amalia Manjabacas"
+date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Obtaining Contour}
+  %\VignetteIndexEntry{Obtaining Contour and Shape Analysis}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
 ## About this tutorial
 
-This tutorial describes how to extract coordinates, normalized distance, elliptic Fourier descriptors, and wavelets at multiple scales.
+This tutorial describes how to use the `aforoR` package to process images, extract otolith contours, and calculate shape descriptors including Elliptic Fourier Descriptors (EFDs), Wavelets, and Shape Indices.
 
-**DATA**
+## 1. Setting up images
 
-**IMAGES**
+The package works by processing all `.jpg` images within a specified folder. For this tutorial, we will use an example image included in the package.
 
-## Extracting shape
+First, let's look at where the example image is stored:
 
-**JOSÉ poner código**
+```{r image_setup}
+library(aforoR)
 
-**Selecting initial point:** The users have two options, automatic or manual (image by image).
+# Locate the example image
+image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
 
-Example código
+# Create a temporary directory for processing
+work_dir <- file.path(tempdir(), "aforo_tutorial")
+if (dir.exists(work_dir)) unlink(work_dir, recursive = TRUE)
+dir.create(work_dir)
 
-## Compiling data
+# Copy the example image to the working directory
+file.copy(image_path, file.path(work_dir, "otolith.jpg"))
 
-| Files | Information |
-|--------------------------|----------------------------------------------|
-| Coords.csv | Positioning of points on otolith contour |
-| Distance_NormEN.csv | Normalized distance is applied to extract wavelets levels |
-| EllipticCoeN.csv | Elliptic Fourier Descriptors |
-| wavelet\_[1-9]EN.csv | Data set with image name and 512 points |
-| Image type 1 | Ilustrate the wavelet 5^th^ for each image, where each colour represent otolith regions: antero-dorsal (1-218), postero.dorsal (219-256), postero-ventral (257-387), and antero-ventral (389-512). Help to the morphological interpretation |
-| Image type 2 | Ilustrate the contours, which must be checked for clarity, as poor image quality or contrast can introduce errors. We recommend testing all images prior to analysis |
+cat("Working directory:", work_dir, "\n")
+list.files(work_dir)
+```
 
-## 
+## 2. Processing images
 
-#### 
+The main function `process_images` handles the entire workflow:
+1.  **Preprocessing**: Grayscale conversion, filtering, and binarization.
+2.  **Contour Extraction**: Identifies the otolith boundaires.
+3.  **Feature Calculation**: Computes distances, wavelets, and EFDs.
+4.  **Morphometrics**: Calculates indices like Circularity, Roundness, etc.
+
+You can specify the scale of your images using the `pixels_per_mm` argument to get measurements in millimeters.
+
+```{r process}
+# Run the processing pipeline
+# We set pixels_per_mm = 100 as an example scale (100 pixels = 1 mm)
+process_images(
+  folder = work_dir,
+  threshold = NULL, # Automatic thresholding (Otsu)
+  wavelets = TRUE, # Calculate wavelets
+  ef = TRUE, # Calculate Elliptic Fourier Descriptors
+  pixels_per_mm = 100 # define scale
+)
+```
+
+## 3. Examining Results
+
+The function creates two subdirectories: `Procesamiento` (Polar coordinates) and `Procesamiento2` (Perimeter coordinates).
+
+### 3.1 Morphometric Indices
+
+A new file `MorphometricsEN.csv` is created containing geometric measurements and shape indices.
+
+```{r morpho_results}
+morpho_file <- file.path(work_dir, "Procesamiento", "MorphometricsEN.csv")
+if (file.exists(morpho_file)) {
+  morpho_data <- read.table(morpho_file, header = TRUE, sep = ";", dec = ".")
+  knitr::kable(morpho_data, caption = "Morphometric Indices")
+}
+```
+
+The indices include:
+*   **Area**: Area of the otolith ($mm^2$).
+*   **Perimeter**: Perimeter length ($mm$).
+*   **Length / Width**: Major and minor axis dimensions ($mm$).
+*   **Shape Indices**: Roundness, Circularity, Rectangularity, Aspect Ratio, etc. (Unitless).
+
+### 3.2 Wavelet Coefficients
+
+The wavelet analysis results are saved in multiple CSV files corresponding to different scales.
+
+```{r wavelet_results}
+wavelet_file <- file.path(work_dir, "Procesamiento", "Wavelet_5EN.csv")
+if (file.exists(wavelet_file)) {
+  wave5 <- read.table(wavelet_file, header = FALSE, sep = ";", dec = ".")
+
+  # Display first few columns
+  knitr::kable(wave5[, 1:10], caption = "Wavelet Scale 5 (First 10 columns)")
+}
+```
+
+## 4. Visualizations
+
+The package also generates images to verify the contour extraction and analysis zones.
+
+*   `zonal [ImageName].jpg`: Shows the contour and valid zones.
+*   `wavelet [ImageName].jpg`: Shows the wavelet transform.
+
+(Images are saved in the `Procesamiento` folder).
