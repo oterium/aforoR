@@ -1,7 +1,15 @@
-# aforoR <img src="man/figures/logo.png" align="right" height="150" />
-
-> **Shape Analysis of Fish Otoliths**  
-> *Anàlisi de FORmes d'Otòlits in R*
+<table width="100%" style="border: none; border-collapse: collapse;">
+  <tr style="border: none;">
+    <td align="left" style="border: none;">
+      <h1>aforoR</h1>
+      <p><strong>Shape Analysis of Fish Otoliths</strong><br>
+      <em>Anàlisi de FORmes d'Otòlits in R</em></p>
+    </td>
+    <td align="right" style="border: none;">
+      <img src="man/figures/logo.png" width="150" />
+    </td>
+  </tr>
+</table>
 
 [![Version](https://img.shields.io/badge/version-0.1.0-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR)
 [![License: MIT](https://img.shields.io/badge/license-MIT-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR/blob/main/LICENSE)
