@@ -5,11 +5,11 @@
 \alias{Aphanopus_W5}
 \title{Aphanopus wavelet coefficients (Scale 5)}
 \format{
-A data frame with 137 rows and 514 variables:
+A data frame with 514 variables:
 \describe{
   \item{Species}{Species name}
   \item{ID}{Unique identifier}
-  \item{W1..W512}{Wavelet coefficients}
+  \item{W1..W512}{Wavelet coefficients at scale 5}
 }
 }
 \usage{
