@@ -30,7 +30,7 @@ test_that("select_points_hall basic functionality works", {
     }
 })
 
-test__that("select_points_hall handles invalid inputs", {
+test_that("select_points_hall handles invalid inputs", {
     data <- matrix(rnorm(100), 10, 10)
     groups <- rep(c("A", "B"), each = 5)
 

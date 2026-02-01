@@ -30,7 +30,7 @@ Premises:
 
 To estimate the 2^nd^ scale of wavelet function and modify it following premises.
 
-![](images/method%20lobes-02.png){style="display:block; margin-left:auto; margin-right:auto;" width="435"}
+![](images/method-lobes-02.png){style="display:block; margin-left:auto; margin-right:auto;" width="435"}
 
 ## Estimating lobes
 

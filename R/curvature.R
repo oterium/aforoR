@@ -14,6 +14,7 @@
 #'     \item \code{n_points}: Number of points used in resampling.
 #'     \item \code{contour_original}: The original contour.
 #'   }
+#' @importFrom stats approx
 #' @export
 #' @examples
 #' # Example with a simple shape

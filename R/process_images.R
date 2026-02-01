@@ -258,6 +258,8 @@ calculate_wavelets_analysis <- function(distances, n_scales = 9, detail = FALSE)
 #' @param image_name The base name of the image file.
 #' @param output_dir The directory to save visualization images.
 #' @param wavelet_scale The wavelet scale to visualize (default: 5).
+#' @importFrom grDevices dev.off jpeg
+#' @importFrom graphics lines points polygon
 #' @export
 save_visualization <- function(binary_image, distances, wavelets, image_name, output_dir, wavelet_scale = 5) {
   # Input validation
@@ -292,7 +294,7 @@ save_visualization <- function(binary_image, distances, wavelets, image_name, ou
 
     # Save zonal analysis plot
     jpeg(
-      file = paste("zonal ", image_name, ".jpg", sep = ""),
+      filename = paste("zonal ", image_name, ".jpg", sep = ""),
       res = 600, width = 600, height = 400, units = "mm"
     )
     plot(binary_image)
@@ -312,7 +314,7 @@ save_visualization <- function(binary_image, distances, wavelets, image_name, ou
     dev.off()
 
     # Save wavelet plot
-    jpeg(file = paste("wavelet ", image_name, ".jpg", sep = ""))
+    jpeg(filename = paste("wavelet ", image_name, ".jpg", sep = ""))
     plot(wavelets$polar[wavelet_scale, ],
       main = paste("Wavelet", wavelet_scale, image_name),
       xlab = "", ylab = "", type = "l", col = 3, lwd = 2
@@ -345,6 +347,7 @@ save_visualization <- function(binary_image, distances, wavelets, image_name, ou
 #' @param analysis_results A list containing all analysis results for multiple images.
 #' @param output_dir The directory to save CSV files.
 #' @param result_type A string indicating the type of results ("polar" or "perimeter").
+#' @importFrom utils write.table
 #' @export
 save_analysis_results <- function(analysis_results, output_dir, result_type = "polar") {
   # Input validation
@@ -725,6 +728,8 @@ create_result_structure <- function(distances, wavelets, image_name, elliptic_co
 #' @param wavelets The wavelet analysis from calculate_wavelets_analysis().
 #' @param image_name The base name of the image file.
 #' @param output_dir The directory to save visualization images.
+#' @importFrom grDevices dev.off jpeg
+#' @importFrom graphics legend lines points polygon
 #' @export
 save_visualization_perimeter <- function(binary_image, distances, wavelets, image_name, output_dir) {
   # Input validation
@@ -755,7 +760,7 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets, imag
 
     # Save zonal analysis plot for perimeter
     jpeg(
-      file = paste("zonal ", image_name, ".jpg", sep = ""),
+      filename = paste("zonal ", image_name, ".jpg", sep = ""),
       res = 600, width = 600, height = 400, units = "mm"
     )
     plot(binary_image)
@@ -775,7 +780,7 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets, imag
     dev.off()
 
     # Save wavelet plot for perimeter
-    jpeg(file = paste("wavelet ", image_name, ".jpg", sep = ""))
+    jpeg(filename = paste("wavelet ", image_name, ".jpg", sep = ""))
     plot(wavelets$perimeter[5, ],
       main = paste("Wavelet 5", image_name),
       xlab = "", ylab = "", type = "l", col = 3, lwd = 2

@@ -5,15 +5,15 @@
 \alias{Aphanopus}
 \title{Aphanopus morphometric dataset}
 \format{
-A data frame with 137 rows and 14 variables:
+A data frame with 14 variables:
 \describe{
   \item{Species}{Species name (Acar or Aint)}
   \item{ID}{Unique identifier for the otolith (from image filename)}
   \item{SL}{Standard Length of the fish (mm)}
-  \item{Area}{Otolith area (pixels)}
-  \item{Perimeter}{Otolith perimeter (pixels)}
-  \item{Length}{Otolith maximum length (pixels)}
-  \item{Width}{Otolith maximum width (pixels)}
+  \item{OA}{Otolith area (pixels)}
+  \item{OP}{Otolith perimeter (pixels)}
+  \item{OL}{Otolith maximum length (pixels)}
+  \item{OW}{Otolith maximum width (pixels)}
   \item{Roundness}{Shape index: (4 * Area) / (pi * Length^2)}
   \item{FormFactor}{Shape index: (4 * pi * Area) / Perimeter^2}
   \item{Circularity}{Shape index: Perimeter^2 / Area}
