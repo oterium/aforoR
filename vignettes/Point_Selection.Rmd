@@ -1,0 +1,111 @@
+---
+title: "Point Selection in Functional Data"
+author: "aforoR Package Team"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Point Selection}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>"
+)
+```
+
+```{r setup}
+library(aforoR)
+```
+
+## Introduction
+
+In shape analysis, we often end up with high-dimensional functional data, such as wavelet coefficients or radial distances. Identifying which points on these curves are most discriminative for classification is a common challenge.
+
+The `aforoR` package includes an implementation of the **Hall & Bathia (2012)** algorithm, which sequentially selects the best points to maximize classification accuracy.
+
+## The Aphanopus Dataset
+
+We will use the included `Aphanopus_W5` dataset, which contains wavelet coefficients (scale 5) for two species: *Aphanopus carbo* and *A. intermedius*.
+
+```{r load_data}
+data("Aphanopus_W5")
+# Extract wavelet coefficients (columns 3 to 514)
+wavelet_data <- Aphanopus_W5[, 3:514]
+# Target species
+species <- Aphanopus_W5$Species
+
+# Visualize the first few curves
+matplot(t(wavelet_data[1:10, ]),
+    type = "l", lty = 1,
+    main = "Wavelet Coefficients (Scale 5)",
+    xlab = "Point index", ylab = "Coefficient Value", col = as.numeric(species[1:10])
+)
+```
+
+## Selecting Discriminative Points
+
+The `select_points_hall()` function performs a sequential search. It starts by finding the single best point, then the next best in combination with the first, and so on.
+
+### Basic Usage
+
+We'll use a Linear Discriminant Analysis (`lda`) method to find the top 5 points.
+
+```{r select_points, message=FALSE}
+# Note: This might take a few seconds
+# We use p = 0.05 to stop earlier for this example
+result <- select_points_hall(wavelet_data, species,
+    method = "lda",
+    p = 0.05,
+    parallel = FALSE
+)
+
+# Selected points (indices)
+print(result$selected_indices)
+
+# Final error rate
+print(result$min_error)
+```
+
+## Visualizing Selected Points
+
+One of the best ways to understand the results is to plot the selected points on top of the original functional data.
+
+```{r plot_selection}
+# Plot all curves (semi-transparent)
+col_species <- ifelse(species == "Acar", adjustcolor("blue", alpha.f = 0.2),
+    adjustcolor("red", alpha.f = 0.2)
+)
+
+matplot(t(wavelet_data),
+    type = "l", lty = 1, col = col_species,
+    main = "Selected Discriminative Points",
+    xlab = "Index", ylab = "Value"
+)
+
+# Mark the selected points
+abline(v = result$selected_indices, col = "black", lwd = 2, lty = 2)
+points(rep(result$selected_indices, each = nrow(wavelet_data)),
+    as.matrix(wavelet_data[, result$selected_indices]),
+    col = "black", pch = 20, cex = 0.5
+)
+
+legend("topright",
+    legend = c("A. carbo", "A. intermedius", "Selected Points"),
+    col = c("blue", "red", "black"), lty = c(1, 1, 2), lwd = c(1, 1, 2)
+)
+```
+
+## Parameters Explained
+
+- **`method`**: You can choose from "lda", "qda", "knn", "svm", "naiveBayes", or "nnet".
+- **`p`**: Error threshold. The algorithm stops if the error improvement is less than `p`.
+- **`delta_t`**: Minimum distance between selected points (neighborhood constraint).
+- **`parallel`**: Set to `TRUE` to speed up the search using multiple CPU cores.
+
+## References
+
+- Hall, P., & Bathia, N. (2012). Componentwise classification and clustering of functional data. *Biometrika*, 99(2), 297-313.
+- Parisi-Baradad, V., et al. (2005). Otolith shape contour analysis using mathematical descriptors.
