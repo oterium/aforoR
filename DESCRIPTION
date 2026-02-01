@@ -25,6 +25,7 @@ Authors@R: c(
 Description: This package is developed for the shape analysis of fish otoliths. 
     The methodology developed by the  AFORO team, based on discrete wavelet transform  (Parisi-Baradad et al., 2005), and originally available through te AFORO website (aforo.cmima.csic.es, Lombarte et al., 2006). Altought workflow is initially focus on otoliths, it can be applied to other biological structures such as limpets, leaves, statoliths, beaks, and more.
     Graphical outputs are included. Visit the 'aforoR' website for more information, documentation and examples.
+License: MIT + file LICENSE
 Imports: 
     Momocs,
     EBImage,
@@ -39,7 +40,18 @@ Suggests:
     klaR,
     nnet,
     class,
-    e1071
+    e1071,
+    ggplot2,
+    dplyr,
+    tidyr,
+    knitr,
+    rmarkdown,
+    gridExtra,
+    factoextra,
+    png,
+    caret,
+    ggpubr,
+    pracma
 Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
