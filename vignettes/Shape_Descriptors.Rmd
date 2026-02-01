@@ -1,6 +1,6 @@
 ---
 title: "Comparing Shape Descriptors: CSS, Wavelets, and Elliptic Fourier"
-author: "aforoR Package Team"
+author: "Víctor Manuel Tuset & Antoni Lombarte"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -11,20 +11,24 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-    collapse = TRUE,
-    comment = "#>"
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 10,
+  out.width = "100%",
+  fig.retina = 2,
+  dpi = 300
 )
 ```
 
 ```{r setup}
 library(aforoR)
+library(ggplot2)
+library(dplyr)
 ```
 
-## Introduction
+## About this tutorial
 
-In otolith shape analysis, choosing the right mathematical descriptor is crucial for capturing the biological information relevant to your study. The `aforoR` package provides three main methods: **Elliptic Fourier Descriptors (EFD)**, **Wavelet Transform**, and **Curvature Scale Space (CSS)**.
-
-This vignette explains their differences, advantages, and typical use cases.
+In otolith shape analysis, choosing the right mathematical descriptor is crucial for capturing the biological information relevant to your study. The `aforoR` package provides three main methods: **Elliptic Fourier Descriptors (EFD)**, **Wavelet Transform**, and **Curvature Scale Space (CSS)**. This vignette explains their mathematical foundations, advantages, and typical use cases.
 
 ## Overview Comparison
 
@@ -39,69 +43,95 @@ This vignette explains their differences, advantages, and typical use cases.
 img_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
 binary_img <- preprocess_image(img_path)
 contour <- extract_contour(binary_img)
+
+# Professional visualization theme
+aforo_theme <- function() {
+  theme_minimal() +
+    theme(
+      plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
+      axis.title = element_text(size = 10),
+      axis.text = element_text(size = 8, color = "black"),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_blank(),
+      axis.line = element_line(color = "black", linewidth = 0.3),
+      axis.ticks = element_line(color = "black", linewidth = 0.3)
+    )
+}
 ```
 
 ---
 
 ## 1. Elliptic Fourier Descriptors (EFDs)
 
-EFDs represent a closed contour as a sum of ellipses (harmonics). Each harmonic is defined by four coefficients.
+EFDs represent a closed contour as a sum of ellipses (harmonics). Each harmonic $k$ is defined by four coefficients ($a_k, b_k, c_k, d_k$).
 
-- **How it works**: It decomposes the $x$ and $y$ projections of the contour into Fourier series.
-- **Advantages**: Excellent for capturing the overall "global" shape. Higher harmonics capture more detail.
-- **Typical Use**: Evolutionary studies, morphospace analysis, and species identification.
+- **Mathematics**: Decomposes the periodic functions $x(t)$ and $y(t)$ into Fourier series.
+- **Interpretation**: 
+  - **Low Harmonics (1-5)**: Capture the "global" shape, symmetry, and general elongation of the otolith (e.g., separating oval vs. rectangular shapes).
+  - **High Harmonics (>15)**: Represent fine-grained margin details, such as small serrations or irregularities that can be specific to certain stocks or environments.
+- **Typical Use**: Evolutionary studies, morphospace analysis, and species identification (Kuhl & Giardina, 1982).
 
 ```{r efd_example}
-# Using Momocs integration in aforoR
-ef_coefs <- Momocs::efourier(contour, nb.h = 32)
-# The result contains the harmonic coefficients
-head(ef_coefs$coe)
+# Example: EFD is typically calculated using the Momocs package
+# The aforoR package focuses on wavelets and CSS for otolith analysis
+cat("EFD captures shape through harmonics:\n")
+cat("- Harmonic 1-2: Elliptical outline\n")
+cat("- Harmonic 3-5: Triangular/rectangular features\n")
+cat("- Harmonic 6-10: Moderate detail\n")
+cat("- Harmonic >15: Fine serrations\n")
 ```
 
 ---
 
 ## 2. Wavelet Transform
 
-Wavelets provide a way to analyze the contour at different frequency levels while maintaining spatial localization.
+Wavelets analysis performs a multi-resolution decomposition of the contour signal (radius or step-length).
 
-- **How it works**: It treats the radius (polar) or step-length (perimeter) distance from the centroid as a signal and decomposes it using a mother wavelet.
-- **Advantages**: Can pinpoint *where* a feature is on the contour. Scale 1-2 captures noise/fine detail, while 5-9 captures the main shape.
-- **Typical Use**: Stock separation and phenotype discrimination where fine-grained differences in margins are important.
+- **Mathematics**: Uses a mother wavelet $\psi(t)$ to analyze the signal at different scales $j$. Scale $j$ corresponds to a frequency band.
+- **Interpretation**:
+  - **High Scales (7-9)**: Capture the main body and coarsest features of the otolith contour.
+  - **Mid Scales (4-6)**: Correspond to morphological features like lobes, indentations, and the general complexity of the protrusions.
+  - **Low Scales (1-3)**: Represent the highest frequencies, often capturing very fine margin texture or high-frequency noise.
+- **Typical Use**: Stock separation where differences occur in specific regions of the otolith margin (Parisi-Baradad et al., 2005).
 
 ```{r wavelets_example}
 dists <- calculate_distances(contour)
 wavelets <- calculate_wavelets_analysis(dists, n_scales = 9)
-plot(wavelets$polar[5, ],
-    type = "l",
-    main = "Wavelet Scale 5 (Polar distances)",
-    xlab = "Point index", ylab = "Coefficient Value"
-)
+
+# Plot Scale 5
+scale_5_df <- data.frame(Index = seq_len(ncol(wavelets$polar)), Value = wavelets$polar[5, ])
+ggplot(scale_5_df, aes(x = Index, y = Value)) +
+  geom_line(color = "coral2") +
+  labs(title = "Wavelet Scale 5 (Polar distances)", x = "Point Index", y = "Coefficient") +
+  aforo_theme()
 ```
 
 ---
 
 ## 3. Curvature Scale Space (CSS)
 
-CSS focuses on the **geometry of the contour** by tracking inflection points (where the curve changes from concave to convex) as the shape is progressively smoothed.
+CSS tracks the evolution of inflection points on the contour as it's smoothed by a Gaussian kernel $G(t, \sigma)$.
 
-- **How it works**: The contour is smoothed with Gaussian kernels of increasing scale ($\sigma$). We record the position of inflection points at each scale to create a "CSS Image".
-- **Advantages**: Extremely robust to noise and rotation. It naturally identifies significant "concavities" or "protrusions" (lobes).
-- **Typical Use**: Detailed analysis of contour irregularities and detecting structural features like lobes.
+- **Mathematics**: Inflection points are found where the second derivative of the smoothed curve is zero: $\kappa(t, \sigma) = 0$.
+- **Interpretation**:
+  - **CSS Image Peaks**: The highest peaks in the $(\sigma, t)$ space represent the most stable, "deepest" concavities or convexities that survive significant smoothing.
+  - **Wide Distribution of Points at Low $\sigma$**: Indicates a contour with many fine-grained irregularities and high-frequency "wiggliness".
+- **Typical Use**: Quantifying protrusions/lobes (Mokhtarian & Mackworth, 1986).
 
 ```{r css_example}
-# Calculate and plot CSS using the real otolith contour
 css_res <- calculate_css(contour)
+# The plot method for css object already uses a professional style if configured
 plot(css_res)
 ```
 
 ## Summary: Which one should I use?
 
-1.  **Use EFD** if you need a standard, globally accepted method for broad shape differences (e.g., comparing species).
-2.  **Use Wavelets** if you are looking for local differences in margin complexity between populations of the same species.
-3.  **Use CSS** if you want to quantify specific geometric features like the number and depth of protrusions/lobes regardless of their orientation.
+1.  **Use EFD** for broad morphological studies where global shape is the primary driver of variation.
+2.  **Use Wavelets** for detecting subtle population-level differences in margin complexity.
+3.  **Use CSS** for identifying and quantifying specific geometric landmarks like lobes or indentations.
 
 ## References
 
--   Kuhl, F.P. and Giardina, C.R. (1982). Elliptic Fourier features of a closed contour.
--   Mokhtarian, F. and Mackworth, A.K. (1986). Scale-based description and recognition of planar curves and two-dimensional shapes.
--   Parisi-Baradad, V. et al. (2005). Otolith shape contour analysis using mathematical descriptors.
+- Kuhl, F.P. and Giardina, C.R. (1982). Elliptic Fourier features of a closed contour. *Computer Graphics and Image Processing*.
+- Mokhtarian, F. and Mackworth, A.K. (1986). Scale-based description and recognition of planar curves and two-dimensional shapes. *IEEE Transactions on Pattern Analysis and Machine Intelligence*.
+- Parisi-Baradad, V. et al. (2005). Otolith shape contour analysis using mathematical descriptors. *Computers in Biology and Medicine*.
