@@ -5,12 +5,7 @@
 \alias{Aphanopus_EF}
 \title{Aphanopus elliptic Fourier descriptors}
 \format{
-A data frame with 130 variables:
-\describe{
-  \item{Species}{Species name}
-  \item{ID}{Unique identifier}
-  \item{A1..D32}{Fourier coefficients (harmonincs 1 to 32)}
-}
+A data frame with 129 variables: `Species`, `ID`, and Fourier coefficients `A2` through `A32`, `B1`..`B32`, `C1`..`C32`, and `D1`..`D32`.
 }
 \usage{
 Aphanopus_EF

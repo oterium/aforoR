@@ -3,3 +3,8 @@
 ^README\.Rmd$
 ^LICENSE\.md$
 ^\.github$
+^AFOROR\.R$
+^Rplots\.pdf$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

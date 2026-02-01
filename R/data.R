@@ -26,22 +26,12 @@
 #'
 #' Wavelet coefficients at scale 5 for Aphanopus carbo and A. intermedius otoliths.
 #'
-#' @format A data frame with 514 variables:
-#' \describe{
-#'   \item{Species}{Species name}
-#'   \item{ID}{Unique identifier}
-#'   \item{W1..W512}{Wavelet coefficients at scale 5}
-#' }
+#' @format A data frame with 514 variables: `Species`, `ID`, and wavelet coefficients from `W1` to `W512`.
 "Aphanopus_W5"
 
 #' Aphanopus elliptic Fourier descriptors
 #'
 #' Elliptic Fourier descriptors for Aphanopus carbo and A. intermedius otoliths.
 #'
-#' @format A data frame with 130 variables:
-#' \describe{
-#'   \item{Species}{Species name}
-#'   \item{ID}{Unique identifier}
-#'   \item{A1..D32}{Fourier coefficients (harmonincs 1 to 32)}
-#' }
+#' @format A data frame with 129 variables: `Species`, `ID`, and Fourier coefficients `A2` through `A32`, `B1`..`B32`, `C1`..`C32`, and `D1`..`D32`.
 "Aphanopus_EF"
