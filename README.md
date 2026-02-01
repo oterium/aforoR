@@ -32,6 +32,8 @@ While specifically optimized for otoliths, the package is equally powerful for a
     *   *Indices*: Roundness, Form Factor, Circularity, Rectangularity, Ellipticity, and Aspect Ratio.
 *   🌊 **Multi-scale Wavelet Analysis**: Decomposition of contours using discrete wavelet transforms for detailed frequency-based shape characterization.
 *   🎯 **Elliptic Fourier Descriptors (EFDs)**: Standard Fourier-based shape analysis.
+*   📈 **Curvature Scale Space (CSS)**: Geometric approach for detecting inflection points and lobes at multiple smoothing scales.
+*   📍 **Optimal Point Selection**: Implementation of the Hall & Bathia (2012) algorithm for identifying the most discriminative points in functional data.
 *   📦 **Batch Processing**: Efficiently process entire directories of images with automated output generation.
 
 ---
@@ -81,6 +83,8 @@ The package includes detailed tutorials (vignettes) to guide you through differe
 | [**Otolith Morphometry**](https://oterium.github.io/aforoR/articles/Otolith_Morphometry.html) | Guide to calculating shape indices and modeling allometric relationships (fish-otolith). |
 | [**Working Wavelets**](https://oterium.github.io/aforoR/articles/Working_Wavelets.html) | Deep dive into wavelet-based population comparison, PCA, and classification models. |
 | [**Analyzing Lobes**](https://oterium.github.io/aforoR/articles/Analyzing_Lobes.html) | Specialized analysis of specific morphological features (lobes). |
+| [**Shape Descriptors**](https://oterium.github.io/aforoR/articles/Shape_Descriptors.html) | Comparison between EFD, Wavelets, and CSS for otolith analysis. |
+| [**Point Selection**](https://oterium.github.io/aforoR/articles/Point_Selection.html) | Sequential point selection for classification using the Hall & Bathia algorithm. |
 
 ---
 
