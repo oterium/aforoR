@@ -1,0 +1,31 @@
+---
+title: "Bibliographic References"
+author: "José Luis Otero-Ferrer & Amalia Manjabacas"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Bibliographic References}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>"
+)
+```
+
+## References
+
+* Cruz, A., & Lombarte, A. (2004). Otolith size and their relationship with colour pattern and sound production. Journal of Fish Biology, 65, 1512-1525. https://doi:10.1111/j.0022-1112.2004.00558.x.
+* Lombarte, A., & Cruz, A. (2007). Otolith size trends in marine fish communities from different depth strata. Journal of Fish Biology, 71(1), 53–76. https://doi.org/10.1111/j.1095-8649.2007.01465.x.
+* Parisi-Baradad, V., Lombarte, A., García-Ladona, E., Cabestany, J., Piera, J., & Chic, O. (2005). Otolith shape contour analysis using affine transformation invariant wavelet transforms and curvature scale space representation. Marine and Freshwater Research, 56, 795–804. https://doi.org/10.1071/MF04162.
+* Parisi-Baradad V, Manjabacas A, Lombarte A, Olivella R,Chic Ò, Piera J, García-Ladona E (2010) Automated taxon identification of teleost fishes using an otolith online dataset aforo. Fisheries Research, 105(1):13–20. https://doi.org/10.1016/j.fishres.2010.02.005.
+* Lombarte, A., & Tuset, V.M. (2015). Morfometria de otólitos. In Métodos de estudo com otólitos: princípios e aplicações. 459 CAFP-BA-PIESCI. pp. 269–302.
+* Marti-Puig, P., Manjabacas, A., & Lombarte, A. (2020). Fourier-based contour descriptors to relax positional standardization of the otolith images in AFORO queries. Scientia Marina 84(1), 27–37. https://doi.org/10.3989/scimar.04961.15A.
+* MacArthur, R.,& Levins, R. (1967). The limiting similarity, convergence, and divergence of coexisting species. Am. Nat. 101, 377–385. https://doi.org/10.1086/282505.
+* Tuset, V. M., Lombarte, A., & Assis, C. A. (2008). Otolith atlas for the western Mediterranean, north and central eastern Atlantic. Scientia Marina, 72(1), 7–198. https://doi.org/10.3989/scimar.2008.72s17.
+* Tuset VM, Galimay E, Farrés A, Marco-Herreno E, Otero-Ferrer JL, Lombarte A, Ramón, M. (2020) Recognising mollusc shell contours with enlarged spines: Wavelet vs Elliptic Fourier analyses. Zoology, 140, 125778. https://doi.org/10.1016/j.zool.2020.125778.
+* Tuset, V. M., Olivar, M.O., Manjabacas, A., & Lombarte, A. (in press). 2D otolith size trends in myctophid dishes. Journal of Fish Biology.
+* Varsha, S., Kumar, K.V.A., Raphael, L., Apsara, J., Sreelekshmi, R., Nihal, D., Thottappilly, A., Manjebrayakath, H., & Tuset, V.M. (2025) Comparative shell morphometry of three mytilidae species: insights into the invasive potential of Mytella strigata over native mussels. JoBAZ 86, 53. https://doi.org/10.1186/s41936-025-00473-2.
+* Vasconcelos, J., Otero-Ferrer, J.L., Lombarte, A., Jurado-Ruzafa, A., Manjabacas, A., & Tuset, V. M. (2025). Choosing wavelet methods for otolith contour studies. Reviews in Fish Biology and Fisheries, 35, 201–216. https://doi.org/10.1007/s11160-024-09896-6.
