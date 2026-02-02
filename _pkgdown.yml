@@ -31,8 +31,12 @@ navbar:
         - text: "Getting Started"
         - text: "Obtaining Contour"
           href: articles/Obtaining_Contour.html
+        - text: "Otolith Morphology"
+          href: articles/Otolith_Morphology.html
         - text: "Otolith Morphometry"
           href: articles/Otolith_Morphometry.html
+        - text: "Knowing Wavelets"
+          href: articles/Knowing_Wavelets.html
         - text: "Working with Wavelets"
           href: articles/Working_Wavelets.html
         - text: "___"
@@ -45,6 +49,8 @@ navbar:
           href: articles/Shape_Descriptors.html
         - text: "Point Selection"
           href: articles/Point_Selection.html
+        - text: "References"
+          href: articles/References.html
         - text: "About"
           href: articles/about.html
     news:
