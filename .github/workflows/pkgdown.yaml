@@ -34,9 +34,7 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
-          cache-version: 5
-        env:
-          PKGCACHE_HTTP_VERSION: "1.1"
+          cache-version: 6
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
