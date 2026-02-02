@@ -54,6 +54,9 @@ navbar:
     news:
       text: "News"
       href: news/index.html
+    points:
+      text: "Point Selection"
+      href: reference/select_points_hall.html
 
 reference:
   - title: "Main Workflow"
@@ -74,6 +77,13 @@ reference:
       - calculate_morphometrics
       - calculate_wavelets_analysis
       - calculate_css
+      - fwaveletspl_3
+      - plot.css
+
+  - title: "Analysis & Selection"
+    desc: "Advanced analysis and point selection"
+    contents:
+      - select_points_hall
 
   - title: "Visualization & Export"
     desc: "Functions for saving results and images"
