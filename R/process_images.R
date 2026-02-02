@@ -377,11 +377,19 @@ save_analysis_results <- function(analysis_results, output_dir, result_type = "p
   tryCatch({
     setwd(output_dir)
 
+    # Filter out NULL results
+    analysis_results <- analysis_results[!sapply(analysis_results, is.null)]
+    if (length(analysis_results) == 0) {
+      warning("No valid analysis results to save")
+      return(invisible(NULL))
+    }
+
     # Extract data for each type of measurement
-    distances <- t(sapply(analysis_results, function(x) x$Distancia))
-    distances_norm <- t(sapply(analysis_results, function(x) x$Distancia_Norm))
-    coordinates <- do.call(rbind, lapply(analysis_results, function(x) x$coords))
     image_names <- sapply(analysis_results, function(x) x$nombre)
+
+    distances <- do.call(rbind, lapply(analysis_results, function(x) x$Distancia))
+    distances_norm <- do.call(rbind, lapply(analysis_results, function(x) x$Distancia_Norm))
+    coordinates <- do.call(rbind, lapply(analysis_results, function(x) x$coords))
 
     # Save distance data
     write_analysis_csv(distances, "DistanciaEN.csv", image_names)
@@ -389,8 +397,11 @@ save_analysis_results <- function(analysis_results, output_dir, result_type = "p
 
     # Save wavelet data
     for (i in 1:9) {
-      wavelet_data <- t(sapply(analysis_results, function(x) x[[paste0("Wavelet_", i)]]))
-      write_analysis_csv(wavelet_data, paste0("Wavelet_", i, "EN.csv"), image_names)
+      wavelet_name <- paste0("Wavelet_", i)
+      wavelet_data <- do.call(rbind, lapply(analysis_results, function(x) x[[wavelet_name]]))
+      if (!is.null(wavelet_data)) {
+        write_analysis_csv(wavelet_data, paste0(wavelet_name, "EN.csv"), image_names)
+      }
     }
 
     # Save coordinates
@@ -484,6 +495,7 @@ write_analysis_csv <- function(data, filename, row_names) {
 #' # Process all images in the "images" folder
 #' process_images(folder = "path/to/images", pixels_per_mm = 100)
 #' }
+process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets = TRUE, ef = TRUE, testing = TRUE, pseudolandmarks = "both", save = TRUE, pixels_per_mm = NULL, detect_scale = FALSE) {
   # Input validation
   if (!is.character(folder) || length(folder) != 1) {
     stop("folder must be a single character string")
