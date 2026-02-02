@@ -81,6 +81,22 @@ reference:
       - save_visualization
       - save_visualization_perimeter
       - save_analysis_results
+      - create_result_structure
+
+  - title: "Datasets"
+    desc: "Built-in datasets for example and testing"
+    contents:
+      - Aphanopus
+      - Aphanopus_EF
+      - Aphanopus_W5
+
+  - title: "Internal Helpers"
+    desc: "Low-level functions used by the main analysis pipeline"
+    contents:
+      - ild
+      - fatrous1d
+      - regularradius
+      - dper
 
 code:
   width: 50
