@@ -59,6 +59,7 @@ rsconnect/
 # End of https://www.toptal.com/developers/gitignore/api/r
 
 .Rproj.user
+*.Rproj
 .Rdata
 .DS_Store
 .quarto
