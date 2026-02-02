@@ -51,8 +51,6 @@ navbar:
           href: articles/Point_Selection.html
         - text: "References"
           href: articles/References.html
-        - text: "About"
-          href: articles/about.html
     news:
       text: "News"
       href: news/index.html
