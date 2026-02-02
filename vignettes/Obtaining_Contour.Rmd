@@ -104,11 +104,36 @@ if (file.exists(wavelet_file)) {
 }
 ```
 
-## 4. Visualizations
 
-The package also generates images to verify the contour extraction and analysis zones.
+### 3.3 Visualizations
 
-*   `zonal [ImageName].jpg`: Shows the contour and valid zones.
-*   `wavelet [ImageName].jpg`: Shows the wavelet transform.
+The package automatically generates diagnostic images to verify the contour extraction and analysis zones.
+
+#### Zonal Analysis
+This image shows the original binary otolith with the centroid (black dot), the starting point of the contour (red dot), and the angular sectors used for analysis (colored lines).
+
+```{r zonal_plot, echo=FALSE, fig.cap="Zonal Analysis showing contour and sectors", out.width="80%"}
+zonal_img <- file.path(work_dir, "Polar", "zonal otolith.jpg")
+if (file.exists(zonal_img)) {
+  knitr::include_graphics(zonal_img)
+} else {
+  message("Zonal image not found at: ", zonal_img)
+}
+```
+
+#### Wavelet Transform
+This plot visualizes the wavelet coefficients at a specific scale (default: scale 5). It highlights how different parts of the contour contribute to the shape complexity.
+
+```{r wavelet_plot, echo=FALSE, fig.cap="Wavelet Transform (Scale 5)", out.width="80%"}
+wavelet_img <- file.path(work_dir, "Polar", "wavelet otolith.jpg")
+if (file.exists(wavelet_img)) {
+  knitr::include_graphics(wavelet_img)
+} else {
+  message("Wavelet image not found at: ", wavelet_img)
+}
+```
+
+
 
 (Images are saved in the `Polar` folder).
+

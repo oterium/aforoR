@@ -461,9 +461,29 @@ write_analysis_csv <- function(data, filename, row_names) {
 #' @param save A logical value indicating whether to save the results as CSV files. Default is TRUE.
 #' @param pixels_per_mm A numeric value specifying the scale (pixels per mm). Default is NULL.
 #' @param detect_scale A logical value indicating whether to automatically detect the scale bar (1mm) in the image. Default is FALSE.
+#' @return Invisible NULL. The function is used for its side effects (creating files).
+#' @details
+#' The function generates the following files in the `Polar` (and `Cartesian`) directories:
+#' \itemize{
+#'   \item \code{MorphometricsEN.csv}: Table with shape indices (Area, Perimeter, Circularity, etc.).
+#'   \item \code{DistanciaEN.csv} and \code{Distancia_NormEN.csv}: Raw and normalized distances (radii or perimeter).
+#'   \item \code{Wavelet_xEN.csv}: Wavelet coefficients for scales 1 to 9.
+#'   \item \code{EllipticCoeEN.csv}: Elliptic Fourier coefficients (if \code{ef = TRUE}).
+#'   \item \code{Coords.csv}: Contour coordinates.
+#' }
+#'
+#' If \code{testing = TRUE}, diagnostic images are also saved:
+#' \itemize{
+#'   \item \code{zonal [ImageName].jpg}: Visualization of the contour and analysis sectors.
+#'   \item \code{wavelet [ImageName].jpg}: Visualization of the wavelet transform.
+#' }
 #' @export
 #'
-process_images <- function(folder, subfolder = FALSE, threshold = NULL, wavelets = TRUE, ef = TRUE, testing = TRUE, pseudolandmarks = "both", save = TRUE, pixels_per_mm = NULL, detect_scale = FALSE) {
+#' @examples
+#' \dontrun{
+#' # Process all images in the "images" folder
+#' process_images(folder = "path/to/images", pixels_per_mm = 100)
+#' }
   # Input validation
   if (!is.character(folder) || length(folder) != 1) {
     stop("folder must be a single character string")

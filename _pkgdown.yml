@@ -12,51 +12,71 @@ template:
     code_font: "Fira Code"
     pkgdown-nav-height: 80px
     pkgdown-sidebar-width: 250px
-  css: "extra.css"  # <-- agrega tu CSS aquí
+  css: "extra.css"
 
 navbar:
-  title:
-    text: "aforoR"
-    href: index.html            # Apunta a README.Rmd convertido
-  left:
-    - text: "Overview"
+  structure:
+    left: [intro, reference, articles, news]
+    right: [github, search]
+  components:
+    intro:
+      text: "aforoR"
+      href: index.html
+    reference:
+      text: "Reference"
+      href: reference/index.html
+    articles:
+      text: "Articles"
       menu:
-        - text: "Otolith Morphology"
-          href: articles/Otolith_Morphology.html
-        - text: "Knowing Wavelets"
-          href: articles/Knowing_Wavelets.html
-    - text: "Workflow"
-      menu:
-        - text: Image Preprocessing
-        - text: Contour Extraction
-        - text: Distance Measurements
-        - text: Wavelet decomposition
-        - text: Visualization and Export
-    - text: "Applications"
-      menu:
-        - text: "Extracting Contour"
+        - text: "Getting Started"
+        - text: "Obtaining Contour"
           href: articles/Obtaining_Contour.html
-        - text: "Working with Wavelets"
-          href: articles/Working_Wavelets.html
-        - text: "Phenotypes"
-          href: articles/Phenotypes.html
-        - text: "Analyzing Otolith Lobes"
-          href: articles/Analyzing_Lobes.html
         - text: "Otolith Morphometry"
           href: articles/Otolith_Morphometry.html
-    - text: "Publications"
-      menu:
-#        - text: "News"
-#          href: articles/News.html
-#        - text: "References"
-#          href: articles/Refecences.html
+        - text: "Working with Wavelets"
+          href: articles/Working_Wavelets.html
+        - text: "___"
+        - text: "Advanced Topics"
+        - text: "Phenotypes"
+          href: articles/Phenotypes.html
+        - text: "Analyzing Lobes"
+          href: articles/Analyzing_Lobes.html
+        - text: "Shape Descriptors"
+          href: articles/Shape_Descriptors.html
+        - text: "Point Selection"
+          href: articles/Point_Selection.html
         - text: "About"
           href: articles/about.html
-  right:
-    - icon: fab fa-github
-      href: "https://github.com/oterium/aforoR"
-      text: "GitHub"
-    - search: true
+    news:
+      text: "News"
+      href: news/index.html
+
+reference:
+  - title: "Main Workflow"
+    desc: "Functions for the complete analysis pipeline"
+    contents:
+      - process_images
+
+  - title: "Image Processing"
+    desc: "Functions for image manipulation and contour extraction"
+    contents:
+      - preprocess_image
+      - extract_contour
+
+  - title: "Shape Analysis"
+    desc: "Functions for calculating shape descriptors"
+    contents:
+      - calculate_distances
+      - calculate_morphometrics
+      - calculate_wavelets_analysis
+      - calculate_css
+
+  - title: "Visualization & Export"
+    desc: "Functions for saving results and images"
+    contents:
+      - save_visualization
+      - save_visualization_perimeter
+      - save_analysis_results
 
 code:
   width: 50
