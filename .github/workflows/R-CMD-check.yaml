@@ -23,6 +23,9 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      PAK_RECHECK_LOCKED: true
+      R_PKG_PAK_CONNECTION_TIMEOUT: 60
+      R_PKG_PAK_DOWNLOAD_TIMEOUT: 120
 
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +41,7 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
-          cache-version: 2
+          cache-version: 3
 
       - uses: r-lib/actions/check-r-package@v2
         with:
