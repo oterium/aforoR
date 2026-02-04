@@ -50,7 +50,10 @@ preprocess_image <- function(image_path, threshold = NULL, blur_size = 31,
       foto2 <- EBImage::channel(foto, "grey")
       foto2 <- EBImage::filter2(
         foto2,
-        EBImage::makeBrush(size = blur_size, shape = "gaussian", sigma = blur_sigma)
+        EBImage::makeBrush(
+          size = blur_size, shape = "gaussian",
+          sigma = blur_sigma
+        )
       )
 
       if (is.null(threshold)) {
@@ -337,7 +340,7 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
     {
       # Save zonal analysis plot
       jpeg(
-        filename = file.path(output_dir, paste("zonal ", image_name, ".jpg", sep = "")),
+        filename = file.path(output_dir, paste("zonal ", tools::file_path_sans_ext(image_name), ".jpg", sep = "")),
         res = 600, width = 600, height = 400, units = "mm"
       )
       plot(binary_image)
@@ -373,7 +376,7 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
       # Save wavelet plot
       jpeg(filename = file.path(
         output_dir,
-        paste("wavelet ", image_name, ".jpg", sep = "")
+        paste("wavelet ", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
       ))
       plot(wavelets$polar[wavelet_scale, ],
         main = paste("Wavelet", wavelet_scale, image_name),
@@ -930,7 +933,7 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets,
     {
       # Save zonal analysis plot for perimeter
       jpeg(
-        filename = file.path(output_dir, paste("zonal ", image_name, ".jpg", sep = "")),
+        filename = file.path(output_dir, paste("zonal ", tools::file_path_sans_ext(image_name), ".jpg", sep = "")),
         res = 600, width = 600, height = 400, units = "mm"
       )
       plot(binary_image)
@@ -963,7 +966,7 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets,
       # Save wavelet plot for perimeter
       jpeg(filename = file.path(
         output_dir,
-        paste("wavelet ", image_name, ".jpg", sep = "")
+        paste("wavelet ", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
       ))
       plot(wavelets$perimeter[5, ],
         main = paste("Wavelet 5", image_name),

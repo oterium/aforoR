@@ -29,81 +29,24 @@ Merging wavelet at 5^th^ and biological and morphological data.
 library(aforoR)
 library(dplyr)
 
-# Step 1: Load the built-in dataset
-# This dataset contains wavelet coefficients at scale 5
+# Step 1: Load the built-in datasets
+# Aphanopus_W5 contains wavelet coefficients at scale 5
+# Aphanopus contains morphometric and biological data
 data(Aphanopus_W5)
+data(Aphanopus)
 
-# For comparison with the manual protocol, we split it by species
-Acar <- Aphanopus_W5 %>% filter(Species == "Acar")
-Aint <- Aphanopus_W5 %>% filter(Species == "Aint")
+# Step 2: Clean IDs (remove .jpg or .tif extensions for consistent joining)
+Aphanopus_W5$ID <- gsub("\\.(jpg|tif)$", "", Aphanopus_W5$ID)
+Aphanopus$ID <- gsub("\\.(jpg|tif)$", "", Aphanopus$ID)
 
-# Step 2: Check structure
-str(Acar) # W1..W512 are numeric variables
-str(Aint)
+# Step 3: Combine datasets using a left join
+# This merges wavelet coefficients with morphometrics and biological data
+Aphanopus_full <- Aphanopus_W5 %>%
+  left_join(Aphanopus, by = c("ID", "Species"))
 
-# Step 3: Check structure
-str(Acar)# W1..W512 must be numeric variables
-str(Aint)# W1..W512 must be numeric variables
+# Step 4: Check structure
+str(Aphanopus_full) # Should now contain W1..W512, SL, Area, etc.
 
-# Step 4: Combine datset
-Wavelet<- rbind(Acar, Aint)
-Wavelet$Species<-as.factor(Wavelet$Species)
-
-# Step 5: Eliminate ".tif" of ID
-Wavelet$ID <- gsub("\\.tif$", "", Wavelet$ID)
-
-#############
-# Morphological data
-AcarMorpho <- read.csv("data/Acarbo/Cartesian/Acarbo/Morpho.csv", sep = ";")
-AintMorpho <- read.csv("data/Acarbo/Cartesian/Aintermedius/Morph.csv", sep = ";")
-
-# Step 6: Rename columns
-names(AcarMorpho)[1] <- "ID"
-names(AcarMorpho)[2] <- "OL"   #otolith length
-names(AcarMorpho)[3] <- "OW"   #otolith width
-names(AcarMorpho)[4] <- "OA"   #otolith area
-names(AcarMorpho)[5] <- "OP"   #otolith perimeter
-AcarMorpho$Species<-"Acar"
-
-names(AintMorpho)[1] <- "ID"
-names(AintMorpho)[2] <- "OL"   #otolith length
-names(AintMorpho)[3] <- "OW"   #otolith width
-names(AintMorpho)[4] <- "OA"   #otolith area
-names(AintMorpho)[5] <- "OP"   #otolith perimeter
-AintMorpho$Species<-"Aint"
-
-# Step 7: Check structure
-str(AcarMorpho)# morphometric data must be numeric
-str(AintMorpho)# morphometric data must be numeric
-
-# Step 7: Combine datset
-Morpho<- rbind(AcarMorpho, AintMorpho)
-Morpho$Species<-as.factor(Morpho$Species)
-str(Morpho)
-
-# Step 8: Eliminate ".tif" of ID
-Morpho$ID <- gsub("\\.tif$", "", Morpho$ID)
-
-################
-# Biological data including both species
-Bio <- read.csv("data/Biological.csv", sep = ";")
-
-# Step 9: Check structure
-str(Bio)#check variables and transform as factor or numeric
-Bio$SL<-as.numeric(Bio$SL)
-str(Bio)
-
-#Step 10: Eliminate ".tif" of ID
-Bio$ID <- gsub("\\.tif$", "", Bio$ID)
-
-################
-# Step 11: Full join and keep all rows and use ID and Species for merge dataset
-Aphanopus<- Wavelet %>%
-  left_join(Morpho, by = c("ID", "Species")) %>%
-  left_join(Bio, by = c("ID", "Species"))
-
-# Step 12: check the structure
-str(Aphanopus)
 ```
 
 ## 3. Wavelet analysis
@@ -114,8 +57,8 @@ The mean and standard deviation wavelets by species.
 
 ``` r
 ## Step 1: Obtain the mean and sd by species
-meanAphanopusM<-aggregate(Aphanopus_full[, 3:514], list(Aphanopus$Species), mean)
-meanAphanopusSD<-aggregate(Aphanopus_full[, 3:514], list(Aphanopus$Species), sd)
+meanAphanopusM<-aggregate(Aphanopus_full[, 3:514], list(Aphanopus_full$Species), mean)
+meanAphanopusSD<-aggregate(Aphanopus_full[, 3:514], list(Aphanopus_full$Species), sd)
 
 # Step 2: Transforming data
 meanAphanopusM<-as.data.frame(t(meanAphanopusM))
@@ -201,7 +144,7 @@ library(stats)
 library(factoextra)
 
 # Step 1: PCA analysis to reduce the whole information 
-PCA<-prcomp(Aphanopus[,2:513])
+PCA<-prcomp(Aphanopus_full[, 3:514])
 summary(PCA)
 fviz_eig(PCA)
 
@@ -253,19 +196,6 @@ colnames(DataT)[10]<-"Species"
 colnames(DataT)[11]<-"OL"
 DataT$Species<-as.factor(DataT$Species)
 str(DataT)
-'data.frame':   143 obs. of  11 variables:
- $ PC1    : num  -0.0706 0.108 0.0386 0.0433 0.1466 ...
- $ PC2    : num  -0.173 -0.034 -0.144 -0.1181 -0.0441 ...
- $ PC3    : num  0.05638 0.00668 0.02957 -0.03641 0.02324 ...
- $ PC4    : num  -0.09044 -0.00438 0.00153 0.03753 0.05489 ...
- $ PC5    : num  0.02608 -0.05973 -0.0397 0.00533 -0.02284 ...
- $ PC6    : num  -0.01535 -0.0243 0.08088 -0.00459 -0.05342 ...
- $ PC7    : num  0.01741 -0.05769 0.00897 -0.02711 0.02259 ...
- $ PC8    : num  -0.0192 -0.0103 0.0639 0.0417 -0.052 ...
- $ PC9    : num  0.015186 -0.020353 0.000337 -0.033199 0.00188 ...
- $ Species: Factor w/ 2 levels "Acar","Aint": 1 1 1 1 1 1 1 1 1 1 ...
- $ OL     : num  9.62 7.35 9.09 7.52 8.29 8.74 9.94 7.73 8.36 7.38 ..
- 
 # Step 4: Loop through each PCA component (X) and test for significant correlation regression with OL (Y)
 # Initialize an empty data frame with the same number of rows
 new_df <- data.frame(matrix(ncol = 0, nrow = nrow(DataT)))
@@ -320,19 +250,6 @@ DataT1<-as.data.frame(cbind(new_df, Aphanopus_full$Species))
 colnames(DataT1)[10]<-"Species"
 rownames(DataT1)<-Aphanopus_full$ID
 str(DataT1)
-tr(DataT1)
-'data.frame':   143 obs. of  10 variables:
- $ PC1    : num  -0.0706 0.108 0.0386 0.0433 0.1466 ...
- $ PC2    : num  -0.173 -0.034 -0.144 -0.1181 -0.0441 ...
- $ PC3    : num  0.05638 0.00668 0.02957 -0.03641 0.02324 ...
- $ PC4    : num  -0.09927 0.0027 -0.00358 0.04342 0.05538 ...
- $ PC5    : num  0.0142 -0.0466 -0.0458 0.0166 -0.0201 ...
- $ PC6    : num  -0.01535 -0.0243 0.08088 -0.00459 -0.05342 ...
- $ PC7    : num  0.01741 -0.05769 0.00897 -0.02711 0.02259 ...
- $ PC8    : num  -0.0192 -0.0103 0.0639 0.0417 -0.052 ...
- $ PC9    : num  0.015186 -0.020353 0.000337 -0.033199 0.00188 ...
- $ Species: Factor w/ 2 levels "Acar","Aint": 1 1 1 1 1 1 1 1 1 1 ...
- 
 ###### Plot PC1-PC2 including the coord images of farthest individuals each 30 grades 
 # Load libraries
 library(grid)
@@ -544,11 +461,11 @@ Example with training and testing sets:
 
 ``` r
 set.seed(1000000)
-inTrainS <- createDataPartition(y = 1:length(Data$Stock), p = 0.75, list = F) 
-trainingS <- Data[ inTrainS,]
-testingS  <- Data[-inTrainS,]
-table(training$Stock)
-table(testing$Stock)
+inTrainS <- createDataPartition(y = DataT1$Species, p = 0.75, list = F) 
+trainingS <- DataT1[ inTrainS,]
+testingS  <- DataT1[-inTrainS,]
+table(trainingS$Species)
+table(testingS$Species)
 
 #MLP classifier
 set.seed(10000001)
