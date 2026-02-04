@@ -340,7 +340,7 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
     {
       # Save zonal analysis plot
       jpeg(
-        filename = file.path(output_dir, paste("zonal ", tools::file_path_sans_ext(image_name), ".jpg", sep = "")),
+        filename = file.path(output_dir, paste("zonal_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")),
         res = 600, width = 600, height = 400, units = "mm"
       )
       plot(binary_image)
@@ -376,7 +376,7 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
       # Save wavelet plot
       jpeg(filename = file.path(
         output_dir,
-        paste("wavelet ", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
+        paste("wavelet_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
       ))
       plot(wavelets$polar[wavelet_scale, ],
         main = paste("Wavelet", wavelet_scale, image_name),
@@ -590,8 +590,8 @@ write_analysis_csv <- function(data, filename, row_names) {
 #'
 #' If \code{testing = TRUE}, diagnostic images are also saved:
 #' \itemize{
-#'   \item \code{zonal [ImageName].jpg}: Visualization of the contour and analysis sectors.
-#'   \item \code{wavelet [ImageName].jpg}: Visualization of the wavelet transform.
+#'   \item \code{zonal_[ImageName].jpg}: Visualization of the contour and analysis sectors.
+#'   \item \code{wavelet_[ImageName].jpg}: Visualization of the wavelet transform.
 #' }
 #' @export
 #'
@@ -933,7 +933,7 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets,
     {
       # Save zonal analysis plot for perimeter
       jpeg(
-        filename = file.path(output_dir, paste("zonal ", tools::file_path_sans_ext(image_name), ".jpg", sep = "")),
+        filename = file.path(output_dir, paste("zonal_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")),
         res = 600, width = 600, height = 400, units = "mm"
       )
       plot(binary_image)
@@ -966,7 +966,7 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets,
       # Save wavelet plot for perimeter
       jpeg(filename = file.path(
         output_dir,
-        paste("wavelet ", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
+        paste("wavelet_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
       ))
       plot(wavelets$perimeter[5, ],
         main = paste("Wavelet 5", image_name),
