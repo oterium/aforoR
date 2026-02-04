@@ -7,6 +7,12 @@ test_that("examples from documentation work as expected", {
 
     # 1. Preprocess Image Example
     image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+
+    # Fallback if the package is not installed but we are running tests locally
+    if (image_path == "") {
+        image_path <- file.path("../../inst/extdata", "otolith.jpg")
+    }
+
     expect_true(file.exists(image_path))
 
     processed_img <- preprocess_image(image_path)

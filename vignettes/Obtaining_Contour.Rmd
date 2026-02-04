@@ -34,6 +34,11 @@ library(aforoR)
 # Locate the example image
 image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
 
+# Fallback if the package is not installed but we are running vignettes locally
+if (image_path == "") {
+  image_path <- file.path("../inst/extdata", "otolith.jpg")
+}
+
 # Create a temporary directory for processing
 work_dir <- file.path(tempdir(), "aforo_tutorial")
 if (dir.exists(work_dir)) unlink(work_dir, recursive = TRUE)
