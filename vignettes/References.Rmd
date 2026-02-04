@@ -1,6 +1,6 @@
 ---
 title: "Bibliographic References"
-author: "José Luis Otero-Ferrer & Amalia Manjabacas"
+author: "AFORO TEAM"
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteIndexEntry{Bibliographic References}
@@ -10,8 +10,8 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-    collapse = TRUE,
-    comment = "#>"
+  collapse = TRUE,
+  comment = "#>"
 )
 ```
 

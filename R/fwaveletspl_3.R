@@ -4,14 +4,15 @@
 #' This specific implementation is optimized for 1D signals like otolith radial
 #' distances.
 #'
-#' @param ra0 A numeric vector representing the input signal (must be a power of 2 length
-#'            for some applications, though here it uses the signal length).
+#' @param ra0 A numeric vector representing the input signal (must be a power of
+#'            2 length for some applications, though here it uses the signal
+#'            length).
 #' @param sjm An integer specifying the number of decomposition scales.
 #' @param det A logical value. If FALSE (default), it returns the approximation
 #'            coefficients (low-frequency). If TRUE, it returns the detail
 #'            coefficients (high-frequency).
-#' @return A matrix of dimensions (sjm x length(ra0)) containing the coefficients
-#'         for each scale.
+#' @return A matrix of dimensions (sjm x length(ra0)) containing the
+#'         coefficients for each scale.
 #' @export
 #' @examples
 #' # Decompose a signal into 5 scales
@@ -19,7 +20,7 @@
 #' sjm <- 9 # Number of scales
 #' wavelets <- fwaveletspl_3(sig, sjm)
 #' # plot(wavelets[1,], type="l") # Plot first scale
-fwaveletspl_3 <- function(ra0, sjm, det = F) {
+fwaveletspl_3 <- function(ra0, sjm, det = FALSE) {
   # Input validation
   if (!is.numeric(ra0)) {
     stop("ra0 must be a numeric vector")
@@ -47,22 +48,28 @@ fwaveletspl_3 <- function(ra0, sjm, det = F) {
   snh_max <- 2
 
   # Number of samples
-  sN <- length(ra0)
+  s_n <- length(ra0)
 
   # Number of scales
-  sj <- ceiling(log(sN, 2)) # This is used for safety, recalculates sjm based on ra0.
+  # This is used for safety, recalculates sjm based on ra_0.
+  sj_max <- ceiling(log(s_n, 2))
 
-  if (sj != sjm) stop("Revisa los parametros")
+  if (sjm > sj_max) {
+    stop(paste(
+      "sjm cannot exceed the max scales for this signal length:",
+      sj_max
+    ))
+  }
 
-  raj_1Anterior <- ra0
+  raj_1_anterior <- ra0
 
-  wave <- matrix(nrow = sjm, ncol = sN)
+  wave <- matrix(nrow = sjm, ncol = s_n)
   for (sj in 1:sjm) {
-    raj_1 <- fatrous1d(raj_1Anterior, rh_, snh_min, snh_max, sj)
-    rdj <- raj_1Anterior - raj_1 # Approximation
-    raj_1Anterior <- raj_1
-    if (det == F) {
-      wave[sj, ] <- rdj
+    raj_1 <- fatrous1d(raj_1_anterior, rh_, snh_min, snh_max, sj)
+    rd_j <- raj_1_anterior - raj_1 # Approximation
+    raj_1_anterior <- raj_1
+    if (det == FALSE) {
+      wave[sj, ] <- rd_j
     } else {
       wave[sj, ] <- raj_1
     }

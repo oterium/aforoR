@@ -105,5 +105,7 @@ Developed by **JLOF, VMT, AM, and AL**. Based on the [AFORO](http://aforo.cmima.
   <p>🐟 <b>Happy Otolith Analysis!</b> 🐟</p>
   <sub>Made with ❤️ for the fisheries science community</sub>
   <br><br>
-  [![GitHub stars](https://img.shields.io/github/stars/oterium/aforoR?style=social)](https://github.com/oterium/aforoR)
+  <a href="https://github.com/oterium/aforoR">
+    <img src="https://img.shields.io/github/stars/oterium/aforoR?style=social" alt="GitHub stars">
+  </a>
 </div>
