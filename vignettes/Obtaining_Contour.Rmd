@@ -117,28 +117,12 @@ The package automatically generates diagnostic images to verify the contour extr
 #### Zonal Analysis
 This image shows the original binary otolith with the centroid (black dot), the starting point of the contour (red dot), and the angular sectors used for analysis (colored lines).
 
-```{r zonal_plot, echo=FALSE, fig.cap="Zonal Analysis showing contour and sectors", out.width="80%"}
-zonal_img <- file.path(work_dir, "Polar", "zonal_otolith.jpg")
-if (file.exists(zonal_img)) {
-  knitr::include_graphics(zonal_img)
-} else {
-  plot.new()
-  text(0.5, 0.5, "Zonal image not found")
-}
-```
+![Zonal Analysis showing contour and sectors](images/zonal_otolith.jpg){width="80%"}
 
 #### Wavelet Transform
 This plot visualizes the wavelet coefficients at a specific scale (default: scale 5). It highlights how different parts of the contour contribute to the shape complexity.
 
-```{r wavelet_plot, echo=FALSE, fig.cap="Wavelet Transform (Scale 5)", out.width="80%"}
-wavelet_img <- file.path(work_dir, "Polar", "wavelet_otolith.jpg")
-if (file.exists(wavelet_img)) {
-  knitr::include_graphics(wavelet_img)
-} else {
-  plot.new()
-  text(0.5, 0.5, "Wavelet image not found")
-}
-```
+![Wavelet Transform (Scale 5)](images/wavelet_otolith.jpg){width="80%"}
 
 
 
