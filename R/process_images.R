@@ -316,8 +316,12 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
     stop("binary_image cannot be NULL")
   }
 
-  if (!is.list(distances) || !is.list(wavelets)) {
-    stop("distances and wavelets must be lists")
+  if (!is.list(distances)) {
+    stop("distances must be a list")
+  }
+
+  if (!is.null(wavelets) && !is.list(wavelets)) {
+    stop("wavelets must be a list or NULL")
   }
 
   if (!is.character(image_name) || length(image_name) != 1) {
@@ -373,29 +377,31 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
       }
       dev.off()
 
-      # Save wavelet plot
-      jpeg(filename = file.path(
-        output_dir,
-        paste("wavelet_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
-      ))
-      plot(wavelets$polar[wavelet_scale, ],
-        main = paste("Wavelet", wavelet_scale, image_name),
-        xlab = "", ylab = "", type = "l", col = 3, lwd = 2
-      )
-
-      # Add colored polygons for zones
-      for (i in seq_along(zones)) {
-        polygon(
-          x = c(min(zones[[i]]), zones[[i]], max(zones[[i]])),
-          y = c(
-            min(wavelets$polar[wavelet_scale, ]),
-            wavelets$polar[wavelet_scale, zones[[i]]],
-            min(wavelets$polar[wavelet_scale, ])
-          ),
-          col = colors[i]
+      # Save wavelet plot if available
+      if (!is.null(wavelets)) {
+        jpeg(filename = file.path(
+          output_dir,
+          paste("wavelet_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
+        ))
+        plot(wavelets$polar[wavelet_scale, ],
+          main = paste("Wavelet", wavelet_scale, image_name),
+          xlab = "", ylab = "", type = "l", col = 3, lwd = 2
         )
+
+        # Add colored polygons for zones
+        for (i in seq_along(zones)) {
+          polygon(
+            x = c(min(zones[[i]]), zones[[i]], max(zones[[i]])),
+            y = c(
+              min(wavelets$polar[wavelet_scale, ]),
+              wavelets$polar[wavelet_scale, zones[[i]]],
+              min(wavelets$polar[wavelet_scale, ])
+            ),
+            col = colors[i]
+          )
+        }
+        dev.off()
       }
-      dev.off()
     },
     error = function(e) {
       stop(paste("Error creating visualization:", e$message))
@@ -913,8 +919,12 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets,
     stop("binary_image cannot be NULL")
   }
 
-  if (!is.list(distances) || !is.list(wavelets)) {
-    stop("distances and wavelets must be lists")
+  if (!is.list(distances)) {
+    stop("distances must be a list")
+  }
+
+  if (!is.null(wavelets) && !is.list(wavelets)) {
+    stop("wavelets must be a list or NULL")
   }
 
   if (!is.character(image_name) || length(image_name) != 1) {
@@ -963,37 +973,39 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets,
       }
       dev.off()
 
-      # Save wavelet plot for perimeter
-      jpeg(filename = file.path(
-        output_dir,
-        paste("wavelet_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
-      ))
-      plot(wavelets$perimeter[5, ],
-        main = paste("Wavelet 5", image_name),
-        xlab = "", ylab = "", type = "l", col = 3, lwd = 2
-      )
-
-      # Add colored polygons for zones
-      for (i in seq_along(zones)) {
-        polygon(
-          x = c(min(zones[[i]]), zones[[i]], max(zones[[i]])),
-          y = c(
-            min(wavelets$perimeter[5, ]),
-            wavelets$perimeter[5, zones[[i]]],
-            min(wavelets$perimeter[5, ])
-          ),
-          col = colors[i]
+      # Save wavelet plot for perimeter if available
+      if (!is.null(wavelets)) {
+        jpeg(filename = file.path(
+          output_dir,
+          paste("wavelet_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
+        ))
+        plot(wavelets$perimeter[5, ],
+          main = paste("Wavelet 5", image_name),
+          xlab = "", ylab = "", type = "l", col = 3, lwd = 2
         )
-      }
 
-      legend("topleft",
-        legend = paste(
-          "Zona",
-          sapply(zones, function(z) paste0(min(z), ":", max(z)))
-        ),
-        pch = c(15, 15, 15, 15), col = colors, border = NULL, bg = "white"
-      )
-      dev.off()
+        # Add colored polygons for zones
+        for (i in seq_along(zones)) {
+          polygon(
+            x = c(min(zones[[i]]), zones[[i]], max(zones[[i]])),
+            y = c(
+              min(wavelets$perimeter[5, ]),
+              wavelets$perimeter[5, zones[[i]]],
+              min(wavelets$perimeter[5, ])
+            ),
+            col = colors[i]
+          )
+        }
+
+        legend("topleft",
+          legend = paste(
+            "Zona",
+            sapply(zones, function(z) paste0(min(z), ":", max(z)))
+          ),
+          pch = c(15, 15, 15, 15), col = colors, border = NULL, bg = "white"
+        )
+        dev.off()
+      }
     },
     error = function(e) {
       stop(paste("Error creating perimeter visualization:", e$message))
