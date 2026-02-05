@@ -122,7 +122,8 @@ zonal_img <- file.path(work_dir, "Polar", "zonal_otolith.jpg")
 if (file.exists(zonal_img)) {
   knitr::include_graphics(zonal_img)
 } else {
-  message("Zonal image not found at: ", zonal_img)
+  plot.new()
+  text(0.5, 0.5, "Zonal image not found")
 }
 ```
 
@@ -134,7 +135,8 @@ wavelet_img <- file.path(work_dir, "Polar", "wavelet_otolith.jpg")
 if (file.exists(wavelet_img)) {
   knitr::include_graphics(wavelet_img)
 } else {
-  message("Wavelet image not found at: ", wavelet_img)
+  plot.new()
+  text(0.5, 0.5, "Wavelet image not found")
 }
 ```
 
