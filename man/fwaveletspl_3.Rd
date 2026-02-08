@@ -4,11 +4,12 @@
 \alias{fwaveletspl_3}
 \title{B-Spline Wavelet Transform}
 \usage{
-fwaveletspl_3(ra0, sjm, det = F)
+fwaveletspl_3(ra0, sjm, det = FALSE)
 }
 \arguments{
-\item{ra0}{A numeric vector representing the input signal (must be a power of 2 length
-for some applications, though here it uses the signal length).}
+\item{ra0}{A numeric vector representing the input signal (must be a power of
+2 length for some applications, though here it uses the signal
+length).}
 
 \item{sjm}{An integer specifying the number of decomposition scales.}
 
@@ -17,8 +18,8 @@ coefficients (low-frequency). If TRUE, it returns the detail
 coefficients (high-frequency).}
 }
 \value{
-A matrix of dimensions (sjm x length(ra0)) containing the coefficients
-        for each scale.
+A matrix of dimensions (sjm x length(ra0)) containing the
+        coefficients for each scale.
 }
 \description{
 Computes the stationary wavelet transform of a signal using B-spline filters.

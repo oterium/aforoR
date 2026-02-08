@@ -16,12 +16,13 @@ A list containing:
   \itemize{
     \item \code{polar}: Radii, coordinates, and normalized radii.
     \item \code{perimeter}: Distances, coordinates, and normalized distances.
-    \item \code{reordered_coords}: The contour coordinates reordered from the rightmost point.
+    \item \code{reordered_coords}: The contour coordinates reordered from the
+          rightmost point.
   }
 }
 \description{
-Computes two types of distance measures from an otolith contour: polar distances
-(radial distances from the centroid) and perimeter-based distances.
+Computes two types of distance measures from an otolith contour: polar
+distances (radial distances from the centroid) and perimeter-based distances.
 These measures are crucial for subsequent wavelet analysis.
 }
 \examples{

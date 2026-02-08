@@ -4,21 +4,26 @@
 \alias{preprocess_image}
 \title{Preprocess Image for Contour Analysis}
 \usage{
-preprocess_image(image_path, threshold = NULL)
+preprocess_image(image_path, threshold = NULL, blur_size = 31, blur_sigma = 9)
 }
 \arguments{
-\item{image_path}{A string specifying the path to the image file (e.g., .jpg).}
+\item{image_path}{A string specifying the path to the image file (e.g., .jpg,
+.png, .tiff) OR an EBImage object.}
 
 \item{threshold}{A numeric value (0-1) for binarization. If NULL, Otsu's method
 is automatically applied.}
+
+\item{blur_size}{Size of the Gaussian brush for smoothing (default: 31).}
+
+\item{blur_sigma}{Sigma of the Gaussian brush for smoothing (default: 9).}
 }
 \value{
 A \code{pixset} (EBImage) representing the binarized image.
 }
 \description{
 Prepares an image for shape analysis by applying grayscale conversion,
-Gaussian smoothing to reduce noise, and binarization using the Otsu method (default)
-or a fixed threshold.
+Gaussian smoothing to reduce noise, and binarization using the Otsu method
+(default) or a fixed threshold.
 }
 \examples{
 # Use the sample otolith image included in the package

@@ -4,19 +4,24 @@
 \alias{extract_contour}
 \title{Extract Main Contour from Binarized Image}
 \usage{
-extract_contour(binary_image)
+extract_contour(binary_image, min_points = 200, min_area = 5000)
 }
 \arguments{
 \item{binary_image}{A binarized image produced by \code{preprocess_image()}.}
+
+\item{min_points}{Minimum number of points required for a valid contour
+(default: 200).}
+
+\item{min_area}{Minimum area required for a valid contour (default: 5000).}
 }
 \value{
 A matrix of (X, Y) coordinates of the main contour, or NULL if no
         suitable contour is found.
 }
 \description{
-Detects all contours in a binary image and identifies the largest one that meets
-specific size criteria (points > 200 and area > 5000), typically representing
-the fish otolith.
+Detects all contours in a binary image and identifies the largest one that
+meets specific size criteria (points > 200 and area > 5000), typically
+representing the fish otolith.
 }
 \examples{
 # Process sample image and extract its contour

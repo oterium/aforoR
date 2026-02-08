@@ -14,7 +14,14 @@ process_images(
   pseudolandmarks = "both",
   save = TRUE,
   pixels_per_mm = NULL,
-  detect_scale = FALSE
+  detect_scale = FALSE,
+  blur_size = 31,
+  blur_sigma = 9,
+  min_points = 200,
+  min_area = 5000,
+  n_harmonics = 32,
+  n_points = 512,
+  scale_mm = 1
 )
 }
 \arguments{
@@ -36,7 +43,21 @@ process_images(
 
 \item{pixels_per_mm}{A numeric value specifying the scale (pixels per mm). Default is NULL.}
 
-\item{detect_scale}{A logical value indicating whether to automatically detect the scale bar (1mm) in the image. Default is FALSE.}
+\item{detect_scale}{A logical value indicating whether to automatically detect the scale bar in the image. Default is FALSE.}
+
+\item{blur_size}{Size of the Gaussian brush for smoothing (default: 31).}
+
+\item{blur_sigma}{Sigma of the Gaussian brush for smoothing (default: 9).}
+
+\item{min_points}{Minimum number of points required for a valid contour (default: 200).}
+
+\item{min_area}{Minimum area required for a valid contour (default: 5000).}
+
+\item{n_harmonics}{Number of elliptic Fourier harmonics to calculate (default: 32).}
+
+\item{n_points}{Target number of points for resampling (default: 512).}
+
+\item{scale_mm}{Total length in mm of the scale bar for detection (default: 1).}
 }
 \value{
 Invisible NULL. The function is used for its side effects (creating files).
@@ -56,8 +77,8 @@ The function generates the following files in the `Polar` (and `Cartesian`) dire
 
 If \code{testing = TRUE}, diagnostic images are also saved:
 \itemize{
-  \item \code{zonal [ImageName].jpg}: Visualization of the contour and analysis sectors.
-  \item \code{wavelet [ImageName].jpg}: Visualization of the wavelet transform.
+  \item \code{zonal_[ImageName].jpg}: Visualization of the contour and analysis sectors.
+  \item \code{wavelet_[ImageName].jpg}: Visualization of the wavelet transform.
 }
 }
 \examples{

@@ -11,15 +11,16 @@ calculate_wavelets_analysis(distances, n_scales = 9, detail = FALSE)
 
 \item{n_scales}{Number of wavelet scales to extract (default: 9).}
 
-\item{detail}{Logical; if TRUE, returns detail coefficients instead of approximations.}
+\item{detail}{Logical; if TRUE, returns detail coefficients instead of
+approximations.}
 }
 \value{
 A list with wavelet coefficients for 'polar' and 'perimeter' components.
 }
 \description{
 Performs multi-scale wavelet decomposition on normalized distance data
-(polar or perimeter). This is useful for capturing shape variation at different
-frequencies.
+(polar or perimeter). This is useful for capturing shape variation at
+different frequencies.
 }
 \examples{
 # Example using existing data for wavelet analysis
