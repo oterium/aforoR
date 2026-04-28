@@ -143,7 +143,6 @@ for (i in seq_along(peak_valley_distances)) {
 
 peak_valley_distances[[1]]
 ```
-```
 
 ```{r remove_last_peak}
 # =======================================================
