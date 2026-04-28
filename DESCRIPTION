@@ -53,7 +53,9 @@ Suggests:
     caret,
     ggpubr,
     pracma
-Remotes: bioc::EBImage
+Remotes: 
+    bioc::EBImage,
+    MomX/Momocs
 Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
