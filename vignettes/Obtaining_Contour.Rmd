@@ -1,9 +1,9 @@
 ---
-title: "Obtaining Contour and Shape Analysis"
+title: "Image Preprocessing & Contour Extraction"
 author: "José Luis Otero-Ferrer & Amalia Manjabacas"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Obtaining Contour and Shape Analysis}
+  %\VignetteIndexEntry{Image Preprocessing & Contour Extraction}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -19,7 +19,23 @@ knitr::opts_chunk$set(
 
 This tutorial describes how to use the `aforoR` package to process images, extract otolith contours, and calculate shape descriptors including Elliptic Fourier Descriptors (EFDs), Wavelets, and Shape Indices.
 
-## 1. Setting up images
+## 1. Image preparation and Standardizing
+
+Otolith images should be placed with the *sulcus acusticus* facing upward, the *rostrum* to the right, and the dorsal margin at the top (Tuset et al., 2008; Lombarte and Tuset, 2015), according to its natural position.
+
+![](images/Standarization2.png "(image modified from Tuset et al., 2021)"){width="21cm"}
+
+During image acquisition, modeling clay can be helpful for otoliths with pronounced convexity.
+
+![](images/light.jpg "(image modify from Lombarte and Tuset, 2015)")
+
+The package determine automatically the initial contour point, which represents the maximum distance from the otolith centroid to this point locating to the right. This point is usually the *rostrum*.
+
+![](images/Standarization3.png){style="display:block; margin-left:auto; margin-right:auto;" width="25.9cm"}
+
+Automatic contour detection is highly sensitive to illumination conditions. To minimize variability and ensure reliable results, we recommend acquiring all images under consistent lighting and background conditions (preferably uniform black color).
+
+## 2. Setting up images
 
 The package works by processing all `.jpg` images within a specified folder. While we use sample images for this tutorial, full datasets of *Aphanopus carbo* and *A. intermedius* (as used in other vignettes) can be downloaded from Zenodo:
 
@@ -51,7 +67,7 @@ cat("Working directory:", work_dir, "\n")
 list.files(work_dir)
 ```
 
-## 2. Processing images
+## 3. Processing images
 
 The main function `process_images` handles the entire workflow:
 1.  **Preprocessing**: Grayscale conversion, filtering, and binarization.
@@ -73,11 +89,11 @@ process_images(
 )
 ```
 
-## 3. Examining Results
+## 4. Examining Results
 
 The function creates two subdirectories: `Polar` (Polar coordinates) and `Cartesian` (Perimeter coordinates).
 
-### 3.1 Morphometric Indices
+### 4.1 Morphometric Indices
 
 A new file `MorphometricsEN.csv` is created containing geometric measurements and shape indices.
 
@@ -95,7 +111,7 @@ The indices include:
 *   **Length / Width**: Major and minor axis dimensions ($mm$).
 *   **Shape Indices**: Roundness, Circularity, Rectangularity, Aspect Ratio, etc. (Unitless).
 
-### 3.2 Wavelet Coefficients
+### 4.2 Wavelet Coefficients
 
 The wavelet analysis results are saved in multiple CSV files corresponding to different scales.
 
@@ -110,7 +126,7 @@ if (file.exists(wavelet_file)) {
 ```
 
 
-### 3.3 Visualizations
+### 4.3 Visualizations
 
 The package automatically generates diagnostic images to verify the contour extraction and analysis zones.
 

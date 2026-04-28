@@ -16,3 +16,9 @@ save_analysis_results(analysis_results, output_dir, result_type = "polar")
 \description{
 Exports analysis results including distances, wavelets, and coordinates to CSV files.
 }
+\examples{
+\dontrun{
+# Assuming analysis_results is a list with output from calculate_distances etc.
+save_analysis_results(analysis_results, tempdir(), "polar")
+}
+}

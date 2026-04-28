@@ -14,3 +14,9 @@
 \description{
 Visualizes the CSS image, showing inflection points across different scales.
 }
+\examples{
+\dontrun{
+css_res <- calculate_css(contour)
+plot(css_res)
+}
+}

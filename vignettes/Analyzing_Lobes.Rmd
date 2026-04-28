@@ -1,9 +1,9 @@
 ---
-title: "Studying otolith lobes"
+title: "Lobe Analysis with CSS"
 author: "Víctor Manuel Tuset"
 date: 2025-11-27
 vignette: >
-  %\VignetteIndexEntry{Analyzing Lobes}
+  %\VignetteIndexEntry{Lobe Analysis with CSS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -1,10 +1,10 @@
 ---
-title: "Point Selection in wavelet signal"
+title: "Optimal Point Selection (Hall & Bathia)"
 author: "Jose Luis Otero Ferrer"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Point Selection}
+  %\VignetteIndexEntry{Optimal Point Selection (Hall & Bathia)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

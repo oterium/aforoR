@@ -29,3 +29,9 @@ save_visualization(
 \description{
 Creates and saves visualization images showing contour analysis and wavelet results.
 }
+\examples{
+\dontrun{
+# Assuming binary_image, distances, and wavelets are already computed:
+save_visualization(binary_image, distances, wavelets, "sample_image", tempdir())
+}
+}

@@ -1,5 +1,5 @@
 ---
-title: "Comparing Shape Descriptors: CSS, Wavelets, and Elliptic Fourier"
+title: "Comparing Shape Descriptors"
 author: "Víctor Manuel Tuset & Antoni Lombarte"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -28,23 +28,23 @@ library(dplyr)
 
 ## About this tutorial
 
-In otolith shape analysis, choosing the right mathematical descriptor is crucial for capturing the biological information relevant to your study. The `aforoR` package provides three main methods: **Elliptic Fourier Descriptors (EFD)**, **Wavelet Transform**, and **Curvature Scale Space (CSS)**. This vignette explains their mathematical foundations, advantages, and typical use cases.
+In otolith shape analysis, choosing the right mathematical descriptor is crucial for capturing the biological information relevant to your study. The `aforoR` package utilizes **Wavelets** and **Curvature Scale Space (CSS)**, while standard **Elliptic Fourier Descriptors (EFDs)** are widely implemented elsewhere (e.g. `Momocs`). This vignette structurally and mathematically compares these three fundamental approaches, guiding researchers on when and how to apply them.
 
-## Overview Comparison
+## 1. Technical Overview
 
-| Descriptor | Domain | Best For... | Invariance |
-|:---|:---|:---|:---|
-| **Elliptic Fourier (EFD)** | Frequency (global) | General shape classification, reconstruction | Translation, Rotation, Scale |
-| **Wavelets** | Time-Frequency (local) | High-frequency details, stock separation | Translation, Scale (if normalized) |
-| **Curvature Scale Space (CSS)** | Multi-scale Geometry | Feature detection, contour irregularities | Rotation, Translation, Uniform Scale |
+| Descriptor | Domain Base | Mathematical Core | Invariance properties | Software | Best used for... |
+|:---|:---|:---|:---|:---|:---|
+| **Elliptic Fourier (EFD)** | Frequency | Harmonic Series (Periodic sum of ellipses) | Translation, Rotation, Scale (Normalized) | `Momocs` / `Momocs2` | General shape classification, morphospace analysis. |
+| **Wavelets** | Time-Frequency | Multi-resolution convolution (Spline à trous) | Standardized Scale, Position matching | `aforoR` | High-frequency margin details, stock discrimination, non-stationary signals. |
+| **Curvature Scale Space (CSS)** | Multi-scale Geometry | Contour Gaussian smoothing | Translation, Rotation, Uniform Scale | `aforoR` | Explicit morphological feature detection (lobes, indentations), partial matching. |
 
 ```{r load_real_data}
-# Load a sample otolith image from the package
+# Load a sample otolith image for demonstration frameworks
 img_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
 binary_img <- preprocess_image(img_path)
 contour <- extract_contour(binary_img)
 
-# Professional visualization theme
+# Professional visualization theme used throughout
 aforo_theme <- function() {
   theme_minimal() +
     theme(
@@ -61,77 +61,65 @@ aforo_theme <- function() {
 
 ---
 
-## 1. Elliptic Fourier Descriptors (EFDs)
+## 2. Elliptic Fourier Descriptors (EFDs)
 
-EFDs represent a closed contour as a sum of ellipses (harmonics). Each harmonic $k$ is defined by four coefficients ($a_k, b_k, c_k, d_k$).
+EFDs decompose a closed and bounded contour into a sum of harmonically related ellipses. Given a parametric 2D contour $(x(t), y(t))$ where $t$ is the perimeter arc length, the coordinate functions can be expanded in a Fourier series:
 
-- **Mathematics**: Decomposes the periodic functions $x(t)$ and $y(t)$ into Fourier series.
-- **Interpretation**: 
-  - **Low Harmonics (1-5)**: Capture the "global" shape, symmetry, and general elongation of the otolith (e.g., separating oval vs. rectangular shapes).
-  - **High Harmonics (>15)**: Represent fine-grained margin details, such as small serrations or irregularities that can be specific to certain stocks or environments.
-- **Typical Use**: Evolutionary studies, morphospace analysis, and species identification (Kuhl & Giardina, 1982).
+$$x(t) = a_0 + \sum_{n=1}^{N} \left( a_n \cos\left(\frac{2n\pi t}{T}\right) + b_n \sin\left(\frac{2n\pi t}{T}\right) \right)$$
+$$y(t) = c_0 + \sum_{n=1}^{N} \left( c_n \cos\left(\frac{2n\pi t}{T}\right) + d_n \sin\left(\frac{2n\pi t}{T}\right) \right)$$
 
-```{r efd_example}
-# Example: EFD is typically calculated using the Momocs package
-# The aforoR package focuses on wavelets and CSS for otolith analysis
-cat("EFD captures shape through harmonics:\n")
-cat("- Harmonic 1-2: Elliptical outline\n")
-cat("- Harmonic 3-5: Triangular/rectangular features\n")
-cat("- Harmonic 6-10: Moderate detail\n")
-cat("- Harmonic >15: Fine serrations\n")
-```
+Where $a_n, b_n, c_n, d_n$ are the Fourier coefficients for the $n$-th harmonic, reconstructing the global footprint parametrically.
+
+### Harmonization and Normalization
+To achieve size and rotational invariance, contours are typically normalized based on the **first harmonic $(n=1)$**, which dictates the main elliptical axis. Furthermore, determining the optimal number of harmonics $N$ is standardized using **accumulated power** (or Fourier energy geometry), selecting $N$ such that upwards of $99.99\%$ of the contour's spatial power is mathematically explained, mitigating the threshold of the Nyquist aliasing constraints.
+
+- **Low Harmonics (n=1-5):** Define overall morphology (aspect ratio, large-scale structural curvature).
+- **High Harmonics (n>15):** Responsible for defining very fine, localized margin granularity.
 
 ---
 
-## 2. Wavelet Transform
+## 3. Wavelet Transform
 
-Wavelets analysis performs a multi-resolution decomposition of the contour signal (radius or step-length).
+Traditional Fourier analysis fails to capture the spatial localization of shape irregularities (e.g. an abrupt bump or notch is mathematically smeared across all frequencies). The **Discrete Wavelet Transform (DWT)**, however, operates efficiently in the **time-frequency domain**, circumventing the inherent non-stationarity limits of EFDs when describing otoliths with highly differentiated structural lobes or localized serrations.
 
-- **Mathematics**: Uses a mother wavelet $\psi(t)$ to analyze the signal at different scales $j$. Scale $j$ corresponds to a frequency band.
-- **Interpretation**:
-  - **High Scales (7-9)**: Capture the main body and coarsest features of the otolith contour.
-  - **Mid Scales (4-6)**: Correspond to morphological features like lobes, indentations, and the general complexity of the protrusions.
-  - **Low Scales (1-3)**: Represent the highest frequencies, often capturing very fine margin texture or high-frequency noise.
-- **Typical Use**: Stock separation where differences occur in specific regions of the otolith margin (Parisi-Baradad et al., 2005).
+The transform is modeled by projecting the 1D shape signal $f(t)$ —often extracted as the polar boundary radius $\rho(\theta)$ or successive perimeter step lengths— into translated (shift parameter $b$) and dilated (scale parameter $a$) versions of an active, localized, oscillatory mother wavelet $\psi(t)$:
 
-```{r wavelets_example}
-dists <- calculate_distances(contour)
-wavelets <- calculate_wavelets_analysis(dists, n_scales = 9)
+$$W(a,b) = \frac{1}{\sqrt{a}} \int f(t) \, \overline{\psi \left(\frac{t - b}{a}\right)} dt$$
 
-# Plot Scale 5
-scale_5_df <- data.frame(Index = seq_len(ncol(wavelets$polar)), Value = wavelets$polar[5, ])
-ggplot(scale_5_df, aes(x = Index, y = Value)) +
-  geom_line(color = "coral2") +
-  labs(title = "Wavelet Scale 5 (Polar distances)", x = "Point Index", y = "Coefficient") +
-  aforo_theme()
-```
+### The 'à trous' Algorithm Feature
+The `aforoR` methodological core leverages the strictly stationary **"à trous" algorithm** interconnected with cubic B-splines. Decisively, this computational approach aggressively avoids decimation (downsampling) at higher multi-resolution frequency scales. It continuously propagates the projection vector length maintaining exactly 512 equidistant mathematical coordinates at **all topological scales**, guaranteeing strict homology between biologically diverse structures and allowing pixel-perfect comparative matching mappings between taxa.
+
+- **High Scales (7-9):** Exclusively reconstruct structural macro-shape geometric features and basic proportional bounds.
+- **Mid Scales (4-6):** Essential for discriminating distinct populations exploiting mid-frequency crenulations and species-specific prominent edge dynamics.
+- **Low Scales (1-3):** Associated directly with micro-texture variance and inherent, unavoidable biological signal noise.
 
 ---
 
-## 3. Curvature Scale Space (CSS)
+## 4. Curvature Scale Space (CSS)
 
-CSS tracks the evolution of inflection points on the contour as it's smoothed by a Gaussian kernel $G(t, \sigma)$.
+Unlike strict frequency mappings or wavelets combinations, **Curvature Scale Space (CSS)** intrinsically analyzes the structural bounds applying continuous topological geometry matching mechanisms. The core processing engine applies an incrementally inflating spectrum of **Gaussian smoothing generic convolution kernels** $g(u, \sigma)$ uniformly across the parameterized contour coordinates $(x(u), y(u))$ to track the macro-evolution of shape dynamics mathematically.
 
-- **Mathematics**: Inflection points are found where the second derivative of the smoothed curve is zero: $\kappa(t, \sigma) = 0$.
-- **Interpretation**:
-  - **CSS Image Peaks**: The highest peaks in the $(\sigma, t)$ space represent the most stable, "deepest" concavities or convexities that survive significant smoothing.
-  - **Wide Distribution of Points at Low $\sigma$**: Indicates a contour with many fine-grained irregularities and high-frequency "wiggliness".
-- **Typical Use**: Quantifying protrusions/lobes (Mokhtarian & Mackworth, 1986).
+Let the subsequent smoothed planar functions for a given scale severity $\sigma$ be determined as:
+$$X(u, \sigma) = x(u) * g(u, \sigma)$$
+$$Y(u, \sigma) = y(u) * g(u, \sigma)$$
 
-```{r css_example}
-css_res <- calculate_css(contour)
-# The plot method for css object already uses a professional style if configured
-plot(css_res)
+The dynamic metric associated with the object boundaries, the **instantaneous curvature $\kappa$**, is then computed by continuously evaluating its inflection properties against zero-crossing limits:
+
+$$\kappa(u, \sigma) = \frac{X_u(u, \sigma) Y_{uu}(u, \sigma) - X_{uu}(u, \sigma) Y_u(u, \sigma)}{\left(X_u(u, \sigma)^2 + Y_u(u, \sigma)^2\right)^{3/2}}$$
+
+### Topological CSS Image Generation
+Tracking the continuous $\kappa=0$ points analytically plotted against the standard parametric smoothing width $\sigma$ generates the uniquely definitive layout known as the **CSS Image tree**. 
+
+High-arcing vertical peaks persisting across the mathematical CSS map visibly and explicitly denote the deepest, most resilient, and biologically robust indentations (e.g. surviving the excisura major indentation bounds or profound sub-rostral lobes). When directly predicting generic taxa differentiation, these specific structural apexes mathematically yield fully invariant morphological fingerprinting (Mokhtarian & Mackworth, 1986).
+
+```{r css_example, eval=FALSE}
+# CSS topological mapping execution directly embedded inside aforoR methodologies
+css_contours_analysis <- calculate_css(contour)
+plot(css_contours_analysis)
 ```
-
-## Summary: Which one should I use?
-
-1.  **Use EFD** for broad morphological studies where global shape is the primary driver of variation.
-2.  **Use Wavelets** for detecting subtle population-level differences in margin complexity.
-3.  **Use CSS** for identifying and quantifying specific geometric landmarks like lobes or indentations.
 
 ## References
 
 - Kuhl, F.P. and Giardina, C.R. (1982). Elliptic Fourier features of a closed contour. *Computer Graphics and Image Processing*.
-- Mokhtarian, F. and Mackworth, A.K. (1986). Scale-based description and recognition of planar curves and two-dimensional shapes. *IEEE Transactions on Pattern Analysis and Machine Intelligence*.
+- Mokhtarian, F. and Mackworth, A.K. (1986). Scale-based description and recognition of planar curves and two-dimensional shapes. *IEEE*.
 - Parisi-Baradad, V. et al. (2005). Otolith shape contour analysis using mathematical descriptors. *Computers in Biology and Medicine*.

@@ -175,6 +175,11 @@ calculate_css <- function(contour, n_points = 200, sigma_max = 10, sigma_step = 
 #' @param x An object of class `css`.
 #' @param ... Additional arguments passed to plot.
 #' @export
+#' @examples
+#' \dontrun{
+#' css_res <- calculate_css(contour)
+#' plot(css_res)
+#' }
 plot.css <- function(x, ...) {
     if (is.null(x$css_matrix) || nrow(x$css_matrix) == 0) {
         plot(0, 0, type = "n", main = "No inflection points found", xlab = "Arc length", ylab = "Sigma")

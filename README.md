@@ -30,25 +30,25 @@ leaves, statoliths, beaks, and shells.
 
 ### Key Features
 
-- ✨ **Automatic Scale Detection**: Automatically identifies 1mm scale
-  bars in images to convert pixel measurements to physical units (mm).
-- 📐 **Advanced Morphometrics**: Comprehensive calculation of geometric
+- **Automatic Scale Detection**: Automatically identifies 1mm scale bars
+  in images to convert pixel measurements to physical units (mm).
+- **Advanced Morphometrics**: Comprehensive calculation of geometric
   indices:
   - *Basic*: Area, Perimeter, Length, Width.
   - *Indices*: Roundness, Form Factor, Circularity, Rectangularity,
     Ellipticity, and Aspect Ratio.
-- 🌊 **Multi-scale Wavelet Analysis**: Decomposition of contours using
+- **Multi-scale Wavelet Analysis**: Decomposition of contours using
   discrete wavelet transforms for detailed frequency-based shape
   characterization.
-- 🎯 **Elliptic Fourier Descriptors (EFDs)**: Standard Fourier-based
-  shape analysis.
-- 📈 **Curvature Scale Space (CSS)**: Geometric approach for detecting
+- **Elliptic Fourier Descriptors (EFDs)**: Standard Fourier-based shape
+  analysis.
+- **Curvature Scale Space (CSS)**: Geometric approach for detecting
   inflection points and lobes at multiple smoothing scales.
-- 📍 **Optimal Point Selection**: Implementation of the Hall &
+- **Optimal Point Selection**: Implementation of the Hall &
   Bathia (2012) algorithm for identifying the most discriminative points
   in functional data.
-- 📦 **Batch Processing**: Efficiently process entire directories of
-  images with automated output generation.
+- **Batch Processing**: Efficiently process entire directories of images
+  with automated output generation.
 
 ------------------------------------------------------------------------
 
@@ -94,17 +94,28 @@ process_images(
 The package includes detailed tutorials (vignettes) to guide you through
 different analytical scenarios:
 
+#### AFORO Classic
+
 | Tutorial | Description |
 |:---|:---|
-| [**Obtaining Contour**](https://oterium.github.io/aforoR/articles/Obtaining_Contour.html) | Introduction to the core image processing and contour extraction workflow. |
-| [**Otolith Morphology**](https://oterium.github.io/aforoR/articles/Otolith_Morphology.html) | Introduction to otolith structures and orientation. |
-| [**Otolith Morphometry**](https://oterium.github.io/aforoR/articles/Otolith_Morphometry.html) | Guide to calculating shape indices and modeling allometric relationships (fish-otolith). |
-| [**Knowing Wavelets**](https://oterium.github.io/aforoR/articles/Knowing_Wavelets.html) | Technical background on wavelet transform and scales. |
-| [**Working Wavelets**](https://oterium.github.io/aforoR/articles/Working_Wavelets.html) | Deep dive into wavelet-based population comparison, PCA, and classification models. |
-| [**Analyzing Lobes**](https://oterium.github.io/aforoR/articles/Analyzing_Lobes.html) | Specialized analysis of specific morphological features (lobes). |
-| [**Shape Descriptors**](https://oterium.github.io/aforoR/articles/Shape_Descriptors.html) | Comparison between EFD, Wavelets, and CSS for otolith analysis. |
-| [**Point Selection**](https://oterium.github.io/aforoR/articles/Point_Selection.html) | Sequential point selection for classification using the Hall & Bathia algorithm. |
-| [**Phenotypes**](https://oterium.github.io/aforoR/articles/Phenotypes.html) | Detection of different phenotypes based on shape. |
+| [**Comparing Shape Descriptors**](https://oterium.github.io/aforoR/articles/Shape_Descriptors.html) | Comparison between EFD, Wavelets, and CSS for otolith analysis. |
+| [**Image Preprocessing & Contour Extraction**](https://oterium.github.io/aforoR/articles/Obtaining_Contour.html) | Introduction to the core image processing, orientation, and contour extraction workflow. |
+| [**Basic Morphometry & Shape Indices**](https://oterium.github.io/aforoR/articles/Otolith_Morphometry.html) | Guide to calculating shape indices and modeling allometric relationships. |
+| [**Wavelet Theory & Fundamentals**](https://oterium.github.io/aforoR/articles/Knowing_Wavelets.html) | Technical background on wavelet transform and scales. |
+| [**Population Discrimination with Wavelets**](https://oterium.github.io/aforoR/articles/Working_Wavelets.html) | Deep dive into wavelet-based population comparison, PCA, and classification models. |
+
+#### AFORO Experimental
+
+| Tutorial | Description |
+|:---|:---|
+| [**Detecting Shape Phenotypes**](https://oterium.github.io/aforoR/articles/Phenotypes.html) | Detection of different phenotypes based on shape clustering. |
+| [**Lobe Analysis with CSS**](https://oterium.github.io/aforoR/articles/Analyzing_Lobes.html) | Specialized analysis of specific morphological features (lobes). |
+| [**Optimal Point Selection (Hall & Bathia)**](https://oterium.github.io/aforoR/articles/Point_Selection.html) | Sequential point selection for classification using the Hall & Bathia ML algorithm. |
+
+#### Bibliography
+
+| Resource | Description |
+|:---|:---|
 | [**References**](https://oterium.github.io/aforoR/articles/References.html) | Bibliography and datasets used in the package. |
 
 ------------------------------------------------------------------------
@@ -128,10 +139,10 @@ morphological research.
 <br>
 <p>
 
-🐟 <b>Happy Otolith Analysis!</b> 🐟
+<b>Happy Otolith Analysis!</b>
 </p>
 
-<sub>Made with ❤️ for the fisheries science community</sub> <br><br>
+<sub>Made for the fisheries science community</sub> <br><br>
 <a href="https://github.com/oterium/aforoR">
 <img src="https://img.shields.io/github/stars/oterium/aforoR?style=social" alt="GitHub stars">
 </a>

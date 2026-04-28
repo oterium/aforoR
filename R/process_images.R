@@ -309,6 +309,11 @@ calculate_wavelets_analysis <- function(distances, n_scales = 9,
 #' @importFrom grDevices dev.off jpeg
 #' @importFrom graphics lines points polygon
 #' @export
+#' @examples
+#' \dontrun{
+#' # Assuming binary_image, distances, and wavelets are already computed:
+#' save_visualization(binary_image, distances, wavelets, "sample_image", tempdir())
+#' }
 save_visualization <- function(binary_image, distances, wavelets, image_name,
                                output_dir, wavelet_scale = 5) {
   # Input validation
@@ -418,6 +423,11 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
 #' @param result_type A string indicating the type of results ("polar" or "perimeter").
 #' @importFrom utils write.table
 #' @export
+#' @examples
+#' \dontrun{
+#' # Assuming analysis_results is a list with output from calculate_distances etc.
+#' save_analysis_results(analysis_results, tempdir(), "polar")
+#' }
 save_analysis_results <- function(analysis_results, output_dir,
                                   result_type = "polar") {
   # Input validation

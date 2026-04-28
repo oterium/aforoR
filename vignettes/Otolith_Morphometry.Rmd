@@ -1,9 +1,9 @@
 ---
-title: "Morphometry applications"
+title: "Basic Morphometry & Shape Indices"
 author: "Víctor Manuel Tuset & Antoni Lombarte"
 date: 2025-11-27
 vignette: >
-  %\VignetteIndexEntry{Otolith Morphometry}
+  %\VignetteIndexEntry{Basic Morphometry & Shape Indices}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

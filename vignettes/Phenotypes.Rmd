@@ -1,9 +1,9 @@
 ---
-title: "Intra-Stock Variability"
+title: "Detecting Shape Phenotypes"
 author: "Víctor Manuel Tuset"
 date: 2025-11-27
 vignette: >
-  %\VignetteIndexEntry{Phenotypes}
+  %\VignetteIndexEntry{Detecting Shape Phenotypes}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

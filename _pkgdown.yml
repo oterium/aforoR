@@ -16,47 +16,66 @@ template:
 
 navbar:
   structure:
-    left: [intro, reference, articles, news]
+    left: [intro, reference, classic, experimental, bibliography]
     right: [github, search]
   components:
     intro:
       text: "aforoR"
       href: index.html
     reference:
-      text: "Reference"
+      text: "Functions"
       href: reference/index.html
-    articles:
-      text: "Articles"
+    classic:
+      text: "AFORO Classic"
       menu:
         - text: "Getting Started"
-        - text: "Obtaining Contour"
-          href: articles/Obtaining_Contour.html
-        - text: "Otolith Morphology"
-          href: articles/Otolith_Morphology.html
-        - text: "Otolith Morphometry"
-          href: articles/Otolith_Morphometry.html
-        - text: "Knowing Wavelets"
-          href: articles/Knowing_Wavelets.html
-        - text: "Working with Wavelets"
-          href: articles/Working_Wavelets.html
-        - text: "___"
-        - text: "Advanced Topics"
-        - text: "Phenotypes"
-          href: articles/Phenotypes.html
-        - text: "Analyzing Lobes"
-          href: articles/Analyzing_Lobes.html
-        - text: "Shape Descriptors"
+        - text: "Comparing Shape Descriptors"
           href: articles/Shape_Descriptors.html
-        - text: "Point Selection"
+        - text: "Image Preprocessing & Contour Extraction"
+          href: articles/Obtaining_Contour.html
+        - text: "Basic Morphometry & Shape Indices"
+          href: articles/Otolith_Morphometry.html
+        - text: "Wavelet Theory & Fundamentals"
+          href: articles/Knowing_Wavelets.html
+        - text: "Population Discrimination with Wavelets"
+          href: articles/Working_Wavelets.html
+    experimental:
+      text: "AFORO Experimental"
+      menu:
+        - text: "Advanced Topics"
+        - text: "Detecting Shape Phenotypes"
+          href: articles/Phenotypes.html
+        - text: "Lobe Analysis with CSS"
+          href: articles/Analyzing_Lobes.html
+        - text: "Optimal Point Selection (Hall & Bathia)"
           href: articles/Point_Selection.html
-        - text: "References"
-          href: articles/References.html
-    news:
-      text: "News"
-      href: news/index.html
+    bibliography:
+      text: "Bibliography"
+      href: articles/References.html
     points:
       text: "Point Selection"
       href: reference/select_points_hall.html
+
+articles:
+  - title: "AFORO Classic"
+    desc: "Original AFORO Methodology"
+    contents:
+      - Shape_Descriptors
+      - Obtaining_Contour
+      - Otolith_Morphometry
+      - Knowing_Wavelets
+      - Working_Wavelets
+
+  - title: "AFORO Experimental"
+    desc: "New morphological features and measurements"
+    contents:
+      - Phenotypes
+      - Analyzing_Lobes
+      - Point_Selection
+
+  - title: "References"
+    contents:
+      - References
 
 reference:
   - title: "Main Workflow"

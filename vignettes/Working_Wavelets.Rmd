@@ -1,9 +1,9 @@
 ---
-title: "Practical Guide"
+title: "Population Discrimination with Wavelets"
 author: "Víctor Manuel Tuset & Antoni Lombarte"
 date: 2025-11-27
 vignette: >
-  %\VignetteIndexEntry{Working Wavelets}
+  %\VignetteIndexEntry{Population Discrimination with Wavelets}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

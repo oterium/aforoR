@@ -1,10 +1,10 @@
 ---
-title: "Understanding Wavelets"
+title: "Wavelet Theory & Fundamentals"
 author: "Victor M. Tuset & Antoni Lombarte"
 date: 2025-11-27
 output: rmarkdown::html_document
 vignette: >
-  %\VignetteIndexEntry{Knowing Wavelets}
+  %\VignetteIndexEntry{Wavelet Theory & Fundamentals}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
