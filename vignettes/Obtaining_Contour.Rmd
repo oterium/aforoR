@@ -37,10 +37,31 @@ Automatic contour detection is highly sensitive to illumination conditions. To m
 
 ## 2. Setting up images
 
-The package works by processing all `.jpg` images within a specified folder. While we use sample images for this tutorial, full datasets of *Aphanopus carbo* and *A. intermedius* (as used in other vignettes) can be downloaded from Zenodo:
+The package works by processing all supported image files (`.jpg`, `.jpeg`, `.png`, `.tif`, `.tiff`) within a specified folder. While we use sample images for this tutorial, full datasets of *Aphanopus carbo* and *A. intermedius* (as used in other vignettes) can be downloaded from Zenodo:
 
 > [!NOTE]
 > **Zenodo Dataset**: [Aphanopus Otolith Images](https://zenodo.org/api/records/18443318/draft/files/images.zip/content)
+
+### 2.1 Folder Organization Best Practices
+
+To ensure mathematically and biologically sound analyses, it is highly recommended to organize your image dataset structurally before running the package. **Place images of different species, populations, or stocks into separate, dedicated subfolders**. 
+
+For example:
+```text
+Project_Images/
+├── Aphanopus_carbo_Azores/
+│   ├── otolith1.jpg
+│   └── otolith2.jpg
+└── Aphanopus_intermedius_Madeira/
+    ├── otolith3.jpg
+    └── otolith4.jpg
+```
+
+This structure is particularly critical if you intend to use the **Generalized Procrustes Analysis (GPA)** alignment (`procrustes = TRUE`). GPA calculates a global "consensus shape" for all specimens in the folder. If you mix highly divergent species in the same folder, the algorithm will attempt to find a non-biological average between them, distorting your morphometric signals. By processing species/stocks homogeneously in their respective folders, Procrustes operates optimally.
+
+Furthermore, keeping datasets physically segregated simplifies data management. Although `aforoR` will generate separate output tables (`.csv`) for each folder, you can easily bind them together in R downstream, automatically assigning species or stock labels based on the directory names.
+
+### 2.2 Setting up the working directory
 
 First, let's look at where the example image is stored:
 
