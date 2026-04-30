@@ -21,7 +21,8 @@ process_images(
   min_area = 5000,
   n_harmonics = 32,
   n_points = 512,
-  scale_mm = 1
+  scale_mm = 1,
+  procrustes = FALSE
 )
 }
 \arguments{
@@ -58,6 +59,8 @@ process_images(
 \item{n_points}{Target number of points for resampling (default: 512).}
 
 \item{scale_mm}{Total length in mm of the scale bar for detection (default: 1).}
+
+\item{procrustes}{A logical value indicating whether to apply Generalized Procrustes Analysis (GPA) to align all extracted contours before calculating shape descriptors. Default is FALSE.}
 }
 \value{
 Invisible NULL. The function is used for its side effects (creating files).

@@ -317,9 +317,8 @@ calculate_wavelets_analysis <- function(distances, n_scales = 9,
 save_visualization <- function(binary_image, distances, wavelets, image_name,
                                output_dir, wavelet_scale = 5) {
   # Input validation
-  if (is.null(binary_image)) {
-    stop("binary_image cannot be NULL")
-  }
+  # binary_image can be NULL if using procrustes (GPA) as coordinates will not match the image.
+
 
   if (!is.list(distances)) {
     stop("distances must be a list")
@@ -352,7 +351,20 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
         filename = file.path(output_dir, paste("zonal_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")),
         res = 600, width = 600, height = 400, units = "mm"
       )
-      plot(binary_image)
+      if (!is.null(binary_image)) {
+        plot(binary_image)
+      } else {
+        # Determine plot limits from coordinates
+        xlims <- range(distances$polar$coord[, 1] + mean(distances$reordered_coords$x))
+        ylims <- range(distances$polar$coord[, 2] + mean(distances$reordered_coords$y))
+        # Add 10% padding
+        xpad <- diff(xlims) * 0.1
+        ypad <- diff(ylims) * 0.1
+        plot(NA, xlim = c(xlims[1] - xpad, xlims[2] + xpad), 
+             ylim = c(ylims[1] - ypad, ylims[2] + ypad), 
+             xlab = "X", ylab = "Y", main = paste("Zonal Analysis -", image_name))
+      }
+      
       points(mean(distances$reordered_coords$x),
         mean(distances$reordered_coords$y),
         pch = 16
@@ -593,6 +605,7 @@ write_analysis_csv <- function(data, filename, row_names) {
 #' @param n_harmonics Number of elliptic Fourier harmonics to calculate (default: 32).
 #' @param n_points Target number of points for resampling (default: 512).
 #' @param scale_mm Total length in mm of the scale bar for detection (default: 1).
+#' @param procrustes A logical value indicating whether to apply Generalized Procrustes Analysis (GPA) to align all extracted contours before calculating shape descriptors. Default is FALSE.
 #' @return Invisible NULL. The function is used for its side effects (creating files).
 #' @details
 #' The function generates the following files in the `Polar` (and `Cartesian`) directories:
@@ -622,7 +635,7 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
                            pixels_per_mm = NULL, detect_scale = FALSE,
                            blur_size = 31, blur_sigma = 9, min_points = 200,
                            min_area = 5000, n_harmonics = 32, n_points = 512,
-                           scale_mm = 1) {
+                           scale_mm = 1, procrustes = FALSE) {
   # Input validation
   if (!is.character(folder) || length(folder) != 1) {
     stop("folder must be a single character string")
@@ -633,9 +646,9 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
   }
 
   if (!is.logical(wavelets) || !is.logical(ef) || !is.logical(testing) ||
-    !is.logical(save) || !is.logical(detect_scale)) {
+    !is.logical(save) || !is.logical(detect_scale) || !is.logical(procrustes)) {
     stop(paste(
-      "wavelets, ef, testing, save, and detect_scale",
+      "wavelets, ef, testing, save, detect_scale, and procrustes",
       "must be logical values"
     ))
   }
@@ -676,12 +689,14 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
         return(invisible(NULL))
       }
 
+      message("\nFase 1: Extrayendo contornos...")
       pb <- utils::txtProgressBar(max = length(imag), style = 3)
 
-      # Initialize results
-      result <- list()
-      result2 <- list()
-      morpho_results <- list()
+      # Phase 1: Extract all contours
+      contours_raw <- vector("list", length(imag))
+      binary_images_list <- vector("list", length(imag))
+      px_per_mm_list <- vector("list", length(imag))
+      valid_indices <- c()
 
       for (i in seq_along(imag)) {
         utils::setTxtProgressBar(pb, i)
@@ -718,60 +733,15 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
                 ))
               }
             }
+            px_per_mm_list[i] <- list(current_pixels_per_mm)
 
             # Step 3: Extract contour (with max area logic and params)
             contorno <- extract_contour(binary_image, min_points = min_points, min_area = min_area)
 
             if (!is.null(contorno)) {
-              # Step 4: Calculate elliptic Fourier descriptors if requested
-              coef_e <- NULL
-              if (ef) {
-                coef_e <- Momocs::efourier(contorno, n_harmonics)
-              }
-
-              # Step 5: Calculate distance measures
-              distances <- calculate_distances(contorno, n_points = n_points)
-
-              # Step 6: Calculate wavelets if requested
-              wavelet_results <- NULL
-              if (wavelets) {
-                # log2(n_points) is the max scales
-                n_scales_calc <- floor(log2(n_points))
-                wavelet_results <- calculate_wavelets_analysis(
-                  distances,
-                  n_scales = n_scales_calc, detail = FALSE
-                )
-              }
-
-              # Step 7: Calculate Morphometrics
-              morpho <- calculate_morphometrics(contorno, current_pixels_per_mm)
-              # Add image name to morpho results
-              morpho$Image <- basename(imag[i])
-              morpho_results[[i]] <- morpho
-
-              if (save) {
-                result[[i]] <- create_result_structure(
-                  distances$polar, wavelet_results$polar, basename(imag[i]),
-                  coef_e, "polar"
-                )
-                result2[[i]] <- create_result_structure(
-                  distances$perimeter, wavelet_results$perimeter,
-                  basename(imag[i]), coef_e, "perimeter"
-                )
-              }
-
-              # Step 9: Save visualizations if requested
-              if (testing) {
-                save_visualization(
-                  binary_image, distances, wavelet_results,
-                  basename(imag[i]), polar_dir
-                )
-                save_visualization_perimeter(
-                  binary_image, distances,
-                  wavelet_results,
-                  basename(imag[i]), cartesian_dir
-                )
-              }
+              contours_raw[[i]] <- contorno
+              binary_images_list[[i]] <- binary_image
+              valid_indices <- c(valid_indices, i)
             } else {
               warning(paste("No suitable contour found for image:", basename(imag[i])))
             }
@@ -782,6 +752,103 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
             ))
           }
         )
+      }
+      close(pb)
+
+      # Phase 1.5: Procrustes alignment (GPA)
+      contours_to_process <- contours_raw
+
+      if (procrustes && length(valid_indices) > 1) {
+         message("\nFase 1.5: Aplicando Analisis Generalizado de Procrustes (GPA)...")
+         
+         if (requireNamespace("Momocs", quietly = TRUE)) {
+             # Para aplicar GPA, todos los contornos deben tener el mismo numero de puntos
+             valid_contours <- lapply(contours_raw[valid_indices], function(c) {
+                 Momocs::coo_interpolate(c, n_points)
+             })
+             out_obj <- Momocs::Out(valid_contours)
+             # Suppress typical Momocs console output
+             out_aligned <- suppressMessages(Momocs::fgProcrustes(out_obj))
+             
+             for (j in seq_along(valid_indices)) {
+                 orig_idx <- valid_indices[j]
+                 contours_to_process[[orig_idx]] <- out_aligned$coo[[j]]
+             }
+         } else {
+             warning("Momocs package is required for Procrustes alignment. Skipping alignment.")
+         }
+      } else if (procrustes) {
+         warning("Not enough valid contours found to apply Procrustes alignment.")
+      }
+
+      message("\nFase 2: Calculando descriptores y guardando resultados...")
+      # Initialize results
+      result <- list()
+      result2 <- list()
+      morpho_results <- list()
+
+      if (length(valid_indices) > 0) {
+        pb2 <- utils::txtProgressBar(max = length(valid_indices), style = 3)
+        for (idx_counter in seq_along(valid_indices)) {
+            utils::setTxtProgressBar(pb2, idx_counter)
+            i <- valid_indices[idx_counter]
+            
+            contorno_proc <- contours_to_process[[i]]
+            contorno_raw <- contours_raw[[i]]
+            # Si usamos procrustes, no dibujamos la imagen de fondo porque no coincide
+            binary_image <- if (procrustes) NULL else binary_images_list[[i]]
+            current_pixels_per_mm <- px_per_mm_list[[i]]
+            
+            tryCatch({
+               # Step 4: Calculate elliptic Fourier descriptors if requested
+               coef_e <- NULL
+               if (ef) {
+                   # If already aligned via Procrustes, don't normalize again
+                   coef_e <- Momocs::efourier(contorno_proc, n_harmonics, norm = !procrustes)
+               }
+               
+               # Step 5: Calculate distance measures
+               distances <- calculate_distances(contorno_proc, n_points = n_points)
+               
+               # Step 6: Calculate wavelets if requested
+               wavelet_results <- NULL
+               if (wavelets) {
+                   # log2(n_points) is the max scales
+                   n_scales_calc <- floor(log2(n_points))
+                   wavelet_results <- calculate_wavelets_analysis(
+                     distances, n_scales = n_scales_calc, detail = FALSE
+                   )
+               }
+               
+               # Step 7: Calculate Morphometrics
+               # Computado sobre contorno RAW para mantener propiedades fisicas (area, perimetro, px_per_mm)
+               morpho <- calculate_morphometrics(contorno_raw, current_pixels_per_mm)
+               morpho$Image <- basename(imag[i])
+               morpho_results[[i]] <- morpho
+               
+               if (save) {
+                   result[[i]] <- create_result_structure(
+                     distances$polar, wavelet_results$polar, basename(imag[i]), coef_e, "polar"
+                   )
+                   result2[[i]] <- create_result_structure(
+                     distances$perimeter, wavelet_results$perimeter, basename(imag[i]), coef_e, "perimeter"
+                   )
+               }
+               
+               # Step 9: Save visualizations if requested
+               if (testing) {
+                   save_visualization(
+                     binary_image, distances, wavelet_results, basename(imag[i]), polar_dir
+                   )
+                   save_visualization_perimeter(
+                     binary_image, distances, wavelet_results, basename(imag[i]), cartesian_dir
+                   )
+               }
+            }, error = function(e) {
+               warning(paste("Error in analysis phase for image", basename(imag[i]), ":", e$message))
+            })
+        }
+        close(pb2)
       }
 
       # Step 10: Save results to CSV files
@@ -807,7 +874,6 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
         }
       }
 
-      close(pb)
     },
     error = function(e) {
       stop(paste("Error in process_images:", e$message))
@@ -925,9 +991,8 @@ create_result_structure <- function(distances, wavelets, image_name,
 save_visualization_perimeter <- function(binary_image, distances, wavelets,
                                          image_name, output_dir) {
   # Input validation
-  if (is.null(binary_image)) {
-    stop("binary_image cannot be NULL")
-  }
+  # binary_image can be NULL if using procrustes (GPA) as coordinates will not match the image.
+
 
   if (!is.list(distances)) {
     stop("distances must be a list")
@@ -956,7 +1021,20 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets,
         filename = file.path(output_dir, paste("zonal_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")),
         res = 600, width = 600, height = 400, units = "mm"
       )
-      plot(binary_image)
+      if (!is.null(binary_image)) {
+        plot(binary_image)
+      } else {
+        # Determine plot limits from coordinates
+        xlims <- range(distances$perimeter$coords[, 1])
+        ylims <- range(distances$perimeter$coords[, 2])
+        # Add 10% padding
+        xpad <- diff(xlims) * 0.1
+        ypad <- diff(ylims) * 0.1
+        plot(NA, xlim = c(xlims[1] - xpad, xlims[2] + xpad), 
+             ylim = c(ylims[1] - ypad, ylims[2] + ypad), 
+             xlab = "X", ylab = "Y", main = paste("Perimeter Analysis -", image_name))
+      }
+      
       points(mean(distances$reordered_coords$x),
         mean(distances$reordered_coords$y),
         pch = 16

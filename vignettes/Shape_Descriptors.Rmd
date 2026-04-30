@@ -118,6 +118,33 @@ css_contours_analysis <- calculate_css(contour)
 plot(css_contours_analysis)
 ```
 
+## 5. Pre-processing: Generalized Procrustes Analysis (GPA)
+
+Before calculating some shape descriptors, it's often critical to completely neutralize non-shape variations such as spatial translation, scaling (size), and arbitrary rotation across all your specimens. While descriptors like Wavelets handle standardized scaling internally, explicit spatial alignment guarantees strict pointwise homology, minimizing structural noise across the cohort.
+
+The **Generalized Procrustes Analysis (GPA)** algorithm iteratively superimposes a set of shapes to find an optimal consensus shape, minimizing the sum of squared distances between corresponding points.
+
+Within `aforoR`, you can apply this automatically using the `process_images()` orchestrator function by setting `procrustes = TRUE`. This will collect all valid contours from a folder, align them simultaneously using the internal `Momocs::fgProcrustes` engine, and only then proceed to calculate Fourier, Wavelets, and morphometrics.
+
+```r
+# Example of batch processing with GPA alignment
+# Download the dataset from Zenodo: https://zenodo.org/api/records/18443318/draft/files/images.zip/content
+# Extract it and set the path below to your local folder.
+
+folder_path <- "path/to/your/images/folder" # Replace with your actual path
+
+process_images(
+  folder = folder_path,
+  procrustes = TRUE,    # Applies GPA across all contours in the folder
+  wavelets = TRUE,
+  ef = TRUE,
+  testing = TRUE,       # Saves visual diagnostic plots 
+  save = TRUE           # Exports aligned CSVs
+)
+```
+
+> **Note:** Even when shapes are mathematically scaled to match the consensus during GPA, `process_images()` safely computes fundamental physical morphometrics (Area, Perimeter, Length in mm) from the *original raw contours* to prevent the loss of real-world biological size metrics.
+
 ## References
 
 - Kuhl, F.P. and Giardina, C.R. (1982). Elliptic Fourier features of a closed contour. *Computer Graphics and Image Processing*.
