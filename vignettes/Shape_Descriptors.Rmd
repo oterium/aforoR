@@ -1,6 +1,6 @@
 ---
 title: "Comparing Shape Descriptors"
-author: "Víctor Manuel Tuset & Antoni Lombarte"
+author: "José Luis Otero-Ferrer & Amalia Manjabacas"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >

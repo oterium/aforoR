@@ -1,9 +1,9 @@
 ---
-title: "Lobe Analysis with CSS"
+title: "Lobe Analysis with Wavelets"
 author: "Víctor Manuel Tuset"
 date: 2025-11-27
 vignette: >
-  %\VignetteIndexEntry{Lobe Analysis with CSS}
+  %\VignetteIndexEntry{Lobe Analysis with Wavelets}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
