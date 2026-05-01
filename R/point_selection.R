@@ -207,12 +207,12 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
 
     # Refinement Phase (simplified and modernized)
     if (length(selected_tn) >= 2 && length(selected_tn) <= 4) {
-        bufer <- if (length(selected_tn) <= 3) 10 else 5
+        buffer_size <- if (length(selected_tn) <= 3) 10 else 5
 
         # Create search ranges around selected points
         ranges <- lapply(selected_tn, function(idx) {
-            low <- max(1, idx - 2 * delta_idx * bufer)
-            high <- min(n_points, idx + 2 * delta_idx * bufer)
+            low <- max(1, idx - 2 * delta_idx * buffer_size)
+            high <- min(n_points, idx + 2 * delta_idx * buffer_size)
             seq(low, high, by = max(1, 2 * delta_idx))
         })
 

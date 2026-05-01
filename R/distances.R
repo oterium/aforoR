@@ -132,10 +132,10 @@ dper <- function(x, y, n) {
   xr <- (x[round(seq(1, length(x), length.out = n + 1))])[-1]
   yr <- (y[round(seq(1, length(y), length.out = n + 1))])[-1]
 
-  distancias <- NULL
+  distances <- NULL
   for (i in 1:n) {
-    distancias[i] <- ild(c(mean(x), mean(y)), c(xr[i], yr[i]))
-    # Alternative: distancias[i] <- ild(c(xr[1], yr[1]), c(xr[i], yr[i]))
+    distances[i] <- ild(c(mean(x), mean(y)), c(xr[i], yr[i]))
+    # Alternative: distances[i] <- ild(c(xr[1], yr[1]), c(xr[i], yr[i]))
   }
-  return(list(dist = distancias, coords = cbind(xr, yr)))
+  return(list(dist = distances, coords = cbind(xr, yr)))
 }

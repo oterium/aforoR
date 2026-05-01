@@ -88,23 +88,23 @@ calculate_morphometrics <- function(contour, pixels_per_mm = NULL) {
     # Calculate Shape Indices (Tuset et al.)
     # Formulas are unit-independent (ratios), so we can use either px or mm values
 
-    # Roundness (Redondez): 4*Area / (pi * Length^2)
+    # Roundness: 4*Area / (pi * Length^2)
     # Note: Some definitions use Length (Major Axis) squared.
     roundness <- (4 * area) / (pi * length_val^2)
 
     # Form Factor: 4 * pi * Area / Perimeter^2
     form_factor <- (4 * pi * area) / (perimeter^2)
 
-    # Circularity (Circularidad): Perimeter^2 / Area
+    # Circularity: Perimeter^2 / Area
     circularity <- (perimeter^2) / area
 
-    # Rectangularity (Rectangularidad): Area / (Length * Width)
+    # Rectangularity: Area / (Length * Width)
     rectangularity <- area / (length_val * width_val)
 
-    # Ellipticity (Ellipticidad): (Length - Width) / (Length + Width)
+    # Ellipticity: (Length - Width) / (Length + Width)
     ellipticity <- (length_val - width_val) / (length_val + width_val)
 
-    # Aspect Ratio (Relación de Aspecto): Length / Width
+    # Aspect Ratio: Length / Width
     aspect_ratio <- length_val / width_val
 
     # Return results

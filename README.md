@@ -67,7 +67,7 @@ library(aforoR)
 
 The easiest way to use **aforoR** is the `process_images` function,
 which automates the entire analysis pipeline for a folder containing
-`.jpg` images.
+supported image files (`.jpg`, `.jpeg`, `.png`, `.tif`, `.tiff`).
 
 ``` r
 library(aforoR)

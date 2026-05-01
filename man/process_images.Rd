@@ -26,7 +26,7 @@ process_images(
 )
 }
 \arguments{
-\item{folder}{A string specifying the path to the folder containing images.}
+\item{folder}{A string specifying the path to the folder containing images. Supported formats include `.jpg`, `.jpeg`, `.png`, `.tif`, and `.tiff`.}
 
 \item{subfolder}{A logical value indicating whether the folder has subfolders.}
 

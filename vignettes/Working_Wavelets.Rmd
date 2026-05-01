@@ -157,7 +157,7 @@ Cumulative Proportion  0.3150 0.57702 0.67154 0.73159 0.78340 0.81655 0.84327 0.
 
 ![](images/Broken.png)
 
-Several criteria can be applied to determine the number of components to use for subsequent analysis. We usually apply Broken stick model (MacArthur, 1957).
+Several criteria can be applied to determine the number of components to use for subsequent analysis. We usually apply the Broken stick model (MacArthur, 1957).
 
 ``` r
 # Step 2:plot de Broken Stick model. 
@@ -250,7 +250,7 @@ DataT1<-as.data.frame(cbind(new_df, Aphanopus_full$Species))
 colnames(DataT1)[10]<-"Species"
 rownames(DataT1)<-Aphanopus_full$ID
 str(DataT1)
-###### Plot PC1-PC2 including the coord images of farthest individuals each 30 grades 
+###### Plot PC1-PC2 including the coord images of farthest individuals each 30 degrees 
 # Load libraries
 library(grid)
 library(png)
@@ -486,7 +486,7 @@ ModelMLP<-train(Species~PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9,
 After determining the PCs that contribute most to group discrimination, correlations with the wavelet function can be calculated to locate the specific regions of variation.
 
 ``` r
-#### Create a plot to identify the morphologica differences between species 
+#### Create a plot to identify the morphological differences between species 
 library(ggpubr)
 library(ggplot2)
 library(dplyr)

@@ -588,7 +588,7 @@ write_analysis_csv <- function(data, filename, row_names) {
 #'
 #' This function processes images in a specified folder, applying various transformations and analyses.
 #'
-#' @param folder A string specifying the path to the folder containing images.
+#' @param folder A string specifying the path to the folder containing images. Supported formats include `.jpg`, `.jpeg`, `.png`, `.tif`, and `.tiff`.
 #' @param subfolder A logical value indicating whether the folder has subfolders.
 #' @param threshold A numeric value for binarization. If not provided, the Otsu method is used.
 #' @param wavelets A logical value indicating whether to obtain wavelets. Default is TRUE.
@@ -689,7 +689,7 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
         return(invisible(NULL))
       }
 
-      message("\nFase 1: Extrayendo contornos...")
+      message("\nPhase 1: Extracting contours...")
       pb <- utils::txtProgressBar(max = length(imag), style = 3)
 
       # Phase 1: Extract all contours
@@ -759,10 +759,10 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
       contours_to_process <- contours_raw
 
       if (procrustes && length(valid_indices) > 1) {
-         message("\nFase 1.5: Aplicando Analisis Generalizado de Procrustes (GPA)...")
+         message("\nPhase 1.5: Applying Generalized Procrustes Analysis (GPA)...")
          
          if (requireNamespace("Momocs", quietly = TRUE)) {
-             # Para aplicar GPA, todos los contornos deben tener el mismo numero de puntos
+             # To apply GPA, all contours must have the same number of points
              valid_contours <- lapply(contours_raw[valid_indices], function(c) {
                  Momocs::coo_interpolate(c, n_points)
              })
@@ -781,7 +781,7 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
          warning("Not enough valid contours found to apply Procrustes alignment.")
       }
 
-      message("\nFase 2: Calculando descriptores y guardando resultados...")
+      message("\nPhase 2: Calculating descriptors and saving results...")
       # Initialize results
       result <- list()
       result2 <- list()
@@ -795,7 +795,7 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
             
             contorno_proc <- contours_to_process[[i]]
             contorno_raw <- contours_raw[[i]]
-            # Si usamos procrustes, no dibujamos la imagen de fondo porque no coincide
+            # If using Procrustes, we don't draw the background image because it doesn't match
             binary_image <- if (procrustes) NULL else binary_images_list[[i]]
             current_pixels_per_mm <- px_per_mm_list[[i]]
             
@@ -821,7 +821,7 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
                }
                
                # Step 7: Calculate Morphometrics
-               # Computado sobre contorno RAW para mantener propiedades fisicas (area, perimetro, px_per_mm)
+               # Computed on RAW contour to maintain physical properties (area, perimeter, px_per_mm)
                morpho <- calculate_morphometrics(contorno_raw, current_pixels_per_mm)
                morpho$Image <- basename(imag[i])
                morpho_results[[i]] <- morpho
@@ -1087,7 +1087,7 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets,
 
         legend("topleft",
           legend = paste(
-            "Zona",
+            "Zone",
             sapply(zones, function(z) paste0(min(z), ":", max(z)))
           ),
           pch = c(15, 15, 15, 15), col = colors, border = NULL, bg = "white"
