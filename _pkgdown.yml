@@ -45,7 +45,7 @@ navbar:
         - text: "Advanced Topics"
         - text: "Detecting Shape Phenotypes"
           href: articles/Phenotypes.html
-        - text: "Lobe Analysis with CSS"
+        - text: "Lobe Analysis with Wavelets"
           href: articles/Analyzing_Lobes.html
         - text: "Optimal Point Selection (Hall & Bathia)"
           href: articles/Point_Selection.html

@@ -36,7 +36,7 @@ In otolith shape analysis, choosing the right mathematical descriptor is crucial
 |:---|:---|:---|:---|:---|:---|
 | **Elliptic Fourier (EFD)** | Frequency | Harmonic Series (Periodic sum of ellipses) | Translation, Rotation, Scale (Normalized) | `Momocs` / `Momocs2` | General shape classification, morphospace analysis. |
 | **Wavelets** | Time-Frequency | Multi-resolution convolution (Spline à trous) | Standardized Scale, Position matching | `aforoR` | High-frequency margin details, stock discrimination, non-stationary signals. |
-| **Curvature Scale Space (CSS)** | Multi-scale Geometry | Contour Gaussian smoothing | Translation, Rotation, Uniform Scale | `aforoR` | Explicit morphological feature detection (lobes, indentations), partial matching. |
+| **Curvature Scale Space (CSS)** | Multi-scale Geometry | Contour Gaussian smoothing | Translation, Rotation, Uniform Scale | `aforoR` | Explicit morphological feature detection (indentations), partial matching. |
 
 ```{r load_real_data}
 # Load a sample otolith image for demonstration frameworks

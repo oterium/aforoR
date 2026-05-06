@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 
 ## About this tutorial
 
-This tutorial describes how to use the `aforoR` package to process images, extract otolith contours, and calculate shape descriptors including Elliptic Fourier Descriptors (EFDs), Wavelets, and Shape Indices.
+This tutorial describes how to use the aforoR package to process images, extract otolith contours, and calculate shape descriptors including Elliptic Fourier Descriptors (EFDs), Wavelets, and morphometrics variables.
 
 ## 1. Image preparation and Standardizing
 
@@ -29,7 +29,7 @@ During image acquisition, modeling clay can be helpful for otoliths with pronoun
 
 ![](images/light.jpg "(image modify from Lombarte and Tuset, 2015)")
 
-The package determine automatically the initial contour point, which represents the maximum distance from the otolith centroid to this point locating to the right. This point is usually the *rostrum*.
+The package determine automatically the initial contour point, which represents the maximum distance from the otolith centroid to this point locating to the right. The rostrum is usually the reference point; however, in otoliths where the rostrum is not clearly defined, it is preferable to select another homologous point, as illustrated in the following example.
 
 ![](images/Standarization3.png){style="display:block; margin-left:auto; margin-right:auto;" width="25.9cm"}
 
@@ -94,7 +94,7 @@ The main function `process_images` handles the entire workflow:
 1.  **Preprocessing**: Grayscale conversion, filtering, and binarization.
 2.  **Contour Extraction**: Identifies the otolith boundaires.
 3.  **Feature Calculation**: Computes distances, wavelets, and EFDs.
-4.  **Morphometrics**: Calculates indices like Circularity, Roundness, etc.
+4.  **Morphometrics**: Calculates linear measurements and relative indices.
 
 You can specify the scale of your images using the `pixels_per_mm` argument to get measurements in millimeters.
 

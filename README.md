@@ -35,15 +35,14 @@ leaves, statoliths, beaks, and shells.
 - **Advanced Morphometrics**: Comprehensive calculation of geometric
   indices:
   - *Basic*: Area, Perimeter, Length, Width.
-  - *Indices*: Roundness, Form Factor, Circularity, Rectangularity,
-    Ellipticity, and Aspect Ratio.
+  - *Indices*: Aspect Ratio, Otolith relative size (ORS), Otolith relative length (ORL).
 - **Multi-scale Wavelet Analysis**: Decomposition of contours using
   discrete wavelet transforms for detailed frequency-based shape
   characterization.
 - **Elliptic Fourier Descriptors (EFDs)**: Standard Fourier-based shape
   analysis.
 - **Curvature Scale Space (CSS)**: Geometric approach for detecting
-  inflection points and lobes at multiple smoothing scales.
+  inflection points at multiple smoothing scales.
 - **Optimal Point Selection**: Implementation of the Hall &
   Bathia (2012) algorithm for identifying the most discriminative points
   in functional data.
@@ -109,7 +108,7 @@ different analytical scenarios:
 | Tutorial | Description |
 |:---|:---|
 | [**Detecting Shape Phenotypes**](https://oterium.github.io/aforoR/articles/Phenotypes.html) | Detection of different phenotypes based on shape clustering. |
-| [**Lobe Analysis with CSS**](https://oterium.github.io/aforoR/articles/Analyzing_Lobes.html) | Specialized analysis of specific morphological features (lobes). |
+| [**Lobe Analysis with Wavelets**](https://oterium.github.io/aforoR/articles/Analyzing_Lobes.html) | Specialized analysis of specific morphological features (lobes). |
 | [**Optimal Point Selection (Hall & Bathia)**](https://oterium.github.io/aforoR/articles/Point_Selection.html) | Sequential point selection for classification using the Hall & Bathia ML algorithm. |
 
 #### Bibliography
@@ -124,7 +123,7 @@ different analytical scenarios:
 
 If you use **aforoR** in your research, please cite it as:
 
-Otero-Ferrer, J.L., Tuset, V.M., Manjabacas, A., Lombarte, A. (2025).
+Otero-Ferrer, J.L., Tuset, V.M., Manjabacas, A., Lombarte, A. (2026).
 *aforoR*: Anàlisi de FORmes d’Otòlits / Shape Analysis of Fish Otoliths.
 R package version 0.1.0. <https://github.com/oterium/aforoR>
 
