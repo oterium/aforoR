@@ -16,11 +16,9 @@ test_that("calculate_morphometrics works correctly", {
     expect_equal(metrics$Perimeter, 40, tolerance = 0.01)
     expect_equal(metrics$Length, sqrt(200), tolerance = 0.01) # Momocs measures max dimension (diagonal for square)
     expect_gt(metrics$Length, 10)
-
-    # Shape indices for a square:
-    # Rectangularity = Area / (L * W)
-    # Circularity = P^2 / Area = 1600 / 100 = 16
-    expect_equal(metrics$Circularity, 16, tolerance = 0.1)
+    expect_equal(metrics$Feret_Max, sqrt(200), tolerance = 0.01) # Exact max Feret is diagonal
+    expect_equal(metrics$Feret_Min, 10, tolerance = 0.02)       # Min Feret is the side length
+    expect_equal(metrics$PCA_Angle, 45, tolerance = 0.01)       # Diagonal symmetry rotates 45 deg
 
     # Test with scale: 10 pixels = 1 mm
     # Area should be 100 / 100 = 1 mm2
@@ -30,6 +28,10 @@ test_that("calculate_morphometrics works correctly", {
     expect_equal(metrics_mm$Units, "mm")
     expect_equal(metrics_mm$Area, 1, tolerance = 0.01)
     expect_equal(metrics_mm$Perimeter, 4, tolerance = 0.01)
+    expect_equal(metrics_mm$Length, sqrt(200) / 10, tolerance = 0.01)
+    expect_equal(metrics_mm$Feret_Max, sqrt(200) / 10, tolerance = 0.01)
+    expect_equal(metrics_mm$Feret_Min, 1, tolerance = 0.02)
+    expect_equal(metrics_mm$PCA_Angle, 45, tolerance = 0.01) # PCA angle is scale-invariant
 })
 
 test_that("process_images integrates morphometrics", {
@@ -57,7 +59,6 @@ test_that("process_images integrates morphometrics", {
     # Read CSV and check columns
     data <- read.table(results_file, header = TRUE, sep = ";", dec = ".")
     expect_true("Area" %in% names(data))
-    expect_true("Roundness" %in% names(data))
     expect_equal(data$Units[1], "mm")
 
     unlink(temp_dir, recursive = TRUE)

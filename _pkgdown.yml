@@ -33,7 +33,7 @@ navbar:
           href: articles/Shape_Descriptors.html
         - text: "Image Preprocessing & Contour Extraction"
           href: articles/Obtaining_Contour.html
-        - text: "Basic Morphometry & Shape Indices"
+        - text: "Basic Morphometry"
           href: articles/Otolith_Morphometry.html
         - text: "Wavelet Theory & Fundamentals"
           href: articles/Knowing_Wavelets.html

@@ -71,7 +71,7 @@ This function processes images in a specified folder, applying various transform
 \details{
 The function generates the following files in the `Polar` (and `Cartesian`) directories:
 \itemize{
-  \item \code{MorphometricsEN.csv}: Table with shape indices (Area, Perimeter, Circularity, etc.).
+  \item \code{MorphometricsEN.csv}: Table with morphometric measures (Area, Perimeter, Length, Width).
   \item \code{DistanciaEN.csv} and \code{Distancia_NormEN.csv}: Raw and normalized distances (radii or perimeter).
   \item \code{Wavelet_xEN.csv}: Wavelet coefficients for scales 1 to 9.
   \item \code{EllipticCoeEN.csv}: Elliptic Fourier coefficients (if \code{ef = TRUE}).

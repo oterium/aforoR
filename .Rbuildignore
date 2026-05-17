@@ -11,3 +11,5 @@
 ^doc$
 ^Meta$
 ^\.Renviron$
+^\.agents$
+^skills-lock\.json$

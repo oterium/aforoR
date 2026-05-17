@@ -33,9 +33,7 @@ leaves, statoliths, beaks, and shells.
 - **Automatic Scale Detection**: Automatically identifies 1mm scale bars
   in images to convert pixel measurements to physical units (mm).
 - **Advanced Morphometrics**: Comprehensive calculation of geometric
-  indices:
-  - *Basic*: Area, Perimeter, Length, Width.
-  - *Indices*: Aspect Ratio, Otolith relative size (ORS), Otolith relative length (ORL).
+* **Basic Morphometrics**: Computation of basic geometric measures (Area, Perimeter, Length, Width).
 - **Multi-scale Wavelet Analysis**: Decomposition of contours using
   discrete wavelet transforms for detailed frequency-based shape
   characterization.
@@ -99,7 +97,7 @@ different analytical scenarios:
 |:---|:---|
 | [**Comparing Shape Descriptors**](https://oterium.github.io/aforoR/articles/Shape_Descriptors.html) | Comparison between EFD, Wavelets, and CSS for otolith analysis. |
 | [**Image Preprocessing & Contour Extraction**](https://oterium.github.io/aforoR/articles/Obtaining_Contour.html) | Introduction to the core image processing, orientation, and contour extraction workflow. |
-| [**Basic Morphometry & Shape Indices**](https://oterium.github.io/aforoR/articles/Otolith_Morphometry.html) | Guide to calculating shape indices and modeling allometric relationships. |
+| [**Basic Morphometry**](https://oterium.github.io/aforoR/articles/Otolith_Morphometry.html) | Guide to calculating basic morphometric measures and modeling allometric relationships. |
 | [**Wavelet Theory & Fundamentals**](https://oterium.github.io/aforoR/articles/Knowing_Wavelets.html) | Technical background on wavelet transform and scales. |
 | [**Population Discrimination with Wavelets**](https://oterium.github.io/aforoR/articles/Working_Wavelets.html) | Deep dive into wavelet-based population comparison, PCA, and classification models. |
 

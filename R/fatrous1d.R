@@ -47,12 +47,17 @@ fatrous1d <- function(rx, rh, snmin, snmax, sj) {
   slrx <- length(rx)
   ry <- matrix(0, nrow = 1, ncol = slrx)
 
-  for (sn in 0:(slrx - 1)) {
-    for (sm in seq(smmin, smmax, 1)) {
-      sp <- rg[sm - smmin + 1] * rx[(1 + (sn + sm * (2^sj)) %% slrx)] ## %% Modulus
-      ry[, sn + 1] <- ry[, sn + 1] + sp
-    }
-  }
+  sn_indices <- 0:(slrx - 1)
+  sm_values <- smmin:smmax
+  
+  # Outer matrix of 1-based indices (dimensions: length(sm) x slrx)
+  idx_matrix <- outer(sm_values, sn_indices, function(sm, sn) {
+    1 + (sn + sm * (2^sj)) %% slrx
+  })
+
+  # Map values from rx and multiply by weights in rg
+  rx_mapped <- matrix(rx[idx_matrix], nrow = length(sm_values))
+  ry[1, ] <- colSums(rg * rx_mapped)
 
   return(ry)
 }

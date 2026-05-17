@@ -23,7 +23,7 @@
 #' y <- sin(theta) + 0.1 * sin(3 * theta)
 #' contour <- data.frame(X = x, Y = y)
 #' css_res <- calculate_css(contour)
-#' # plot(css_res)
+#' plot(css_res)
 calculate_css <- function(contour, n_points = 200, sigma_max = 10, sigma_step = 0.5) {
     # Input validation
     if (is.null(contour)) stop("contour cannot be NULL")

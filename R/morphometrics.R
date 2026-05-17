@@ -1,7 +1,7 @@
-#' Calculate Morphometric Indices and Measurements
+#' Calculate Basic Morphometric Measurements
 #'
 #' Computes standard otolith morphometric measurements (Area, Perimeter, Length, Width)
-#' and shape indices (Roundness, Circularity, etc.) based on Tuset et al. (2003) formulas.
+#' along with advanced shape descriptors (Feret_Max, Feret_Min, PCA_Angle).
 #' The function supports scale conversion from pixels to millimeters if a `pixels_per_mm`
 #' value is provided.
 #'
@@ -12,15 +12,12 @@
 #'   \itemize{
 #'     \item \code{Area}: Surface area of the otolith.
 #'     \item \code{Perimeter}: Length of the otolith boundary.
-#'     \item \code{Length}: Maximum dimension (major axis).
-#'     \item \code{Width}: Minimum dimension (minor axis).
+#'     \item \code{Length}: Maximum dimension (major axis) of the PCA-aligned bounding box.
+#'     \item \code{Width}: Minimum dimension (minor axis) of the PCA-aligned bounding box.
+#'     \item \code{Feret_Max}: Maximum Feret diameter (longest distance between any two boundary points).
+#'     \item \code{Feret_Min}: Minimum Feret diameter (minimum distance between parallel tangency lines).
+#'     \item \code{PCA_Angle}: Orientation angle of the major axis of inertia in degrees (normalized to [0, 180)).
 #'     \item \code{Units}: Measurement units ("px" or "mm").
-#'     \item \code{Roundness}: (4 * Area) / (pi * Length^2).
-#'     \item \code{FormFactor}: (4 * pi * Area) / Perimeter^2.
-#'     \item \code{Circularity}: Perimeter^2 / Area.
-#'     \item \code{Rectangularity}: Area / (Length * Width).
-#'     \item \code{Ellipticity}: (Length - Width) / (Length + Width).
-#'     \item \code{AspectRatio}: Length / Width.
 #'   }
 #' @export
 #' @examples
@@ -70,42 +67,41 @@ calculate_morphometrics <- function(contour, pixels_per_mm = NULL) {
     length_px <- Momocs::coo_length(coo)
     width_px <- Momocs::coo_width(coo)
 
+    # Feret Max (Caliper Length / Maximum Feret Diameter)
+    feret_max_px <- Momocs::coo_calliper(coo)
+
+    # Feret Min (Minimum Feret Diameter) via angular sweep (360 angles)
+    angles <- seq(0, pi, length.out = 360)
+    widths <- sapply(angles, function(a) {
+        rot_mat <- matrix(c(cos(a), -sin(a), sin(a), cos(a)), 2, 2)
+        rot_coo <- coo %*% rot_mat
+        diff(range(rot_coo[, 2]))
+    })
+    feret_min_px <- min(widths)
+
+    # PCA Alignment / Rotation Angle (in degrees, scale-invariant, normalized to [0, 180))
+    V <- var(coo)
+    s <- svd(V)
+    pca_angle <- (atan2(s$u[2, 1], s$u[1, 1]) * 180 / pi) %% 180
+
     # Apply scale if provided
     if (!is.null(pixels_per_mm)) {
         area <- area_px / (pixels_per_mm^2)
         perimeter <- perimeter_px / pixels_per_mm
         length_val <- length_px / pixels_per_mm
         width_val <- width_px / pixels_per_mm
+        feret_max_val <- feret_max_px / pixels_per_mm
+        feret_min_val <- feret_min_px / pixels_per_mm
         units <- "mm"
     } else {
         area <- area_px
         perimeter <- perimeter_px
         length_val <- length_px
         width_val <- width_px
+        feret_max_val <- feret_max_px
+        feret_min_val <- feret_min_px
         units <- "px"
     }
-
-    # Calculate Shape Indices (Tuset et al.)
-    # Formulas are unit-independent (ratios), so we can use either px or mm values
-
-    # Roundness: 4*Area / (pi * Length^2)
-    # Note: Some definitions use Length (Major Axis) squared.
-    roundness <- (4 * area) / (pi * length_val^2)
-
-    # Form Factor: 4 * pi * Area / Perimeter^2
-    form_factor <- (4 * pi * area) / (perimeter^2)
-
-    # Circularity: Perimeter^2 / Area
-    circularity <- (perimeter^2) / area
-
-    # Rectangularity: Area / (Length * Width)
-    rectangularity <- area / (length_val * width_val)
-
-    # Ellipticity: (Length - Width) / (Length + Width)
-    ellipticity <- (length_val - width_val) / (length_val + width_val)
-
-    # Aspect Ratio: Length / Width
-    aspect_ratio <- length_val / width_val
 
     # Return results
     result <- list(
@@ -114,15 +110,10 @@ calculate_morphometrics <- function(contour, pixels_per_mm = NULL) {
         Perimeter = perimeter,
         Length = length_val,
         Width = width_val,
-        Units = units,
-
-        # Indices
-        Roundness = roundness,
-        FormFactor = form_factor,
-        Circularity = circularity,
-        Rectangularity = rectangularity,
-        Ellipticity = ellipticity,
-        AspectRatio = aspect_ratio
+        Feret_Max = feret_max_val,
+        Feret_Min = feret_min_val,
+        PCA_Angle = pca_angle,
+        Units = units
     )
 
     return(result)

@@ -143,7 +143,7 @@ process_images(
 )
 ```
 
-> **Note:** Even when shapes are mathematically scaled to match the consensus during GPA, `process_images()` safely computes fundamental physical morphometrics (Area, Perimeter, Length in mm) from the *original raw contours* to prevent the loss of real-world biological size metrics.
+> **Note:** Even when shapes are mathematically scaled to match the consensus during GPA, `process_images()` safely computes fundamental physical morphometrics (Area, Perimeter, PCA-aligned Length/Width, Feret_Max/Feret_Min, and PCA_Angle) from the *original raw contours* to prevent the loss of real-world biological size metrics.
 
 ## References
 

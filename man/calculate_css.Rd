@@ -35,5 +35,5 @@ x <- cos(theta) + 0.1 * cos(3 * theta)
 y <- sin(theta) + 0.1 * sin(3 * theta)
 contour <- data.frame(X = x, Y = y)
 css_res <- calculate_css(contour)
-# plot(css_res)
+plot(css_res)
 }

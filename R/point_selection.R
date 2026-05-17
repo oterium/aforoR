@@ -46,6 +46,14 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
     n_points <- ncol(x_data)
     delta_idx <- max(1, floor(delta_t * n_points))
 
+    # Windows parallel cluster initialization
+    cl <- NULL
+    if (parallel && .Platform$OS.type != "unix") {
+        cl <- parallel::makeCluster(parallel::detectCores() - 1)
+        on.exit(if (!is.null(cl)) parallel::stopCluster(cl))
+        parallel::clusterExport(cl, varlist = c("x_data", "grouping", "method", "cv", "mean_error", "run_discriminant", "calc_ferror"), envir = environment())
+    }
+
     # helper for error calculation
     calc_ferror <- function(groups, pred, metric) {
         tab <- table(groups, pred)
@@ -149,10 +157,7 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
             if (.Platform$OS.type == "unix") {
                 errors <- parallel::mclapply(available_indices, eval_point)
             } else {
-                # Windows parallel
-                cl <- parallel::makeCluster(parallel::detectCores() - 1)
-                on.exit(parallel::stopCluster(cl))
-                parallel::clusterExport(cl, varlist = c("x_data", "grouping", "method", "cv", "mean_error", "run_discriminant", "calc_ferror"), envir = environment())
+                # Windows parallel - reuse cl
                 errors <- parallel::parLapply(cl, available_indices, eval_point)
             }
         } else {
@@ -228,13 +233,11 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
 
         if (parallel) {
             # Re-use or create cluster for grid search if necessary
-            # For simplicity, we use same logic as above
             if (.Platform$OS.type == "unix") {
                 grid_errors <- parallel::mclapply(1:nrow(grid), eval_comb)
             } else {
-                cl <- parallel::makeCluster(parallel::detectCores() - 1)
-                on.exit(parallel::stopCluster(cl))
-                parallel::clusterExport(cl, varlist = c("x_data", "grouping", "method", "cv", "mean_error", "run_discriminant", "calc_ferror", "grid"), envir = environment())
+                # Export grid to the existing cl cluster
+                parallel::clusterExport(cl, varlist = "grid", envir = environment())
                 grid_errors <- parallel::parLapply(cl, 1:nrow(grid), eval_comb)
             }
         } else {

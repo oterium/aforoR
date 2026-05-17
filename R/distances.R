@@ -74,7 +74,7 @@ regularradius <- function(Rx, Ry, n) {
   M1 <- matrix(c(Rx - mean(Rx), Ry - mean(Ry)), le, 2)
   V1 <- complex(real = M1[, 1], imaginary = M1[, 2])
   M2 <- matrix(c(Arg(V1), Mod(V1)), le, 2)
-  V2 <- NA
+  V2 <- integer(n)
   for (i in 0:(n - 1)) {
     V2[i + 1] <- which.max((cos(M2[, 1] - 2 * i * pi / n)))
   }
@@ -132,10 +132,10 @@ dper <- function(x, y, n) {
   xr <- (x[round(seq(1, length(x), length.out = n + 1))])[-1]
   yr <- (y[round(seq(1, length(y), length.out = n + 1))])[-1]
 
-  distances <- NULL
+  centroid <- c(mean(x), mean(y))
+  distances <- numeric(n)
   for (i in 1:n) {
-    distances[i] <- ild(c(mean(x), mean(y)), c(xr[i], yr[i]))
-    # Alternative: distances[i] <- ild(c(xr[1], yr[1]), c(xr[i], yr[i]))
+    distances[i] <- ild(centroid, c(xr[i], yr[i]))
   }
   return(list(dist = distances, coords = cbind(xr, yr)))
 }

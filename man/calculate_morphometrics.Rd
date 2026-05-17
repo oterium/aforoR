@@ -2,7 +2,7 @@
 % Please edit documentation in R/morphometrics.R
 \name{calculate_morphometrics}
 \alias{calculate_morphometrics}
-\title{Calculate Morphometric Indices and Measurements}
+\title{Calculate Basic Morphometric Measurements}
 \usage{
 calculate_morphometrics(contour, pixels_per_mm = NULL)
 }
@@ -17,20 +17,17 @@ A named list containing:
   \itemize{
     \item \code{Area}: Surface area of the otolith.
     \item \code{Perimeter}: Length of the otolith boundary.
-    \item \code{Length}: Maximum dimension (major axis).
-    \item \code{Width}: Minimum dimension (minor axis).
+    \item \code{Length}: Maximum dimension (major axis) of the PCA-aligned bounding box.
+    \item \code{Width}: Minimum dimension (minor axis) of the PCA-aligned bounding box.
+    \item \code{Feret_Max}: Maximum Feret diameter (longest distance between any two boundary points).
+    \item \code{Feret_Min}: Minimum Feret diameter (minimum distance between parallel tangency lines).
+    \item \code{PCA_Angle}: Orientation angle of the major axis of inertia in degrees (normalized to [0, 180)).
     \item \code{Units}: Measurement units ("px" or "mm").
-    \item \code{Roundness}: (4 * Area) / (pi * Length^2).
-    \item \code{FormFactor}: (4 * pi * Area) / Perimeter^2.
-    \item \code{Circularity}: Perimeter^2 / Area.
-    \item \code{Rectangularity}: Area / (Length * Width).
-    \item \code{Ellipticity}: (Length - Width) / (Length + Width).
-    \item \code{AspectRatio}: Length / Width.
   }
 }
 \description{
 Computes standard otolith morphometric measurements (Area, Perimeter, Length, Width)
-and shape indices (Roundness, Circularity, etc.) based on Tuset et al. (2003) formulas.
+along with advanced shape descriptors (Feret_Max, Feret_Min, PCA_Angle).
 The function supports scale conversion from pixels to millimeters if a `pixels_per_mm`
 value is provided.
 }

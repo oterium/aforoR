@@ -584,6 +584,145 @@ write_analysis_csv <- function(data, filename, row_names) {
   write.table(data, file = filename, dec = ".", sep = ";", col.names = FALSE)
 }
 
+.setup_directories_and_files <- function(folder) {
+  polar_dir <- file.path(folder, "Polar")
+  cartesian_dir <- file.path(folder, "Cartesian")
+
+  if (!dir.exists(polar_dir)) dir.create(polar_dir, recursive = TRUE)
+  if (!dir.exists(cartesian_dir)) dir.create(cartesian_dir, recursive = TRUE)
+
+  imag <- list.files(folder, pattern = "(?i)\\.(jpe?g|png|tiff?)$", full.names = TRUE)
+  if (length(imag) == 0) {
+    warning(paste("No supported image files (.jpg, .jpeg, .png, .tif, .tiff) found in folder:", folder))
+    return(NULL)
+  }
+
+  list(polar_dir = polar_dir, cartesian_dir = cartesian_dir, imag = imag)
+}
+
+.extract_batch_contours <- function(imag, threshold, blur_size, blur_sigma, detect_scale, pixels_per_mm, scale_mm, min_points, min_area) {
+  contours_raw <- vector("list", length(imag))
+  binary_images_list <- vector("list", length(imag))
+  px_per_mm_list <- vector("list", length(imag))
+  valid_indices <- c()
+
+  message("\nPhase 1: Extracting contours...")
+  pb <- utils::txtProgressBar(max = length(imag), style = 3)
+
+  for (i in seq_along(imag)) {
+    utils::setTxtProgressBar(pb, i)
+    tryCatch({
+      img_raw <- EBImage::readImage(imag[i])
+      binary_image <- preprocess_image(img_raw, threshold, blur_size = blur_size, blur_sigma = blur_sigma)
+      
+      current_pixels_per_mm <- pixels_per_mm
+      if (detect_scale) {
+        img_grey <- if (EBImage::colorMode(img_raw) != EBImage::Grayscale) EBImage::channel(img_raw, "grey") else img_raw
+        thresh_scale <- EBImage::otsu(img_grey)
+        binary_scale <- img_grey > thresh_scale
+        detected_px_per_mm <- find_scale_bar_length(binary_scale, scale_mm = scale_mm)
+        if (!is.null(detected_px_per_mm)) {
+          current_pixels_per_mm <- detected_px_per_mm
+        } else {
+          warning(paste("Scale bar not found for image", basename(imag[i]), ". Using unscaled values."))
+        }
+      }
+      px_per_mm_list[i] <- list(current_pixels_per_mm)
+
+      contorno <- extract_contour(binary_image, min_points = min_points, min_area = min_area)
+      if (!is.null(contorno)) {
+        contours_raw[[i]] <- contorno
+        binary_images_list[[i]] <- binary_image
+        valid_indices <- c(valid_indices, i)
+      } else {
+        warning(paste("No suitable contour found for image:", basename(imag[i])))
+      }
+    }, error = function(e) {
+      warning(paste("Error processing image", basename(imag[i]), ":", e$message))
+    })
+  }
+  close(pb)
+
+  list(contours_raw = contours_raw, binary_images_list = binary_images_list, px_per_mm_list = px_per_mm_list, valid_indices = valid_indices)
+}
+
+.apply_gpa_alignment <- function(contours_raw, valid_indices, procrustes, n_points) {
+  contours_to_process <- contours_raw
+  if (procrustes && length(valid_indices) > 1) {
+    message("\nPhase 1.5: Applying Generalized Procrustes Analysis (GPA)...")
+    if (requireNamespace("Momocs", quietly = TRUE)) {
+      valid_contours <- lapply(contours_raw[valid_indices], function(c) Momocs::coo_interpolate(c, n_points))
+      out_obj <- Momocs::Out(valid_contours)
+      out_aligned <- suppressMessages(Momocs::fgProcrustes(out_obj))
+      for (j in seq_along(valid_indices)) {
+        contours_to_process[[valid_indices[j]]] <- out_aligned$coo[[j]]
+      }
+    } else {
+      warning("Momocs package is required for Procrustes alignment. Skipping alignment.")
+    }
+  } else if (procrustes) {
+    warning("Not enough valid contours found to apply Procrustes alignment.")
+  }
+  contours_to_process
+}
+
+.calculate_batch_descriptors <- function(imag, valid_indices, contours_to_process, contours_raw, binary_images_list, px_per_mm_list, procrustes, ef, n_harmonics, n_points, wavelets, save, testing, polar_dir, cartesian_dir) {
+  result <- list()
+  result2 <- list()
+  morpho_results <- list()
+
+  if (length(valid_indices) > 0) {
+    message("\nPhase 2: Calculating descriptors and saving results...")
+    pb2 <- utils::txtProgressBar(max = length(valid_indices), style = 3)
+    for (idx_counter in seq_along(valid_indices)) {
+      utils::setTxtProgressBar(pb2, idx_counter)
+      i <- valid_indices[idx_counter]
+      
+      contorno_proc <- contours_to_process[[i]]
+      contorno_raw <- contours_raw[[i]]
+      binary_image <- if (procrustes) NULL else binary_images_list[[i]]
+      current_pixels_per_mm <- px_per_mm_list[[i]]
+      
+      tryCatch({
+        coef_e <- if (ef) Momocs::efourier(contorno_proc, n_harmonics, norm = !procrustes) else NULL
+        distances <- calculate_distances(contorno_proc, n_points = n_points)
+        wavelet_results <- if (wavelets) calculate_wavelets_analysis(distances, n_scales = floor(log2(n_points)), detail = FALSE) else NULL
+        
+        morpho <- calculate_morphometrics(contorno_raw, current_pixels_per_mm)
+        morpho$Image <- basename(imag[i])
+        morpho_results[[i]] <- morpho
+        
+        if (save) {
+          result[[i]] <- create_result_structure(distances$polar, wavelet_results$polar, basename(imag[i]), coef_e, "polar")
+          result2[[i]] <- create_result_structure(distances$perimeter, wavelet_results$perimeter, basename(imag[i]), coef_e, "perimeter")
+        }
+        
+        if (testing) {
+          save_visualization(binary_image, distances, wavelet_results, basename(imag[i]), polar_dir)
+          save_visualization_perimeter(binary_image, distances, wavelet_results, basename(imag[i]), cartesian_dir)
+        }
+      }, error = function(e) {
+        warning(paste("Error in analysis phase for image", basename(imag[i]), ":", e$message))
+      })
+    }
+    close(pb2)
+  }
+  list(result = result, result2 = result2, morpho_results = morpho_results)
+}
+
+.save_batch_csv_results <- function(result, result2, morpho_results, polar_dir, cartesian_dir) {
+  if (length(result) > 0) {
+    save_analysis_results(result, polar_dir, "polar")
+    save_analysis_results(result2, cartesian_dir, "perimeter")
+  }
+  morpho_results <- morpho_results[!sapply(morpho_results, is.null)]
+  if (length(morpho_results) > 0) {
+    morpho_df <- do.call(rbind, lapply(morpho_results, as.data.frame))
+    morpho_df <- morpho_df[, c("Image", setdiff(names(morpho_df), "Image"))]
+    utils::write.table(morpho_df, file = file.path(polar_dir, "MorphometricsEN.csv"), row.names = FALSE, sep = ";", dec = ".")
+  }
+}
+
 #' Process Images in Folder
 #'
 #' This function processes images in a specified folder, applying various transformations and analyses.
@@ -610,7 +749,7 @@ write_analysis_csv <- function(data, filename, row_names) {
 #' @details
 #' The function generates the following files in the `Polar` (and `Cartesian`) directories:
 #' \itemize{
-#'   \item \code{MorphometricsEN.csv}: Table with shape indices (Area, Perimeter, Circularity, etc.).
+#'   \item \code{MorphometricsEN.csv}: Table with morphometric measures (Area, Perimeter, Length, Width).
 #'   \item \code{DistanciaEN.csv} and \code{Distancia_NormEN.csv}: Raw and normalized distances (radii or perimeter).
 #'   \item \code{Wavelet_xEN.csv}: Wavelet coefficients for scales 1 to 9.
 #'   \item \code{EllipticCoeEN.csv}: Elliptic Fourier coefficients (if \code{ef = TRUE}).
@@ -637,248 +776,35 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
                            min_area = 5000, n_harmonics = 32, n_points = 512,
                            scale_mm = 1, procrustes = FALSE) {
   # Input validation
-  if (!is.character(folder) || length(folder) != 1) {
-    stop("folder must be a single character string")
+  if (!is.character(folder) || length(folder) != 1) stop("folder must be a single character string")
+  if (!dir.exists(folder)) stop(paste("Folder does not exist:", folder))
+  if (!is.logical(wavelets) || !is.logical(ef) || !is.logical(testing) || !is.logical(save) || !is.logical(detect_scale) || !is.logical(procrustes)) {
+    stop("wavelets, ef, testing, save, detect_scale, and procrustes must be logical values")
   }
+  if (!pseudolandmarks %in% c("curvilinear", "polar", "both")) stop("pseudolandmarks must be one of: 'curvilinear', 'polar', 'both'")
+  if (!is.null(pixels_per_mm) && (!is.numeric(pixels_per_mm) || pixels_per_mm <= 0)) stop("pixels_per_mm must be a positive numeric value")
 
-  if (!dir.exists(folder)) {
-    stop(paste("Folder does not exist:", folder))
-  }
-
-  if (!is.logical(wavelets) || !is.logical(ef) || !is.logical(testing) ||
-    !is.logical(save) || !is.logical(detect_scale) || !is.logical(procrustes)) {
-    stop(paste(
-      "wavelets, ef, testing, save, detect_scale, and procrustes",
-      "must be logical values"
-    ))
-  }
-
-  if (!pseudolandmarks %in% c("curvilinear", "polar", "both")) {
-    stop("pseudolandmarks must be one of: 'curvilinear', 'polar', 'both'")
-  }
-
-  if (!is.null(pixels_per_mm) && (!is.numeric(pixels_per_mm) || pixels_per_mm <= 0)) {
-    stop("pixels_per_mm must be a positive numeric value")
-  }
-
-  tryCatch(
-    {
-      # Create processing directories if they don't exist
-      polar_dir <- file.path(folder, "Polar")
-      cartesian_dir <- file.path(folder, "Cartesian")
-
-      if (!dir.exists(polar_dir)) {
-        dir.create(polar_dir, recursive = TRUE)
-      }
-      if (!dir.exists(cartesian_dir)) {
-        dir.create(cartesian_dir, recursive = TRUE)
-      }
-
-      # Get list of image files (JPEG, PNG, TIFF - case-insensitive)
-      # EBImage::readImage supports these formats natively
-      imag <- list.files(folder,
-        pattern = "(?i)\\.(jpe?g|png|tiff?)$",
-        full.names = TRUE
-      )
-
-      if (length(imag) == 0) {
-        warning(paste(
-          "No supported image files (.jpg, .jpeg, .png, .tif, .tiff)",
-          "found in folder:", folder
-        ))
-        return(invisible(NULL))
-      }
-
-      message("\nPhase 1: Extracting contours...")
-      pb <- utils::txtProgressBar(max = length(imag), style = 3)
-
-      # Phase 1: Extract all contours
-      contours_raw <- vector("list", length(imag))
-      binary_images_list <- vector("list", length(imag))
-      px_per_mm_list <- vector("list", length(imag))
-      valid_indices <- c()
-
-      for (i in seq_along(imag)) {
-        utils::setTxtProgressBar(pb, i)
-
-        tryCatch(
-          {
-            # Step 1: Read image ONCE
-            img_raw <- EBImage::readImage(imag[i])
-
-            # Step 2: Preprocess image
-            binary_image <- preprocess_image(img_raw, threshold, blur_size = blur_size, blur_sigma = blur_sigma)
-
-            # Scale detection logic
-            current_pixels_per_mm <- pixels_per_mm
-            if (detect_scale) {
-              # Use simple Otsu without heavy smoothing for scale detection
-              img_grey <- if (EBImage::colorMode(img_raw) != EBImage::Grayscale) {
-                EBImage::channel(img_raw, "grey")
-              } else {
-                img_raw
-              }
-              thresh_scale <- EBImage::otsu(img_grey)
-              binary_scale <- img_grey > thresh_scale
-
-              detected_px_per_mm <- find_scale_bar_length(binary_scale,
-                scale_mm = scale_mm
-              )
-              if (!is.null(detected_px_per_mm)) {
-                current_pixels_per_mm <- detected_px_per_mm
-              } else {
-                warning(paste(
-                  "Scale bar not found for image", basename(imag[i]),
-                  ". Using unscaled values."
-                ))
-              }
-            }
-            px_per_mm_list[i] <- list(current_pixels_per_mm)
-
-            # Step 3: Extract contour (with max area logic and params)
-            contorno <- extract_contour(binary_image, min_points = min_points, min_area = min_area)
-
-            if (!is.null(contorno)) {
-              contours_raw[[i]] <- contorno
-              binary_images_list[[i]] <- binary_image
-              valid_indices <- c(valid_indices, i)
-            } else {
-              warning(paste("No suitable contour found for image:", basename(imag[i])))
-            }
-          },
-          error = function(e) {
-            warning(paste(
-              "Error processing image", basename(imag[i]), ":", e$message
-            ))
-          }
-        )
-      }
-      close(pb)
-
-      # Phase 1.5: Procrustes alignment (GPA)
-      contours_to_process <- contours_raw
-
-      if (procrustes && length(valid_indices) > 1) {
-         message("\nPhase 1.5: Applying Generalized Procrustes Analysis (GPA)...")
-         
-         if (requireNamespace("Momocs", quietly = TRUE)) {
-             # To apply GPA, all contours must have the same number of points
-             valid_contours <- lapply(contours_raw[valid_indices], function(c) {
-                 Momocs::coo_interpolate(c, n_points)
-             })
-             out_obj <- Momocs::Out(valid_contours)
-             # Suppress typical Momocs console output
-             out_aligned <- suppressMessages(Momocs::fgProcrustes(out_obj))
-             
-             for (j in seq_along(valid_indices)) {
-                 orig_idx <- valid_indices[j]
-                 contours_to_process[[orig_idx]] <- out_aligned$coo[[j]]
-             }
-         } else {
-             warning("Momocs package is required for Procrustes alignment. Skipping alignment.")
-         }
-      } else if (procrustes) {
-         warning("Not enough valid contours found to apply Procrustes alignment.")
-      }
-
-      message("\nPhase 2: Calculating descriptors and saving results...")
-      # Initialize results
-      result <- list()
-      result2 <- list()
-      morpho_results <- list()
-
-      if (length(valid_indices) > 0) {
-        pb2 <- utils::txtProgressBar(max = length(valid_indices), style = 3)
-        for (idx_counter in seq_along(valid_indices)) {
-            utils::setTxtProgressBar(pb2, idx_counter)
-            i <- valid_indices[idx_counter]
-            
-            contorno_proc <- contours_to_process[[i]]
-            contorno_raw <- contours_raw[[i]]
-            # If using Procrustes, we don't draw the background image because it doesn't match
-            binary_image <- if (procrustes) NULL else binary_images_list[[i]]
-            current_pixels_per_mm <- px_per_mm_list[[i]]
-            
-            tryCatch({
-               # Step 4: Calculate elliptic Fourier descriptors if requested
-               coef_e <- NULL
-               if (ef) {
-                   # If already aligned via Procrustes, don't normalize again
-                   coef_e <- Momocs::efourier(contorno_proc, n_harmonics, norm = !procrustes)
-               }
-               
-               # Step 5: Calculate distance measures
-               distances <- calculate_distances(contorno_proc, n_points = n_points)
-               
-               # Step 6: Calculate wavelets if requested
-               wavelet_results <- NULL
-               if (wavelets) {
-                   # log2(n_points) is the max scales
-                   n_scales_calc <- floor(log2(n_points))
-                   wavelet_results <- calculate_wavelets_analysis(
-                     distances, n_scales = n_scales_calc, detail = FALSE
-                   )
-               }
-               
-               # Step 7: Calculate Morphometrics
-               # Computed on RAW contour to maintain physical properties (area, perimeter, px_per_mm)
-               morpho <- calculate_morphometrics(contorno_raw, current_pixels_per_mm)
-               morpho$Image <- basename(imag[i])
-               morpho_results[[i]] <- morpho
-               
-               if (save) {
-                   result[[i]] <- create_result_structure(
-                     distances$polar, wavelet_results$polar, basename(imag[i]), coef_e, "polar"
-                   )
-                   result2[[i]] <- create_result_structure(
-                     distances$perimeter, wavelet_results$perimeter, basename(imag[i]), coef_e, "perimeter"
-                   )
-               }
-               
-               # Step 9: Save visualizations if requested
-               if (testing) {
-                   save_visualization(
-                     binary_image, distances, wavelet_results, basename(imag[i]), polar_dir
-                   )
-                   save_visualization_perimeter(
-                     binary_image, distances, wavelet_results, basename(imag[i]), cartesian_dir
-                   )
-               }
-            }, error = function(e) {
-               warning(paste("Error in analysis phase for image", basename(imag[i]), ":", e$message))
-            })
-        }
-        close(pb2)
-      }
-
-      # Step 10: Save results to CSV files
-      if (save) {
-        if (length(result) > 0) {
-          save_analysis_results(result, polar_dir, "polar")
-          save_analysis_results(result2, cartesian_dir, "perimeter")
-        }
-
-        if (length(morpho_results) > 0) {
-          # Combine morphometrics into a data frame
-          morpho_results <- morpho_results[!sapply(morpho_results, is.null)]
-          if (length(morpho_results) > 0) {
-            morpho_df <- do.call(rbind, lapply(morpho_results, as.data.frame))
-            # Reorder to put Image first
-            morpho_df <- morpho_df[, c("Image", setdiff(names(morpho_df), "Image"))]
-
-            write.table(morpho_df,
-              file = file.path(polar_dir, "MorphometricsEN.csv"),
-              row.names = FALSE, sep = ";", dec = "."
-            )
-          }
-        }
-      }
-
-    },
-    error = function(e) {
-      stop(paste("Error in process_images:", e$message))
+  tryCatch({
+    # 1. Setup
+    setup_data <- .setup_directories_and_files(folder)
+    if (is.null(setup_data)) return(invisible(NULL))
+    
+    # 2. Extract
+    extr <- .extract_batch_contours(setup_data$imag, threshold, blur_size, blur_sigma, detect_scale, pixels_per_mm, scale_mm, min_points, min_area)
+    
+    # 3. Procrustes
+    contours_to_process <- .apply_gpa_alignment(extr$contours_raw, extr$valid_indices, procrustes, n_points)
+    
+    # 4. Descriptors
+    analysis <- .calculate_batch_descriptors(setup_data$imag, extr$valid_indices, contours_to_process, extr$contours_raw, extr$binary_images_list, extr$px_per_mm_list, procrustes, ef, n_harmonics, n_points, wavelets, save, testing, setup_data$polar_dir, setup_data$cartesian_dir)
+    
+    # 5. Save
+    if (save) {
+      .save_batch_csv_results(analysis$result, analysis$result2, analysis$morpho_results, setup_data$polar_dir, setup_data$cartesian_dir)
     }
-  )
+  }, error = function(e) {
+    stop(paste("Error in process_images:", e$message))
+  })
 }
 
 #' @param binary_image A binarized image.

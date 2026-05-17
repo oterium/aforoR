@@ -32,7 +32,7 @@ test_that("examples from documentation work as expected", {
     # 4. Calculate Morphometrics Example
     metrics <- calculate_morphometrics(contour, pixels_per_mm = 100)
     expect_equal(metrics$Units, "mm")
-    expect_true(all(c("Area", "Roundness", "Circularity") %in% names(metrics)))
+    expect_true(all(c("Area", "Perimeter", "Length", "Width", "Feret_Max", "Feret_Min", "PCA_Angle") %in% names(metrics)))
 
     # 5. Wavelet Analysis Example (using distances from step 3)
     wavelets <- calculate_wavelets_analysis(dists, n_scales = 9)

@@ -114,9 +114,9 @@ process_images(
 
 The function creates two subdirectories: `Polar` (Polar coordinates) and `Cartesian` (Perimeter coordinates).
 
-### 4.1 Morphometric Indices
+### 4.1 Morphometric Measurements
 
-A new file `MorphometricsEN.csv` is created containing geometric measurements and shape indices.
+A new file `MorphometricsEN.csv` is created containing geometric measurements.
 
 ```{r morpho_results}
 morpho_file <- file.path(work_dir, "Polar", "MorphometricsEN.csv")
@@ -126,11 +126,13 @@ if (file.exists(morpho_file)) {
 }
 ```
 
-The indices include:
+The measurements include:
 *   **Area**: Area of the otolith ($mm^2$).
 *   **Perimeter**: Perimeter length ($mm$).
-*   **Length / Width**: Major and minor axis dimensions ($mm$).
-*   **Shape Indices**: Roundness, Circularity, Rectangularity, Aspect Ratio, etc. (Unitless).
+*   **Length / Width**: Major and minor axis dimensions of the PCA-aligned bounding box ($mm$).
+*   **Feret_Max**: Maximum Feret diameter (longest distance between any two boundary points; recommended robust measure of length) ($mm$).
+*   **Feret_Min**: Minimum Feret diameter (minimum distance between parallel tangent lines; recommended robust measure of width) ($mm$).
+*   **PCA_Angle**: Orientation angle of the major axis of inertia in degrees (normalized to [0, 180)).
 
 ### 4.2 Wavelet Coefficients
 
