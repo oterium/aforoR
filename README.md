@@ -6,7 +6,7 @@
 
 <br clear="right"/>
 
-[![Version](https://img.shields.io/badge/version-0.1.0-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR)
+[![Version](https://img.shields.io/badge/version-0.2.0-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR)
 [![License:
 MIT](https://img.shields.io/badge/license-MIT-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR/blob/main/LICENSE)
 [![R
@@ -123,7 +123,7 @@ If you use **aforoR** in your research, please cite it as:
 
 Otero-Ferrer, J.L., Tuset, V.M., Manjabacas, A., Lombarte, A. (2026).
 *aforoR*: Anàlisi de FORmes d’Otòlits / Shape Analysis of Fish Otoliths.
-R package version 0.1.0. <https://github.com/oterium/aforoR>
+R package version 0.2.0. <https://github.com/oterium/aforoR>
 
 ### Acknowledgments
 
