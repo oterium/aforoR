@@ -1,9 +1,9 @@
 ---
-title: "Basic Morphometry"
+title: "Applications of Otolith Size"
 author: "Víctor Manuel Tuset & Antoni Lombarte"
 date: 2025-11-27
 vignette: >
-  %\VignetteIndexEntry{Basic Morphometry}
+  %\VignetteIndexEntry{Applications of Otolith Size}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -106,9 +106,9 @@ deviance_results <- fit_allometric_Species %>%
 
 ![](images/Regression.png)
 
-## 2. Otolith relative sizes
+## 2. Relative Otolith Indices
 
-Otolith measurements can be used to compute shape and relative size indices. In particular, otolith relative indices are related to life strategies in fishes (Cruz and Lombarte, 2004; Lombate and Cruz, 2007; Tuset et al., in press). There are two indices:
+Otolith measurements can be used to compute relative otolith indices, which are related to life-history strategies in fishes (Cruz and Lombarte, 2004; Lombate and Cruz, 2007; Tuset et al., 2026, in press). There are two indices:
 
 -   Otolith relative length (**ORL**)= otolith length\*100/fish length,
 -   Otolith relative size (**ORS**)= otolith area\*1000/(fish length^3^).
@@ -127,7 +127,7 @@ ggplot(Aphanopus, aes(x = SL, y = (OL*100)/SL, color = Species, shape = Species)
               se = FALSE,
               size = 1) +
   labs(
-    y = "Otolith size length (ORL)",
+    y = "Relative otolith length (ROL)",
     x = "Standard Length (SL, mm)",
     color = "Species"
   ) +
@@ -144,11 +144,9 @@ ggplot(Aphanopus, aes(x = SL, y = (OL*100)/SL, color = Species, shape = Species)
     axis.ticks = element_line(color = "black", linewidth = 0.3),
     axis.ticks.length = unit(0.15, "cm")
   )
-#code is similar to ORS
+#code is similar to ROS
 ```
 
-|                         |                         |
-|-------------------------|-------------------------|
-| ![](images/ORL-04.jpeg) | ![](images/ORS-02.jpeg) |
+![](images/ROS-ROL.pdf)
 
-**ORL** shows no apparent interspecific differences relative to fish growth, whereas **ORS** is higher in *A. carbo*. This suggests that otoliths of *A. carbo* are generally wider, or otoliths of *A. intermedius* display greater irregularity. The first hypothesis is more plausible after examining PC1-PC2 plot.
+**ROL** shows no apparent interspecific differences relative to fish growth, whereas **ROS** is higher in *A. carbo*. This suggests that otoliths of *A. carbo* are generally wider, or otoliths of *A. intermedius* display greater irregularity. The first hypothesis is more plausible after examining PC1-PC2 plot.

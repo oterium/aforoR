@@ -127,6 +127,7 @@ if (file.exists(morpho_file)) {
 ```
 
 The measurements include:
+
 *   **Area**: Area of the otolith ($mm^2$).
 *   **Perimeter**: Perimeter length ($mm$).
 *   **Length / Width**: Major and minor axis dimensions of the PCA-aligned bounding box ($mm$).

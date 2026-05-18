@@ -22,7 +22,7 @@ Version](https://img.shields.io/badge/R-%E2%89%A5%204.0.0-6b94ff.svg?style=flat-
 **aforoR** is an R package designed for high-precision **Shape Analysis
 of Fish Otoliths**. It implements the methodology established by the
 *AFORO* team (Parisi-Baradad et al., 2005), providing a complete
-workflow from image preprocessing to advanced morphometric descriptors.
+workflow from image preprocessing.
 
 While specifically optimized for otoliths, the package is equally
 powerful for analyzing other closed biological structures such as
@@ -97,7 +97,6 @@ different analytical scenarios:
 |:---|:---|
 | [**Comparing Shape Descriptors**](https://oterium.github.io/aforoR/articles/Shape_Descriptors.html) | Comparison between EFD, Wavelets, and CSS for otolith analysis. |
 | [**Image Preprocessing & Contour Extraction**](https://oterium.github.io/aforoR/articles/Obtaining_Contour.html) | Introduction to the core image processing, orientation, and contour extraction workflow. |
-| [**Basic Morphometry**](https://oterium.github.io/aforoR/articles/Otolith_Morphometry.html) | Guide to calculating basic morphometric measures and modeling allometric relationships. |
 | [**Wavelet Theory & Fundamentals**](https://oterium.github.io/aforoR/articles/Knowing_Wavelets.html) | Technical background on wavelet transform and scales. |
 | [**Population Discrimination with Wavelets**](https://oterium.github.io/aforoR/articles/Working_Wavelets.html) | Deep dive into wavelet-based population comparison, PCA, and classification models. |
 
@@ -108,6 +107,7 @@ different analytical scenarios:
 | [**Detecting Shape Phenotypes**](https://oterium.github.io/aforoR/articles/Phenotypes.html) | Detection of different phenotypes based on shape clustering. |
 | [**Lobe Analysis with Wavelets**](https://oterium.github.io/aforoR/articles/Analyzing_Lobes.html) | Specialized analysis of specific morphological features (lobes). |
 | [**Optimal Point Selection (Hall & Bathia)**](https://oterium.github.io/aforoR/articles/Point_Selection.html) | Sequential point selection for classification using the Hall & Bathia ML algorithm. |
+| [**Applications of Otolith Size**](https://oterium.github.io/aforoR/articles/Otolith_Morphometry.html) | Guide to calculating basic morphometric measures and modeling allometric relationships. |
 
 #### Bibliography
 

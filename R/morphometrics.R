@@ -80,7 +80,7 @@ calculate_morphometrics <- function(contour, pixels_per_mm = NULL) {
     feret_min_px <- min(widths)
 
     # PCA Alignment / Rotation Angle (in degrees, scale-invariant, normalized to [0, 180))
-    V <- var(coo)
+    V <- stats::var(coo)
     s <- svd(V)
     pca_angle <- (atan2(s$u[2, 1], s$u[1, 1]) * 180 / pi) %% 180
 

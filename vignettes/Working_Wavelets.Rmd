@@ -16,7 +16,7 @@ This tutorial provides step-by-step guide for comparing the otolith contours. Th
 
 Users can find a summary of the analytic procedure in Vasconcelos et al. (2025). Follow this tutorial for a step-by-step guide to the main framework, shown in the flowchart below:
 
-![](images/Scheme-01.png)
+![](images/Scheme-01.pdf)
 
 ## 2. Building dataset
 
@@ -554,6 +554,6 @@ ggplot() +
   )
 ```
 
-![](images/Correlation-01.png)
+![](images/VIS_plot.pdf)
 
 The black bars show the regions more correlated to PC components, which is linked to discrimination of groups. In this case, *rostrum* and *antirostrum* region and posterior region are relevant to separate both species (similar results that in the figure of wavelets).

@@ -22,11 +22,11 @@ In pelagic fishes, such as *Trachurus trachurus*, elongated shapes seems to be l
 
 ## **2. Methods**
 
-Users can used optClust and NbClust packages, and to test different options. Here presented the results using hierarchical clustering.
+Users can used optClust and NbClust packages, and to test different options. Here presented the results using unsupervised machine learning algorithm as kmeans method.
 
 ``` r
 res<-NbClust([,1:27], distance = "manhattan", min.nc = 2, max.nc = 8,
-             method = "kmeans", index = "kl")
+             method = "kmeans", index = "all")
 res$Best.partition<-as.factor(res$Best.partition)
 res$Best.nc
 Group<-as.data.frame(res$Best.partition)

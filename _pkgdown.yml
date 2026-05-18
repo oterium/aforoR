@@ -33,8 +33,6 @@ navbar:
           href: articles/Shape_Descriptors.html
         - text: "Image Preprocessing & Contour Extraction"
           href: articles/Obtaining_Contour.html
-        - text: "Basic Morphometry"
-          href: articles/Otolith_Morphometry.html
         - text: "Wavelet Theory & Fundamentals"
           href: articles/Knowing_Wavelets.html
         - text: "Population Discrimination with Wavelets"
@@ -49,6 +47,8 @@ navbar:
           href: articles/Analyzing_Lobes.html
         - text: "Optimal Point Selection (Hall & Bathia)"
           href: articles/Point_Selection.html
+        - text: "Applications of Otolith Size"
+          href: articles/Otolith_Morphometry.html
     bibliography:
       text: "Bibliography"
       href: articles/References.html
@@ -62,7 +62,6 @@ articles:
     contents:
       - Shape_Descriptors
       - Obtaining_Contour
-      - Otolith_Morphometry
       - Knowing_Wavelets
       - Working_Wavelets
 
@@ -72,6 +71,7 @@ articles:
       - Phenotypes
       - Analyzing_Lobes
       - Point_Selection
+      - Otolith_Morphometry
 
   - title: "References"
     contents:
