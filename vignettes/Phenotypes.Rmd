@@ -8,6 +8,15 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+<style>
+img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5em auto;
+}
+</style>
+
 ## About this tutorial
 
 The tutorial describes options for identifying otolith phenotypes and suggests evaluating stocks by assessing their phenotypic composition and variability (Tuset et al., 2019; Vasconcelos et al., 2021, 2025a,b; Jurado-Ruzafa et al., 2024). Use the wavelet at 4^th^ scale and test several options.

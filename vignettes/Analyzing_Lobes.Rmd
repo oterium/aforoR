@@ -8,6 +8,15 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+<style>
+img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5em auto;
+}
+</style>
+
 ## About this tutorial
 
 This tutorial shows how to quantify the number, depth, height, and crenulation of lobes from the **2^nd^ scale of wavelet function**. This approach is specially useful when wavelets (\>3^rd^ scale) and Fourier descriptors excessively smooth the contour.

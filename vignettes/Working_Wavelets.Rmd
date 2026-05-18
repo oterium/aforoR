@@ -8,6 +8,15 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+<style>
+img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5em auto;
+}
+</style>
+
 ## About this tutorial
 
 This tutorial provides step-by-step guide for comparing the otolith contours. The accompanying **code is only an example** to facilitate morphological understanding of the analyses. **Same protocol for stock separation**.

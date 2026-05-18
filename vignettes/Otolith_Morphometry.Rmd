@@ -8,6 +8,15 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+<style>
+img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5em auto;
+}
+</style>
+
 ## About this tutorial
 
 This tutorial is dedicated to provide examples that illustrate alternative approaches to morphometric analyses.
