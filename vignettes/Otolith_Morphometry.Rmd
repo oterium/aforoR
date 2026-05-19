@@ -156,6 +156,6 @@ ggplot(Aphanopus, aes(x = SL, y = (OL*100)/SL, color = Species, shape = Species)
 #code is similar to ROS
 ```
 
-![](images/ROS-ROL.pdf)
+![](images/ROS-ROL.png)
 
 **ROL** shows no apparent interspecific differences relative to fish growth, whereas **ROS** is higher in *A. carbo*. This suggests that otoliths of *A. carbo* are generally wider, or otoliths of *A. intermedius* display greater irregularity. The first hypothesis is more plausible after examining PC1-PC2 plot.
