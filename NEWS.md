@@ -14,7 +14,7 @@
 ## 🎨 Design, Styling & Vignette Upgrades
 
 * **Responsive Vignettes**: Injected responsive, high-performance styling blocks across all vignettes. Images (`<img>` tags) now occupy **100% of the page width** with correct aspect ratio (`height: auto`) and clean centring, offering a premium reading experience on the documentation website and offline HTML viewers.
-* **High-Definition Vector Graphics**: Replaced legacy, low-resolution raster plots with crisp, publication-grade vector PDF graphics (`VIS_plot.pdf` and `ROS-ROL.pdf`) in the main vignettes.
+* **High-Definition Graphics**: Replaced legacy, low-resolution raster plots with crisp, publication-grade high-resolution PNG graphics (`VIS_plot.png` and `ROS-ROL.png`) in the main vignettes, ensuring native HTML compatibility and responsiveness.
 * **Navigation Restructuring**: Renamed the tutorial **"Basic Morphometry"** to **"Applications of Otolith Size"** and moved it to the **AFORO Experimental** section of the package documentation (`_pkgdown.yml`) to segregate standard and advanced biological size workflows.
 * **Asset Cleanup & Weight Reduction**: Audited the assets directory and deleted **21 unlinked/orphaned images** from `vignettes/images/`, dramatically optimizing the package bundle weight and accelerating CRAN building workflows.
 
