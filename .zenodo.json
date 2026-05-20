@@ -1,0 +1,24 @@
+{
+  "title": "aforoR: Shape Analysis of Fish Otoliths in R",
+  "description": "This package is developed for the shape analysis of fish otoliths. The methodology developed by the AFORO team, based on discrete wavelet transform (Parisi-Baradad et al., 2005), and originally available through the AFORO website (aforo.cmima.csic.es, Lombarte et al., 2006). Although workflow is initially focused on otoliths, it can be applied to other biological structures such as limpets, leaves, statoliths, beaks, and more.",
+  "upload_type": "software",
+  "license": "mit",
+  "creators": [
+    {
+      "name": "Otero-Ferrer, Jose Luis",
+      "orcid": "0000-0003-1078-4008"
+    },
+    {
+      "name": "Tuset, Victor Manuel",
+      "orcid": "0000-0001-9032-2844"
+    },
+    {
+      "name": "Manjabacas, Amalia",
+      "orcid": "0000-0001-8685-8697"
+    },
+    {
+      "name": "Lombarte, Antoni",
+      "orcid": "0000-0001-5215-4587"
+    }
+  ]
+}
