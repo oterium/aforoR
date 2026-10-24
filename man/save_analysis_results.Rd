@@ -13,6 +13,9 @@ save_analysis_results(analysis_results, output_dir, result_type = "polar")
 
 \item{result_type}{A string indicating the type of results ("polar" or "perimeter").}
 }
+\value{
+An invisible NULL, called for its side effect of writing analysis CSV files.
+}
 \description{
 Exports analysis results including distances, wavelets, and coordinates to CSV files.
 }

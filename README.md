@@ -1,7 +1,7 @@
 
 # aforoR <img src="man/figures/logo.png" align="right" height="139" />
 
-**Shape Analysis of Fish Otoliths**  
+**Shape Analysis of Fish Otoliths**\
 *Anàlisi de FORmes d’Otòlits in R*
 
 <br clear="right"/>
@@ -32,8 +32,8 @@ leaves, statoliths, beaks, and shells.
 
 - **Automatic Scale Detection**: Automatically identifies 1mm scale bars
   in images to convert pixel measurements to physical units (mm).
-- **Advanced Morphometrics**: Comprehensive calculation of geometric
-* **Basic Morphometrics**: Computation of basic geometric measures (Area, Perimeter, Length, Width).
+- **Basic Morphometrics**: Computation of basic geometric measures
+  (Area, Perimeter, Length, Width).
 - **Multi-scale Wavelet Analysis**: Decomposition of contours using
   discrete wavelet transforms for detailed frequency-based shape
   characterization.
@@ -128,10 +128,10 @@ R package version 0.2.0. <https://github.com/oterium/aforoR>
 ### Acknowledgments
 
 Developed by **JLOF, VMT, AM, and AL**. Based on the
-[AFORO](http://aforo.cmima.csic.es/) methodology for marine science and
+[AFORO](https://aforo.cmima.csic.es/) methodology for marine science and
 morphological research.
 
-<div align="center">
+<div data-align="center">
 
 <br>
 <p>

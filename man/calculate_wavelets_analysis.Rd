@@ -11,8 +11,10 @@ calculate_wavelets_analysis(distances, n_scales = 9, detail = FALSE)
 
 \item{n_scales}{Number of wavelet scales to extract (default: 9).}
 
-\item{detail}{Logical; if TRUE, returns detail coefficients instead of
-approximations.}
+\item{detail}{Logical; if FALSE (default), returns wavelet detail
+coefficients (high-to-medium frequency differences between
+scales, centered around zero). If TRUE, returns smoothed
+approximation coefficients.}
 }
 \value{
 A list with wavelet coefficients for 'polar' and 'perimeter' components.
@@ -23,9 +25,13 @@ Performs multi-scale wavelet decomposition on normalized distance data
 different frequencies.
 }
 \examples{
-# Example using existing data for wavelet analysis
-data(Aphanopus_W5)
-# This data frame already contains coefficients at scale 5.
+# Example using calculated distances from an otolith contour:
+image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+binary_img <- preprocess_image(image_path)
+contour <- extract_contour(binary_img)
+distances <- calculate_distances(contour)
+wavelets <- calculate_wavelets_analysis(distances, n_scales = 5)
+str(wavelets)
 }
 \seealso{
 \code{\link{fwaveletspl_3}}

@@ -11,24 +11,33 @@ process_images(
   wavelets = TRUE,
   ef = TRUE,
   testing = TRUE,
-  pseudolandmarks = "both",
+  coordinates = c("both", "polar", "cartesian"),
   save = TRUE,
   pixels_per_mm = NULL,
   detect_scale = FALSE,
-  blur_size = 31,
-  blur_sigma = 9,
+  blur_size = "auto",
+  blur_sigma = "auto",
   min_points = 200,
   min_area = 5000,
   n_harmonics = 32,
   n_points = 512,
   scale_mm = 1,
-  procrustes = FALSE
+  procrustes = FALSE,
+  cores = NULL,
+  plot_width = 1200,
+  plot_height = 800,
+  plot_res = 150,
+  downsample_threshold = FALSE,
+  threshold_method = c("adaptive", "otsu", "fixed"),
+  threshold_factor = 1,
+  interactive_rostrum = FALSE,
+  start_points = NULL
 )
 }
 \arguments{
 \item{folder}{A string specifying the path to the folder containing images. Supported formats include `.jpg`, `.jpeg`, `.png`, `.tif`, and `.tiff`.}
 
-\item{subfolder}{A logical value indicating whether the folder has subfolders.}
+\item{subfolder}{A logical value indicating whether to recursively process subfolders. Default is FALSE.}
 
 \item{threshold}{A numeric value for binarization. If not provided, the Otsu method is used.}
 
@@ -36,9 +45,10 @@ process_images(
 
 \item{ef}{A logical value indicating whether to obtain elliptic Fourier descriptors. Default is TRUE.}
 
-\item{testing}{A logical value indicating whether to save test images. Default is TRUE.}
+\item{testing}{A logical value indicating whether to save diagnostic test images. Default is TRUE.}
 
-\item{pseudolandmarks}{A string specifying the type of pseudolandmarks. Options are 'curvilinear', 'polar', 'both'. Default is 'both'.}
+\item{coordinates}{A string specifying which coordinate systems to compute and save:
+\code{"both"} (default), \code{"polar"}, or \code{"cartesian"}.}
 
 \item{save}{A logical value indicating whether to save the results as CSV files. Default is TRUE.}
 
@@ -46,9 +56,11 @@ process_images(
 
 \item{detect_scale}{A logical value indicating whether to automatically detect the scale bar in the image. Default is FALSE.}
 
-\item{blur_size}{Size of the Gaussian brush for smoothing (default: 31).}
+\item{blur_size}{Size of the Gaussian brush for smoothing in pixels. Can be an odd integer,
+or \code{"auto"} (default) to dynamically calculate \eqn{\min(\text{width},\text{height}) \times 0.01}.}
 
-\item{blur_sigma}{Sigma of the Gaussian brush for smoothing (default: 9).}
+\item{blur_sigma}{Standard deviation of the Gaussian filter brush. Can be a numeric value,
+or \code{"auto"} (default) to calculate \eqn{\text{blur\_size} / 3.5}.}
 
 \item{min_points}{Minimum number of points required for a valid contour (default: 200).}
 
@@ -61,32 +73,39 @@ process_images(
 \item{scale_mm}{Total length in mm of the scale bar for detection (default: 1).}
 
 \item{procrustes}{A logical value indicating whether to apply Generalized Procrustes Analysis (GPA) to align all extracted contours before calculating shape descriptors. Default is FALSE.}
+
+\item{cores}{Number of CPU cores to use for parallel processing. If NULL (default) or <= 1, processing is sequential.}
+
+\item{plot_width}{Width in pixels for diagnostic JPEG images (default: 1200).}
+
+\item{plot_height}{Height in pixels for diagnostic JPEG images (default: 800).}
+
+\item{plot_res}{Resolution in dpi for diagnostic JPEG images (default: 150).}
+
+\item{downsample_threshold}{Logical; if TRUE, calculates Otsu threshold on a downsampled thumbnail for faster preprocessing (default: FALSE).}
+
+\item{threshold_method}{Method for automatic binarization: "adaptive", "otsu", or "fixed". Default is "adaptive".}
+
+\item{threshold_factor}{Multiplier applied to the calculated threshold (default: 1.0).}
+
+\item{interactive_rostrum}{Logical; if TRUE, sequentially prompts the user to click the rostrum on each image before dispatching the analysis (default: FALSE).}
+
+\item{start_points}{Optional named list or data.frame with custom starting point coordinates \code{c(x, y)} or index for specific images.}
 }
 \value{
 Invisible NULL. The function is used for its side effects (creating files).
 }
 \description{
 This function processes images in a specified folder, applying various transformations and analyses.
-}
-\details{
-The function generates the following files in the `Polar` (and `Cartesian`) directories:
-\itemize{
-  \item \code{MorphometricsEN.csv}: Table with morphometric measures (Area, Perimeter, Length, Width).
-  \item \code{DistanciaEN.csv} and \code{Distancia_NormEN.csv}: Raw and normalized distances (radii or perimeter).
-  \item \code{Wavelet_xEN.csv}: Wavelet coefficients for scales 1 to 9.
-  \item \code{EllipticCoeEN.csv}: Elliptic Fourier coefficients (if \code{ef = TRUE}).
-  \item \code{Coords.csv}: Contour coordinates.
-}
-
-If \code{testing = TRUE}, diagnostic images are also saved:
-\itemize{
-  \item \code{zonal_[ImageName].jpg}: Visualization of the contour and analysis sectors.
-  \item \code{wavelet_[ImageName].jpg}: Visualization of the wavelet transform.
-}
+Supports multi-core parallel processing, recursive subfolder processing, manual/interactive
+rostrum selection, and lightweight diagnostic visualization overlaid on real photographs.
 }
 \examples{
 \dontrun{
 # Process all images in the "images" folder
 process_images(folder = "path/to/images", pixels_per_mm = 100)
+
+# Process in parallel across 4 cores with polar coordinates only
+process_images(folder = "path/to/images", cores = 4, coordinates = "polar")
 }
 }

@@ -35,3 +35,27 @@ test_that("scale detection works on example image", {
     # If detection worked, Area should be much smaller.
     expect_lt(data$Area[1], 1000) # 31 is much less than 1000
 })
+
+
+test_that("find_scale_bar_length accurately detects scale bar in synthetic high-res image with scale_mm = 2", {
+    skip_if_not_installed("EBImage")
+
+    # Create synthetic 2000x1200 binary image
+    # Otolith object in center
+    m <- matrix(0, nrow = 2000, ncol = 1200)
+    # Circle/ellipse otolith
+    xx <- row(m) - 1000
+    yy <- col(m) - 600
+    m[(xx^2 / 400^2 + yy^2 / 200^2) <= 1] <- 1
+
+    # Add a horizontal scale bar at the bottom: length = 200 px, thickness = 10 px
+    # Area = 2000 pixels (in a 2000x1200 image)
+    m[1500:1699, 1100:1109] <- 1
+
+    px_per_mm <- aforoR:::find_scale_bar_length(m, scale_mm = 2)
+    expect_false(is.null(px_per_mm))
+    # Majoraxis of 200x10 rectangle is approx 200 px, so px_per_mm should be ~100
+    expect_equal(as.numeric(px_per_mm), 100, tolerance = 5)
+    expect_true(!is.null(attr(px_per_mm, "scale_info")))
+    expect_equal(attr(px_per_mm, "scale_info")$scale_mm, 2)
+})

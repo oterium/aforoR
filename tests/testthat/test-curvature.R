@@ -41,6 +41,10 @@ test_that("plot.css works without error", {
     y <- sin(theta) + 0.2 * sin(4 * theta)
     res <- calculate_css(cbind(x, y), n_points = 50, sigma_max = 2)
 
+    # Prevent Rplots.pdf generation
+    pdf(NULL)
+    on.exit(try(dev.off(), silent = TRUE), add = TRUE)
+
     # Just verify it doesn't crash
     expect_error(plot(res), NA)
 })

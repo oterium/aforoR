@@ -4,12 +4,17 @@
 \alias{calculate_distances}
 \title{Calculate Distance Measures from Contour}
 \usage{
-calculate_distances(contour, n_points = 512)
+calculate_distances(contour, n_points = 512, start_point = NULL)
 }
 \arguments{
 \item{contour}{A matrix of coordinates from \code{extract_contour()}.}
 
 \item{n_points}{Target number of points for resampling (default: 512).}
+
+\item{start_point}{Optional numeric vector specifying the starting point (rostrum).
+Can be either an integer index (1 to nrow(contour)) or coordinate
+pair \code{c(x, y)}. If NULL (default), the automatic rightmost point
+is used.}
 }
 \value{
 A list containing:
@@ -17,7 +22,7 @@ A list containing:
     \item \code{polar}: Radii, coordinates, and normalized radii.
     \item \code{perimeter}: Distances, coordinates, and normalized distances.
     \item \code{reordered_coords}: The contour coordinates reordered from the
-          rightmost point.
+          starting point.
   }
 }
 \description{

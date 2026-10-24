@@ -387,7 +387,14 @@ Example using MLP (**Multi-layer Perceptron classifier**), a supervised learning
 library(caret)
 set.seed(10000001)
 tunegridT <- expand.grid(size = c(30, 40, 50, 60, 70, 75, 80))# depends classifier
-CntrlT <- trainControl(method="LOOCV", number = 1000) 
+CntrlT <- caret::trainControl(
+  method = "LOOCV",
+  number = 1000,
+  savePredictions = "final",
+  classProbs = TRUE,
+  summaryFunction = caret::multiClassSummary,
+  allowParallel = TRUE
+)
 ModelMLP<-train(Species~PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9,
               data=DataT1,  
               method = "mlp",
@@ -421,8 +428,11 @@ Accuracy was used to select the optimal model using the largest value.
 The final value used for the model was size = 40.
 
 ggplot(ModelMLP)# To test if tunegrid is right
-Predict <- predict(ModelMLP, newdata=DataT1)
-confusionMatrix(Predict, DataT1$Species)
+CMMLP <- confusionMatrix(
+  ModelMLP$pred$pred,
+  ModelMLP$pred$obs
+)
+CMMLP
 
 # Confusion Matrix and Statistics
 
@@ -504,7 +514,7 @@ PCVIS<-as.matrix(DataT1[,1:9])
 PCVIS2<-as.matrix(Aphanopus_full[, 3:514])
 PCVIS3<-cor(PCVIS,PCVIS2)
 PCVIS4<-data.frame(t(PCVIS3))
-PCVIS4<-cbind(col, PCVIS4)
+PCVIS4<-cbind(col = 1:512, PCVIS4)
 
 # Step 1: Create a wavelet mean
 Wavelet_mean <- data.frame(

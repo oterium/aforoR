@@ -109,7 +109,7 @@ Otero-Ferrer, J.L., Tuset, V.M., Manjabacas, A., Lombarte, A. (2026). *aforoR*: 
 
 ### Acknowledgments
 
-Developed by **JLOF, VMT, AM, and AL**. Based on the [AFORO](http://aforo.cmima.csic.es/) methodology for marine science and morphological research.
+Developed by **JLOF, VMT, AM, and AL**. Based on the [AFORO](https://aforo.cmima.csic.es/) methodology for marine science and morphological research.
 
 <div align="center">
   <br>

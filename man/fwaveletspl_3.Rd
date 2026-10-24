@@ -11,11 +11,13 @@ fwaveletspl_3(ra0, sjm, det = FALSE)
 2 length for some applications, though here it uses the signal
 length).}
 
-\item{sjm}{An integer specifying the number of decomposition scales.}
+\item{sjm}{A positive integer specifying the number of decomposition scales (e.g., 9).}
 
-\item{det}{A logical value. If FALSE (default), it returns the approximation
-coefficients (low-frequency). If TRUE, it returns the detail
-coefficients (high-frequency).}
+\item{det}{A logical value. If FALSE (default), it returns the wavelet
+detail coefficients (high-to-medium frequency differences between
+consecutive scales, centered around zero, capturing localized
+features such as lobation). If TRUE, it returns the smoothed
+approximation coefficients (low-frequency smoothed outline).}
 }
 \value{
 A matrix of dimensions (sjm x length(ra0)) containing the
@@ -27,9 +29,9 @@ This specific implementation is optimized for 1D signals like otolith radial
 distances.
 }
 \examples{
-# Decompose a signal into 5 scales
+# Decompose a signal into 9 scales
 sig <- rnorm(512)
-sjm <- 9 # Number of scales
+sjm <- 9
 wavelets <- fwaveletspl_3(sig, sjm)
-# plot(wavelets[1,], type="l") # Plot first scale
+dim(wavelets)
 }

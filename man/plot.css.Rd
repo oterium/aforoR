@@ -11,6 +11,9 @@
 
 \item{...}{Additional arguments passed to plot.}
 }
+\value{
+An invisible NULL, called for its plotting side effect.
+}
 \description{
 Visualizes the CSS image, showing inflection points across different scales.
 }

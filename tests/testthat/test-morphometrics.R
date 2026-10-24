@@ -63,3 +63,25 @@ test_that("process_images integrates morphometrics", {
 
     unlink(temp_dir, recursive = TRUE)
 })
+
+test_that("calculate_rol and calculate_ros work as expected", {
+    # ROL = (OL * 100) / FL
+    expect_equal(calculate_rol(5, 50), 10)
+    expect_equal(calculate_rol(c(5, 10), c(50, 100)), c(10, 10))
+
+    # ROS = (OA * 1000) / (FL^3)
+    # OA = 10, FL = 10 -> (10 * 1000) / 1000 = 10
+    expect_equal(calculate_ros(10, 10), 10)
+
+    # Relative indices table
+    df <- calculate_relative_indices(otolith_length = 5, otolith_area = 10, fish_length = 50)
+    expect_s3_class(df, "data.frame")
+    expect_equal(names(df), c("ROL", "ROS"))
+    expect_equal(df$ROL, 10)
+    expect_equal(df$ROS, (10 * 1000) / (50^3))
+
+    # Error handling
+    expect_error(calculate_rol("5", 50))
+    expect_error(calculate_ros(10, -5))
+})
+

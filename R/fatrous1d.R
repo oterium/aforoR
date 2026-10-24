@@ -1,6 +1,6 @@
-#' Discrete Wavelet Transform (à trous algorithm)
+#' Discrete Wavelet Transform (a trous algorithm)
 #'
-#' Computes the 1D discrete wavelet transform using the "à trous" (with holes)
+#' Computes the 1D discrete wavelet transform using the a trous (with holes)
 #' algorithm. This is a non-decimated transform, meaning the signal length
 #' remains constant across scales.
 #'
@@ -26,6 +26,14 @@ fatrous1d <- function(rx, rh, snmin, snmax, sj) {
     stop("rx and rh cannot be empty")
   }
 
+  if (any(is.na(rx)) || any(is.na(rh))) {
+    stop("rx and rh cannot contain NA values")
+  }
+
+  if (any(is.infinite(rx)) || any(is.infinite(rh))) {
+    stop("rx and rh cannot contain infinite values")
+  }
+
   if (!is.numeric(snmin) || !is.numeric(snmax) || !is.numeric(sj)) {
     stop("snmin, snmax, and sj must be numeric values")
   }
@@ -34,10 +42,28 @@ fatrous1d <- function(rx, rh, snmin, snmax, sj) {
     stop("snmin, snmax, and sj must be single values")
   }
 
-  if (sj < 0) stop("sj must be >= 0")
+  if (is.na(snmin) || is.na(snmax) || is.na(sj) ||
+      is.infinite(snmin) || is.infinite(snmax) || is.infinite(sj)) {
+    stop("snmin, snmax, and sj must be finite values")
+  }
+
+  if (snmin != as.integer(snmin) || snmax != as.integer(snmax)) {
+    stop("snmin and snmax must be integers")
+  }
+  snmin <- as.integer(snmin)
+  snmax <- as.integer(snmax)
+
+  if (sj < 1 || sj != as.integer(sj)) {
+    stop("sj must be an integer >= 1")
+  }
+  sj <- as.integer(sj)
 
   if (snmax < snmin) {
     stop("snmax must be greater than or equal to snmin")
+  }
+
+  if (length(rh) != (snmax - snmin + 1)) {
+    stop("rh must have length equal to snmax - snmin + 1")
   }
 
   sj <- sj - 1

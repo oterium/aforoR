@@ -20,7 +20,7 @@ A matrix of (X, Y) coordinates of the main contour, or NULL if no
 }
 \description{
 Detects all contours in a binary image and identifies the largest one that
-meets specific size criteria (points > 200 and area > 5000), typically
+meets specific size criteria (points >= 200 and area > 5000), typically
 representing the fish otolith.
 }
 \examples{

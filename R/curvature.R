@@ -28,16 +28,54 @@ calculate_css <- function(contour, n_points = 200, sigma_max = 10, sigma_step = 
     # Input validation
     if (is.null(contour)) stop("contour cannot be NULL")
 
-    # Ensure matrix format
+    # Ensure 2-column matrix format
     if (is.data.frame(contour)) {
-        coo <- as.matrix(contour[, c("X", "Y")])
+        if (all(c("X", "Y") %in% colnames(contour))) {
+            coo <- as.matrix(contour[, c("X", "Y")])
+        } else if (ncol(contour) >= 2) {
+            coo <- as.matrix(contour[, 1:2])
+        } else {
+            stop("contour must have at least 2 columns")
+        }
+    } else if (is.matrix(contour)) {
+        if (ncol(contour) >= 2) {
+            coo <- contour[, 1:2, drop = FALSE]
+        } else {
+            stop("contour must have at least 2 columns")
+        }
     } else {
-        coo <- as.matrix(contour)
+        stop("contour must be a data.frame or matrix")
     }
 
     # Remove duplicated last point if present (common in closed contours)
     if (nrow(coo) > 1 && all(coo[1, ] == coo[nrow(coo), ])) {
         coo <- coo[-nrow(coo), , drop = FALSE]
+    }
+
+    if (nrow(coo) < 3) stop("contour must contain at least 3 points")
+
+    if (!is.numeric(coo)) {
+        stop("contour coordinates must be numeric")
+    }
+
+    if (any(is.na(coo))) stop("contour cannot contain NA values")
+    if (any(is.infinite(coo))) stop("contour cannot contain infinite values")
+
+    if (all(coo[, 1] == coo[1, 1]) && all(coo[, 2] == coo[1, 2])) {
+        stop("contour is degenerate with identical coordinates")
+    }
+
+    if (!is.numeric(n_points) || length(n_points) != 1 || is.na(n_points) || n_points < 3) {
+        stop("n_points must be an integer >= 3")
+    }
+    n_points <- as.integer(n_points)
+
+    if (!is.numeric(sigma_max) || length(sigma_max) != 1 || is.na(sigma_max) || sigma_max <= 0) {
+        stop("sigma_max must be a positive number")
+    }
+
+    if (!is.numeric(sigma_step) || length(sigma_step) != 1 || is.na(sigma_step) || sigma_step <= 0) {
+        stop("sigma_step must be a positive number")
     }
 
     # 1. Resample contour for uniform arc length (Modern Improvement)
@@ -63,15 +101,15 @@ calculate_css <- function(contour, n_points = 200, sigma_max = 10, sigma_step = 
     sigmas <- seq(0, sigma_max, by = sigma_step)
     css_points <- list()
 
-    # Manual convolution helper for circular padding
+    # Circular convolution using modular indexing
     circ_conv <- function(v, kernel) {
         k_len <- length(kernel)
         n_pad <- floor(k_len / 2)
-        # Circular padding
-        v_pad <- c(v[(N - n_pad + 1):N], v, v[1:n_pad])
-        res <- rep(0, N)
+        offsets <- (-n_pad):n_pad
+        res <- numeric(N)
         for (i in 1:N) {
-            res[i] <- sum(v_pad[i:(i + k_len - 1)] * rev(kernel))
+            idx <- ((i - 1 + offsets) %% N) + 1
+            res[i] <- sum(v[idx] * rev(kernel))
         }
         res
     }
@@ -165,7 +203,9 @@ calculate_css <- function(contour, n_points = 200, sigma_max = 10, sigma_step = 
     dxx <- coo[i_next, 1] - 2 * coo[, 1] + coo[i_prev, 1]
     dyy <- coo[i_next, 2] - 2 * coo[, 2] + coo[i_prev, 2]
 
-    (dx * dyy - dy * dxx) / (dx^2 + dy^2)^1.5
+    num <- (dx * dyy - dy * dxx)
+    den <- (dx^2 + dy^2)^1.5
+    num / ifelse(den == 0, 1e-10, den)
 }
 
 #' Plot Curvature Scale Space Image
@@ -174,6 +214,7 @@ calculate_css <- function(contour, n_points = 200, sigma_max = 10, sigma_step = 
 #'
 #' @param x An object of class `css`.
 #' @param ... Additional arguments passed to plot.
+#' @return An invisible NULL, called for its plotting side effect.
 #' @export
 #' @examples
 #' \dontrun{
@@ -181,18 +222,26 @@ calculate_css <- function(contour, n_points = 200, sigma_max = 10, sigma_step = 
 #' plot(css_res)
 #' }
 plot.css <- function(x, ...) {
+    if (!inherits(x, "css") || !is.list(x)) {
+        stop("x must be an object of class 'css'")
+    }
+
     if (is.null(x$css_matrix) || nrow(x$css_matrix) == 0) {
         plot(0, 0, type = "n", main = "No inflection points found", xlab = "Arc length", ylab = "Sigma")
         return(invisible(NULL))
     }
+
+    max_sigma <- max(x$css_matrix$sigma)
+    ylim_val <- if (is.finite(max_sigma) && max_sigma > 0) c(0, max_sigma * 1.1) else c(0, 1)
 
     plot(x$css_matrix$arc_length, x$css_matrix$sigma,
         pch = 20, cex = 0.5,
         xlab = "Arc Length (normalized)",
         ylab = "Scale (Sigma)",
         main = "Curvature Scale Space Image",
-        ylim = c(0, max(x$css_matrix$sigma) * 1.1),
+        ylim = ylim_val,
         xlim = c(0, 1),
         ...
     )
+    invisible(NULL)
 }

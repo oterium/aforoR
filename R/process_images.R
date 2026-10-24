@@ -1,3 +1,91 @@
+#' Calculate Adaptive Tri-Class Threshold
+#'
+#' Computes an adaptive threshold using a three-class Otsu variance maximization,
+#' separating background noise from the translucent/shaded margins of the otolith.
+#'
+#' @param img An \code{Image} object or numeric matrix/vector of intensities in [0, 1].
+#' @return A numeric scalar threshold value.
+#' @keywords internal
+calculate_adaptive_threshold <- function(img) {
+  if (is.null(img)) return(0.2)
+
+  if (inherits(img, "Image") && EBImage::colorMode(img) != EBImage::Grayscale) {
+    img <- EBImage::channel(img, "grey")
+  } else if (is.array(img) && length(dim(img)) >= 3) {
+    if (dim(img)[3] >= 3) {
+      img <- 0.2989 * img[, , 1] + 0.5870 * img[, , 2] + 0.1140 * img[, , 3]
+    } else {
+      img <- img[, , 1]
+    }
+  }
+
+  if (is.numeric(img) && any(!is.na(img)) && max(img, na.rm = TRUE) > 1 && max(img, na.rm = TRUE) <= 255) {
+    img <- img / 255
+  }
+
+  vals <- as.vector(img)
+  vals <- vals[!is.na(vals) & vals >= 0 & vals <= 1]
+  if (length(vals) < 100) return(0.2)
+
+  th_std <- tryCatch(
+    {
+      t_raw <- EBImage::otsu(if (is.array(img)) img else as.matrix(img))
+      if (length(t_raw) > 1) t_raw[1] else t_raw
+    },
+    error = function(e) 0.3
+  )
+  if (!is.numeric(th_std) || length(th_std) != 1 || is.na(th_std)) th_std <- 0.3
+
+  h <- graphics::hist(vals, breaks = seq(0, 1, length.out = 257), plot = FALSE)
+  counts <- h$counts
+  total <- sum(counts)
+  if (total == 0) return(th_std)
+
+  p <- counts / total
+  omega <- cumsum(p)
+  mu <- cumsum(p * (1:256))
+  mu_t <- mu[256]
+
+  best_var <- -1
+  best_t1 <- 1
+
+  # Search range for T1 (background separator) and T2 (dense core separator)
+  for (t1 in 2:80) {
+    w0 <- omega[t1]
+    if (w0 == 0) next
+    u0 <- mu[t1] / w0
+
+    for (t2 in (t1 + 5):200) {
+      w1 <- omega[t2] - w0
+      w2 <- 1 - omega[t2]
+      if (w1 <= 0 || w2 <= 0) next
+
+      u1 <- (mu[t2] - mu[t1]) / w1
+      u2 <- (mu_t - mu[t2]) / w2
+
+      sigma_b <- w0 * (u0 - mu_t)^2 + w1 * (u1 - mu_t)^2 + w2 * (u2 - mu_t)^2
+      if (sigma_b > best_var) {
+        best_var <- sigma_b
+        best_t1 <- t1
+      }
+    }
+  }
+
+  if (best_var < 0) {
+    return(th_std * 0.75)
+  }
+
+  th_adaptive <- h$mids[best_t1]
+
+  # Safeguard: If adaptive threshold is unrealistically low (< 0.05) or
+  # higher than standard Otsu, fall back to 0.75 * standard Otsu
+  if (is.na(th_adaptive) || th_adaptive < 0.05 || th_adaptive >= th_std) {
+    th_adaptive <- th_std * 0.75
+  }
+
+  return(th_adaptive)
+}
+
 #' Preprocess Image for Contour Analysis
 #'
 #' Prepares an image for shape analysis by applying grayscale conversion,
@@ -8,25 +96,36 @@
 #'                   .png, .tiff) OR an EBImage object.
 #' @param threshold A numeric value (0-1) for binarization. If NULL, Otsu's method
 #'                  is automatically applied.
-#' @param blur_size Size of the Gaussian brush for smoothing (default: 31).
-#' @param blur_sigma Sigma of the Gaussian brush for smoothing (default: 9).
+#' @param blur_size Size of the Gaussian brush for smoothing in pixels. Can be an
+#'                  odd integer (e.g., 15, 31), or \code{"auto"} / \code{NULL} (default)
+#'                  to dynamically adapt the kernel size to ~1% of the image's minimum
+#'                  dimension (\eqn{\min(\text{width}, \text{height}) \times 0.01}).
+#'                  This preserves fine crenulations in small images while effectively
+#'                  suppressing noise in high-resolution or 4K images.
+#' @param blur_sigma Standard deviation of the Gaussian filter brush. Can be a numeric
+#'                   value (e.g., 9), or \code{"auto"} / \code{NULL} (default) to
+#'                   automatically scale with \eqn{\sigma \approx \text{blur\_size} / 3.5}.
+#' @param downsample_threshold Logical; if TRUE, calculates Otsu threshold on a
+#'                             downsampled thumbnail for faster preprocessing of
+#'                             very large images (default: FALSE).
+#' @param threshold_method Method for automatic binarization: "adaptive" (three-class Otsu
+#'                         separating background, edge, and core), "otsu" (standard Otsu),
+#'                         or "fixed". Default is "adaptive".
+#' @param threshold_factor Multiplier applied to the calculated threshold (default: 1.0).
 #' @return A \code{pixset} (EBImage) representing the binarized image.
 #' @export
 #' @examples
 #' # Use the sample otolith image included in the package
 #' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
 #' processed_img <- preprocess_image(image_path)
-#' # display(processed_img) # if using EBImage
-preprocess_image <- function(image_path, threshold = NULL, blur_size = 31,
-                             blur_sigma = 9) {
-  # Input validation
+preprocess_image <- function(image_path, threshold = NULL, blur_size = "auto",
+                             blur_sigma = "auto", downsample_threshold = FALSE,
+                             threshold_method = c("adaptive", "otsu", "fixed"),
+                             threshold_factor = 1.0) {
   is_image <- inherits(image_path, "Image")
 
   if (!is_image && (!is.character(image_path) || length(image_path) != 1)) {
-    stop(paste(
-      "image_path must be a single character string",
-      "or an Image object"
-    ))
+    stop("image_path must be a single character string or an Image object")
   }
 
   if (!is_image && !file.exists(image_path)) {
@@ -34,20 +133,56 @@ preprocess_image <- function(image_path, threshold = NULL, blur_size = 31,
   }
 
   if (!is.null(threshold) &&
-    (!is.numeric(threshold) || length(threshold) != 1)) {
-    stop("threshold must be a single numeric value or NULL")
+    (!is.numeric(threshold) || length(threshold) != 1 || is.na(threshold) || is.infinite(threshold) || threshold < 0 || threshold > 1)) {
+    stop("threshold must be a single numeric value between 0 and 1, or NULL")
   }
 
   tryCatch(
     {
-      # Read and process image
       if (is_image) {
         foto <- image_path
       } else {
         foto <- EBImage::readImage(image_path)
       }
 
-      foto2 <- EBImage::channel(foto, "grey")
+      foto2 <- if (EBImage::colorMode(foto) != EBImage::Grayscale) {
+        EBImage::channel(foto, "grey")
+      } else {
+        foto
+      }
+
+      # Compute adaptive blur_size if "auto" or NULL based on image resolution
+      dims <- dim(foto2)
+      min_dim <- min(dims[1], dims[2])
+
+      if (!is.null(blur_size) && !identical(blur_size, "auto")) {
+        if (!is.numeric(blur_size) || length(blur_size) != 1 || is.na(blur_size) || is.infinite(blur_size) || blur_size <= 0) {
+          stop("blur_size must be a positive numeric value, 'auto', or NULL")
+        }
+      }
+
+      if (!is.null(blur_sigma) && !identical(blur_sigma, "auto")) {
+        if (!is.numeric(blur_sigma) || length(blur_sigma) != 1 || is.na(blur_sigma) || is.infinite(blur_sigma) || blur_sigma <= 0) {
+          stop("blur_sigma must be a positive numeric value, 'auto', or NULL")
+        }
+      }
+
+      if (is.null(blur_size) || identical(blur_size, "auto")) {
+        calc_size <- as.integer(round(min_dim * 0.01))
+        if (calc_size %% 2 == 0) calc_size <- calc_size + 1L
+        blur_size <- max(5L, calc_size)
+      } else {
+        blur_size <- as.integer(round(blur_size))
+        if (blur_size %% 2 == 0) blur_size <- blur_size + 1L
+        blur_size <- max(3L, blur_size)
+      }
+
+      if (is.null(blur_sigma) || identical(blur_sigma, "auto")) {
+        blur_sigma <- max(0.5, round(blur_size / 3.5, 2))
+      } else {
+        blur_sigma <- max(0.1, as.numeric(blur_sigma))
+      }
+
       foto2 <- EBImage::filter2(
         foto2,
         EBImage::makeBrush(
@@ -56,10 +191,32 @@ preprocess_image <- function(image_path, threshold = NULL, blur_size = 31,
         )
       )
 
-      if (is.null(threshold)) {
-        foto2 <- foto2 > EBImage::otsu(foto2)
-      } else {
+      threshold_method <- match.arg(threshold_method)
+      if (!is.null(threshold)) {
+        threshold_method <- "fixed"
+      }
+
+      if (threshold_method == "fixed") {
         foto2 <- foto2 > threshold
+      } else {
+        if (isTRUE(downsample_threshold)) {
+          w_small <- min(dim(foto2)[1], 800)
+          foto2_th <- EBImage::resize(foto2, w = w_small)
+        } else {
+          foto2_th <- foto2
+        }
+
+        if (threshold_method == "adaptive") {
+          th <- calculate_adaptive_threshold(foto2_th)
+        } else {
+          th <- EBImage::otsu(foto2_th)
+        }
+
+        if (!is.null(threshold_factor) && is.numeric(threshold_factor) && threshold_factor > 0) {
+          th <- th * threshold_factor
+        }
+
+        foto2 <- foto2 > th
       }
 
       return(foto2)
@@ -73,7 +230,7 @@ preprocess_image <- function(image_path, threshold = NULL, blur_size = 31,
 #' Extract Main Contour from Binarized Image
 #'
 #' Detects all contours in a binary image and identifies the largest one that
-#' meets specific size criteria (points > 200 and area > 5000), typically
+#' meets specific size criteria (points >= 200 and area > 5000), typically
 #' representing the fish otolith.
 #'
 #' @param binary_image A binarized image produced by \code{preprocess_image()}.
@@ -90,9 +247,18 @@ preprocess_image <- function(image_path, threshold = NULL, blur_size = 31,
 #' contour <- extract_contour(binary_img)
 #' head(contour)
 extract_contour <- function(binary_image, min_points = 200, min_area = 5000) {
-  # Input validation
   if (is.null(binary_image)) {
     stop("binary_image cannot be NULL")
+  }
+
+  if (!is.numeric(min_points) || length(min_points) != 1 || is.na(min_points) ||
+      is.infinite(min_points) || min_points < 3 || min_points != as.integer(min_points)) {
+    stop("min_points must be an integer >= 3")
+  }
+  min_points <- as.integer(min_points)
+
+  if (!is.numeric(min_area) || length(min_area) != 1 || is.na(min_area) || min_area < 0) {
+    stop("min_area must be a numeric value >= 0")
   }
 
   tryCatch(
@@ -107,12 +273,14 @@ extract_contour <- function(binary_image, min_points = 200, min_area = 5000) {
 
       max_area <- 0
       for (x in seq_along(cont)) {
-        current_area <- Momocs::coo_area(cont[[x]])
-        if (length(cont[[x]])[1] > min_points && current_area > min_area) {
-          if (current_area > max_area) {
-            max_area <- current_area
-            contorno <- cont[[x]]
-          }
+        c_mat <- cont[[x]]
+        if (is.null(c_mat) || !is.matrix(c_mat) || nrow(c_mat) < min_points) {
+          next
+        }
+        current_area <- Momocs::coo_area(c_mat)
+        if (current_area > min_area && current_area > max_area) {
+          max_area <- current_area
+          contorno <- c_mat
         }
       }
 
@@ -132,6 +300,57 @@ extract_contour <- function(binary_image, min_points = 200, min_area = 5000) {
   )
 }
 
+#' Interactively Select Contour Starting Point (Rostrum)
+#'
+#' Select Starting Point Interactively
+#'
+#' Displays an otolith image with its extracted contour overlaid, prompting the user
+#' to click on the anatomical rostrum or preferred starting point.
+#'
+#' @param image An \code{Image} object or file path.
+#' @param contour A matrix or data.frame with (X, Y) contour coordinates.
+#' @return A numeric vector of length 2 \code{c(x, y)} representing the clicked point coordinates,
+#'         or NULL if cancelled.
+#' @importFrom graphics lines title
+#' @export
+#' @examples
+#' \dontrun{
+#' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+#' pt <- select_starting_point(image_path)
+#' }
+select_starting_point <- function(image, contour = NULL) {
+  if (is.character(image) && file.exists(image)) {
+    img_obj <- EBImage::readImage(image)
+  } else if (inherits(image, "Image")) {
+    img_obj <- image
+  } else {
+    stop("image must be an Image object or a valid file path")
+  }
+
+  if (!interactive()) {
+    message("Non-interactive session: using automatic rightmost point.")
+    return(NULL)
+  }
+
+  plot(img_obj)
+  if (!is.null(contour)) {
+    lines(contour[, 1], contour[, 2], col = "#00E5FF", lwd = 2)
+  }
+  title(sub = "Click on the rostrum/starting point (or press Esc/right-click to use default)",
+        col.sub = "red")
+
+  pt <- tryCatch({
+    graphics::locator(n = 1)
+  }, error = function(e) NULL)
+
+  if (is.null(pt) || length(pt$x) == 0) {
+    message("No point clicked; using automatic rightmost point.")
+    return(NULL)
+  }
+
+  return(c(x = pt$x[1], y = pt$y[1]))
+}
+
 #' Calculate Distance Measures from Contour
 #'
 #' Computes two types of distance measures from an otolith contour: polar
@@ -140,12 +359,16 @@ extract_contour <- function(binary_image, min_points = 200, min_area = 5000) {
 #'
 #' @param contour A matrix of coordinates from \code{extract_contour()}.
 #' @param n_points Target number of points for resampling (default: 512).
+#' @param start_point Optional numeric vector specifying the starting point (rostrum).
+#'                    Can be either an integer index (1 to nrow(contour)) or coordinate
+#'                    pair \code{c(x, y)}. If NULL (default), the automatic rightmost point
+#'                    is used.
 #' @return A list containing:
 #'   \itemize{
 #'     \item \code{polar}: Radii, coordinates, and normalized radii.
 #'     \item \code{perimeter}: Distances, coordinates, and normalized distances.
 #'     \item \code{reordered_coords}: The contour coordinates reordered from the
-#'           rightmost point.
+#'           starting point.
 #'   }
 #' @export
 #' @examples
@@ -154,67 +377,106 @@ extract_contour <- function(binary_image, min_points = 200, min_area = 5000) {
 #' contour <- extract_contour(binary_img)
 #' dists <- calculate_distances(contour, n_points = 512)
 #' plot(dists$polar$normalized, type = "l")
-calculate_distances <- function(contour, n_points = 512) {
-  # Input validation
+calculate_distances <- function(contour, n_points = 512, start_point = NULL) {
   if (is.matrix(contour)) {
-    contour <- as.data.frame(contour)
-    if (ncol(contour) == 2 &&
-      (is.null(colnames(contour)) ||
-        !all(c("X", "Y") %in% colnames(contour)))) {
+    if (ncol(contour) >= 2) {
+      contour <- as.data.frame(contour[, 1:2, drop = FALSE])
       colnames(contour) <- c("X", "Y")
+    } else {
+      stop("contour must have at least 2 columns")
     }
-  }
-
-  if (is.null(contour) || !is.data.frame(contour)) {
+  } else if (is.data.frame(contour)) {
+    if (all(c("X", "Y") %in% colnames(contour))) {
+      contour <- contour[, c("X", "Y")]
+    } else if (all(c("x", "y") %in% colnames(contour))) {
+      contour <- contour[, c("x", "y")]
+      colnames(contour) <- c("X", "Y")
+    } else if (ncol(contour) >= 2) {
+      contour <- contour[, 1:2]
+      colnames(contour) <- c("X", "Y")
+    } else {
+      stop("contour must have at least 2 columns")
+    }
+  } else {
     stop("contour must be a data.frame or matrix with X and Y columns")
   }
 
-  if (!"X" %in% names(contour) || !"Y" %in% names(contour)) {
-    stop("contour must have columns named 'X' and 'Y'")
+  if (nrow(contour) < 3) {
+    stop("contour must contain at least 3 points")
   }
 
-  if (n_points <= 0 || !is.numeric(n_points)) {
-    stop("n_points must be a positive integer")
+  if (!is.numeric(contour$X) || !is.numeric(contour$Y)) {
+    stop("contour coordinates must be numeric")
   }
 
-  # Find rightmost point more safely
-  x_max_idx <- which.max(contour$X)
-  x_max <- contour$X[x_max_idx]
-  y_max <- contour$Y[x_max_idx]
-  punto <- list(x = x_max, y = y_max)
+  if (any(is.na(contour$X)) || any(is.na(contour$Y))) {
+    stop("contour coordinates cannot contain NA values")
+  }
 
-  # More robust contour reordering
-  # Find points where X coordinate matches the maximum and X > mean(X)
-  x_mean <- mean(contour$X)
-  rightmost_candidates <- which(contour$X == punto$x & contour$X > x_mean)
+  if (any(is.infinite(contour$X)) || any(is.infinite(contour$Y))) {
+    stop("contour coordinates cannot contain infinite values")
+  }
 
-  if (length(rightmost_candidates) == 0) {
-    # Fallback: use the point with maximum X coordinate
-    start_idx <- x_max_idx
+  if (all(contour$X == contour$X[1]) && all(contour$Y == contour$Y[1])) {
+    stop("contour is degenerate with identical coordinates")
+  }
+
+  if (!is.numeric(n_points) || length(n_points) != 1 || is.na(n_points) ||
+      is.infinite(n_points) || n_points < 2 || n_points != as.integer(n_points)) {
+    stop("n_points must be an integer >= 2")
+  }
+
+  # Determine starting point index
+  if (!is.null(start_point)) {
+    if (!is.numeric(start_point) || any(is.na(start_point)) || any(is.infinite(start_point))) {
+      stop("start_point must be a valid numeric index or coordinate pair without NA/Inf")
+    }
+    if (length(start_point) == 1) {
+      start_idx <- as.integer(start_point)
+      if (start_idx < 1 || start_idx > nrow(contour)) {
+        stop(paste("start_point index must be between 1 and", nrow(contour)))
+      }
+    } else if (length(start_point) == 2) {
+      dists_sq <- (contour$X - start_point[1])^2 + (contour$Y - start_point[2])^2
+      start_idx <- which.min(dists_sq)
+    } else {
+      stop("start_point must be an index (length 1) or coordinates c(x, y) (length 2)")
+    }
   } else {
-    start_idx <- rightmost_candidates[1]
+    # Find rightmost point automatically
+    x_max_idx <- which.max(contour$X)
+    x_max <- contour$X[x_max_idx]
+    y_max <- contour$Y[x_max_idx]
+    punto <- list(x = x_max, y = y_max)
+
+    x_mean <- mean(contour$X)
+    rightmost_candidates <- which(contour$X == punto$x & contour$X > x_mean)
+
+    if (length(rightmost_candidates) == 0) {
+      start_idx <- x_max_idx
+    } else {
+      start_idx <- rightmost_candidates[1]
+    }
   }
 
-  # Safely reorder the contour
   n_contour <- nrow(contour)
   if (start_idx == 1) {
-    # No reordering needed
     x <- contour$X
     y <- contour$Y
   } else {
-    # Reorder starting from start_idx
     indices <- c(start_idx:n_contour, 1:(start_idx - 1))
     x <- contour$X[indices]
     y <- contour$Y[indices]
   }
 
-  # Calculate distances with error handling
   tryCatch(
     {
       dist <- regularradius(x, y, n = n_points)
       dist2 <- dper(x, y, n_points)
-      dist.norm <- dist$radii / max(dist$radii)
-      dist.norm2 <- dist2$dist / max(dist2$dist)
+      max_r1 <- max(dist$radii)
+      max_r2 <- max(dist2$dist)
+      dist.norm <- if (max_r1 > 0) dist$radii / max_r1 else rep(0, length(dist$radii))
+      dist.norm2 <- if (max_r2 > 0) dist2$dist / max_r2 else rep(0, length(dist2$dist))
 
       return(list(
         polar = list(
@@ -240,18 +502,23 @@ calculate_distances <- function(contour, n_points = 512) {
 #'
 #' @param distances A list from \code{calculate_distances()} containing normalized data.
 #' @param n_scales Number of wavelet scales to extract (default: 9).
-#' @param detail Logical; if TRUE, returns detail coefficients instead of
-#'               approximations.
+#' @param detail Logical; if FALSE (default), returns wavelet detail
+#'               coefficients (high-to-medium frequency differences between
+#'               scales, centered around zero). If TRUE, returns smoothed
+#'               approximation coefficients.
 #' @return A list with wavelet coefficients for 'polar' and 'perimeter' components.
 #' @export
 #' @examples
-#' # Example using existing data for wavelet analysis
-#' data(Aphanopus_W5)
-#' # This data frame already contains coefficients at scale 5.
+#' # Example using calculated distances from an otolith contour:
+#' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+#' binary_img <- preprocess_image(image_path)
+#' contour <- extract_contour(binary_img)
+#' distances <- calculate_distances(contour)
+#' wavelets <- calculate_wavelets_analysis(distances, n_scales = 5)
+#' str(wavelets)
 #' @seealso \code{\link{fwaveletspl_3}}
 calculate_wavelets_analysis <- function(distances, n_scales = 9,
                                         detail = FALSE) {
-  # Input validation
   if (!is.list(distances)) {
     stop("distances must be a list")
   }
@@ -260,15 +527,14 @@ calculate_wavelets_analysis <- function(distances, n_scales = 9,
     stop("distances must contain 'polar' and 'perimeter' components")
   }
 
-  if (!is.numeric(n_scales) || length(n_scales) != 1 || n_scales <= 0) {
+  if (!is.numeric(n_scales) || length(n_scales) != 1 || is.na(n_scales) || is.infinite(n_scales) || n_scales <= 0 || n_scales != as.integer(n_scales)) {
     stop("n_scales must be a positive integer")
   }
 
-  if (!is.logical(detail) || length(detail) != 1) {
-    stop("detail must be a logical value")
+  if (!is.logical(detail) || length(detail) != 1 || is.na(detail)) {
+    stop("detail must be a logical value (TRUE or FALSE)")
   }
 
-  # Check if normalized distances exist
   if (!("normalized" %in% names(distances$polar)) ||
     !("normalized" %in% names(distances$perimeter))) {
     stop("distances must contain normalized components")
@@ -299,26 +565,37 @@ calculate_wavelets_analysis <- function(distances, n_scales = 9,
 #' Save Visualization Images for Analysis
 #'
 #' Creates and saves visualization images showing contour analysis and wavelet results.
+#' Overlays the extracted contour, centroid, rostrum, and polar analysis sectors
+#' directly onto the original photograph in high contrast colors.
 #'
-#' @param binary_image The binarized image from preprocessing.
-#' @param distances The distance measures from calculate_distances().
-#' @param wavelets The wavelet analysis from calculate_wavelets_analysis().
+#' @param image An \code{Image} object (original or binary) OR a string specifying
+#'              the image file path. If NULL, draws on coordinate space (useful for GPA).
+#' @param distances The distance measures from \code{\link{calculate_distances}}.
+#' @param wavelets The wavelet analysis from \code{\link{calculate_wavelets_analysis}}.
 #' @param image_name The base name of the image file.
 #' @param output_dir The directory to save visualization images.
 #' @param wavelet_scale The wavelet scale to visualize (default: 5).
-#' @importFrom grDevices dev.off jpeg
-#' @importFrom graphics lines points polygon
+#' @param plot_width Width in pixels for diagnostic JPEG images (default: 1200).
+#' @param plot_height Height in pixels for diagnostic JPEG images (default: 800).
+#' @param plot_res Resolution in dpi for diagnostic JPEG images (default: 150).
+#' @param binary_image Deprecated alias for \code{image} for backwards compatibility.
+#' @param scale_info Optional list with scale bar metrics (min_x, max_x, min_y, max_y, bar_length_px, scale_mm, px_per_mm).
+#' @return An invisible NULL, called for its side effect of saving diagnostic visualization images.
+#' @importFrom grDevices dev.off jpeg adjustcolor rgb
+#' @importFrom graphics lines points polygon legend
 #' @export
 #' @examples
 #' \dontrun{
-#' # Assuming binary_image, distances, and wavelets are already computed:
-#' save_visualization(binary_image, distances, wavelets, "sample_image", tempdir())
+#' # Assuming image, distances, and wavelets are already computed:
+#' save_visualization(image, distances, wavelets, "sample_image", tempdir())
 #' }
-save_visualization <- function(binary_image, distances, wavelets, image_name,
-                               output_dir, wavelet_scale = 5) {
-  # Input validation
-  # binary_image can be NULL if using procrustes (GPA) as coordinates will not match the image.
-
+save_visualization <- function(image = NULL, distances, wavelets, image_name,
+                               output_dir, wavelet_scale = 5,
+                               plot_width = 1200, plot_height = 800, plot_res = 150,
+                               binary_image = NULL, scale_info = NULL) {
+  if (is.null(image) && !is.null(binary_image)) {
+    image <- binary_image
+  }
 
   if (!is.list(distances)) {
     stop("distances must be a list")
@@ -336,88 +613,161 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
     stop("output_dir must be a single character string")
   }
 
-  if (!is.numeric(wavelet_scale) || length(wavelet_scale) != 1 || wavelet_scale <= 0) {
+  if (!is.numeric(wavelet_scale) || length(wavelet_scale) != 1 || is.na(wavelet_scale) || wavelet_scale <= 0) {
     stop("wavelet_scale must be a positive integer")
+  }
+
+  if (!is.numeric(plot_width) || length(plot_width) != 1 || is.na(plot_width) || plot_width <= 0) {
+    stop("plot_width must be a positive number")
+  }
+
+  if (!is.numeric(plot_height) || length(plot_height) != 1 || is.na(plot_height) || plot_height <= 0) {
+    stop("plot_height must be a positive number")
+  }
+
+  if (!is.numeric(plot_res) || length(plot_res) != 1 || is.na(plot_res) || plot_res <= 0) {
+    stop("plot_res must be a positive number")
   }
 
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
 
+  cur_dev <- NULL
+  on.exit({
+    if (!is.null(cur_dev) && cur_dev > 1) {
+      try(grDevices::dev.off(cur_dev), silent = TRUE)
+      cur_dev <- NULL
+    }
+  }, add = TRUE)
+
   tryCatch(
     {
-      # Save zonal analysis plot
-      jpeg(
-        filename = file.path(output_dir, paste("zonal_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")),
-        res = 600, width = 600, height = 400, units = "mm"
+      zonal_file <- file.path(
+        output_dir,
+        paste0("zonal_", tools::file_path_sans_ext(image_name), ".jpg")
       )
-      if (!is.null(binary_image)) {
-        plot(binary_image)
-      } else {
-        # Determine plot limits from coordinates
-        xlims <- range(distances$polar$coord[, 1] + mean(distances$reordered_coords$x))
-        ylims <- range(distances$polar$coord[, 2] + mean(distances$reordered_coords$y))
-        # Add 10% padding
-        xpad <- diff(xlims) * 0.1
-        ypad <- diff(ylims) * 0.1
-        plot(NA, xlim = c(xlims[1] - xpad, xlims[2] + xpad), 
-             ylim = c(ylims[1] - ypad, ylims[2] + ypad), 
+      jpeg(filename = zonal_file, width = plot_width, height = plot_height,
+           res = plot_res, quality = 90)
+      cur_dev <- grDevices::dev.cur()
+
+      has_img <- FALSE
+      if (!is.null(image)) {
+        if (is.character(image) && file.exists(image)) {
+          img_to_plot <- EBImage::readImage(image)
+          plot(img_to_plot)
+          has_img <- TRUE
+        } else if (inherits(image, "Image")) {
+          plot(image)
+          has_img <- TRUE
+        }
+      }
+
+      cx <- mean(distances$reordered_coords$x)
+      cy <- mean(distances$reordered_coords$y)
+
+      if (!has_img) {
+        xlims <- range(distances$polar$coord[, 1] + cx)
+        ylims <- range(distances$polar$coord[, 2] + cy)
+        xpad <- if (is.na(diff(xlims)) || diff(xlims) == 0) 1 else diff(xlims) * 0.1
+        ypad <- if (is.na(diff(ylims)) || diff(ylims) == 0) 1 else diff(ylims) * 0.1
+        plot(NA, xlim = c(xlims[1] - xpad, xlims[2] + xpad),
+             ylim = c(ylims[1] - ypad, ylims[2] + ypad),
              xlab = "X", ylab = "Y", main = paste("Zonal Analysis -", image_name))
       }
-      
-      points(mean(distances$reordered_coords$x),
-        mean(distances$reordered_coords$y),
-        pch = 16
-      )
+
+      points(cx, cy, pch = 3, col = "red", lwd = 2.5, cex = 1.6)
       points(distances$reordered_coords$x[1], distances$reordered_coords$y[1],
-        col = 2, pch = 16
-      )
+             pch = 16, col = "red", cex = 1.6)
 
-      # Draw colored zones dynamically based on number of points
       n_points <- length(distances$polar$radii)
-      z1 <- 1:floor(n_points * 0.25)
-      z2 <- (max(z1) + 1):floor(n_points * 0.5)
-      z3 <- (max(z2) + 1):floor(n_points * 0.75)
-      z4 <- (max(z3) + 1):n_points
-
-      zones <- list(z1, z2, z3, z4)
-      colors <- c(4, 5, 6, 7)
+      b <- round(seq(0, n_points, length.out = 5))
+      zones <- lapply(1:4, function(idx) if (b[idx + 1] > b[idx]) (b[idx] + 1L):b[idx + 1] else integer(0))
+      colors <- c("#00E5FF", "#FFEA00", "#FF007F", "#00E676")
 
       for (i in seq_along(zones)) {
-        lines(
-          distances$polar$coord[zones[[i]], 1] +
-            mean(distances$reordered_coords$x),
-          distances$polar$coord[zones[[i]], 2] +
-            mean(distances$reordered_coords$y),
-          col = colors[i], pch = 16, lwd = 2, type = "b"
-        )
-      }
-      dev.off()
-
-      # Save wavelet plot if available
-      if (!is.null(wavelets)) {
-        jpeg(filename = file.path(
-          output_dir,
-          paste("wavelet_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
-        ))
-        plot(wavelets$polar[wavelet_scale, ],
-          main = paste("Wavelet", wavelet_scale, image_name),
-          xlab = "", ylab = "", type = "l", col = 3, lwd = 2
-        )
-
-        # Add colored polygons for zones
-        for (i in seq_along(zones)) {
-          polygon(
-            x = c(min(zones[[i]]), zones[[i]], max(zones[[i]])),
-            y = c(
-              min(wavelets$polar[wavelet_scale, ]),
-              wavelets$polar[wavelet_scale, zones[[i]]],
-              min(wavelets$polar[wavelet_scale, ])
-            ),
-            col = colors[i]
+        if (length(zones[[i]]) > 0) {
+          lines(
+            distances$polar$coord[zones[[i]], 1] + cx,
+            distances$polar$coord[zones[[i]], 2] + cy,
+            col = colors[i], lwd = 2.5
           )
         }
-        dev.off()
+      }
+
+      if (!is.null(scale_info) && is.list(scale_info) && !is.null(scale_info$min_x)) {
+        pad <- 15
+        graphics::rect(scale_info$min_x - pad, scale_info$min_y - pad,
+                       scale_info$max_x + pad, scale_info$max_y + pad,
+                       border = "#00FF66", lwd = 2.5)
+        scale_label <- sprintf("Scale: %g mm (%.0f px | %.1f px/mm)",
+                               scale_info$scale_mm, scale_info$bar_length_px, scale_info$px_per_mm)
+        img_w <- if (has_img) dim(image)[1] else max(scale_info$max_x + 100, 1000)
+        if (mean(c(scale_info$min_x, scale_info$max_x)) > img_w * 0.5) {
+          t_x <- min(img_w - 30, scale_info$max_x + pad)
+          a_x <- 1
+        } else {
+          t_x <- max(30, scale_info$min_x - pad)
+          a_x <- 0
+        }
+        t_y <- max(35, scale_info$min_y - pad - 20)
+        graphics::text(t_x, t_y, labels = scale_label, adj = c(a_x, 0.5),
+                       col = "#00FF66", font = 2, cex = 0.80)
+      }
+
+      leg_labels <- c("Zone 1", "Zone 2", "Zone 3", "Zone 4", "Centroid (+)", "Rostrum (o)")
+      leg_cols   <- c(colors, "red", "red")
+      leg_pch    <- c(rep(NA, 4), 3, 16)
+      leg_lty    <- c(rep(1, 4), NA, NA)
+
+      if (!is.null(scale_info) && is.list(scale_info) && !is.null(scale_info$min_x)) {
+        leg_labels <- c(leg_labels, sprintf("Scale bar (%g mm)", scale_info$scale_mm))
+        leg_cols   <- c(leg_cols, "#00FF66")
+        leg_pch    <- c(leg_pch, NA)
+        leg_lty    <- c(leg_lty, 1)
+      }
+
+      legend("topleft",
+             legend = leg_labels,
+             col = leg_cols, pch = leg_pch,
+             lty = leg_lty, lwd = 2, bg = rgb(0, 0, 0, 0.65), text.col = "white",
+             cex = 0.80, pt.cex = 1.1, inset = c(0.02, 0.03))
+      if (!is.null(cur_dev) && cur_dev > 1) {
+        try(grDevices::dev.off(cur_dev), silent = TRUE)
+        cur_dev <- NULL
+      }
+
+      if (!is.null(wavelets) && !is.null(wavelets$polar) && nrow(wavelets$polar) > 0) {
+        scale_to_plot <- min(as.integer(wavelet_scale), nrow(wavelets$polar))
+        wav_file <- file.path(
+          output_dir,
+          paste0("wavelet_", tools::file_path_sans_ext(image_name), ".jpg")
+        )
+        jpeg(filename = wav_file, width = 800, height = 500, res = 100, quality = 85)
+        cur_dev <- grDevices::dev.cur()
+        plot(wavelets$polar[scale_to_plot, ],
+          main = paste("Wavelet Scale", scale_to_plot, "-", image_name),
+          xlab = "Points", ylab = "Coefficient", type = "l", col = "#00E5FF", lwd = 2
+        )
+
+        for (i in seq_along(zones)) {
+          if (length(zones[[i]]) > 0) {
+            polygon(
+              x = c(min(zones[[i]]), zones[[i]], max(zones[[i]])),
+              y = c(
+                min(wavelets$polar[scale_to_plot, ]),
+                wavelets$polar[scale_to_plot, zones[[i]]],
+                min(wavelets$polar[scale_to_plot, ])
+              ),
+              col = adjustcolor(colors[i], alpha.f = 0.5),
+              border = colors[i]
+            )
+          }
+        }
+        if (!is.null(cur_dev) && cur_dev > 1) {
+          try(grDevices::dev.off(cur_dev), silent = TRUE)
+          cur_dev <- NULL
+        }
       }
     },
     error = function(e) {
@@ -433,6 +783,7 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
 #' @param analysis_results A list containing all analysis results for multiple images.
 #' @param output_dir The directory to save CSV files.
 #' @param result_type A string indicating the type of results ("polar" or "perimeter").
+#' @return An invisible NULL, called for its side effect of writing analysis CSV files.
 #' @importFrom utils write.table
 #' @export
 #' @examples
@@ -442,7 +793,6 @@ save_visualization <- function(binary_image, distances, wavelets, image_name,
 #' }
 save_analysis_results <- function(analysis_results, output_dir,
                                   result_type = "polar") {
-  # Input validation
   if (!is.list(analysis_results)) {
     stop("analysis_results must be a list")
   }
@@ -466,14 +816,12 @@ save_analysis_results <- function(analysis_results, output_dir,
 
   tryCatch(
     {
-      # Filter out NULL results
       analysis_results <- analysis_results[!sapply(analysis_results, is.null)]
       if (length(analysis_results) == 0) {
         warning("No valid analysis results to save")
         return(invisible(NULL))
       }
 
-      # Extract data for each type of measurement
       image_names <- sapply(analysis_results, function(x) x$nombre)
 
       distances <- do.call(
@@ -486,7 +834,6 @@ save_analysis_results <- function(analysis_results, output_dir,
         rbind, lapply(analysis_results, function(x) x$coords)
       )
 
-      # Save distance data
       write_analysis_csv(
         distances, file.path(output_dir, "DistanciaEN.csv"),
         image_names
@@ -497,7 +844,6 @@ save_analysis_results <- function(analysis_results, output_dir,
         image_names
       )
 
-      # Save wavelet data (detect number of scales from result)
       wavelet_names <- grep("Wavelet_", names(analysis_results[[1]]),
         value = TRUE
       )
@@ -518,13 +864,11 @@ save_analysis_results <- function(analysis_results, output_dir,
         }
       }
 
-      # Save coordinates
       write.table(coordinates,
         file = file.path(output_dir, "Coords.csv"),
         dec = ".", sep = ";", col.names = FALSE
       )
 
-      # Save elliptic coefficients if available
       if ("elliptic" %in% names(analysis_results[[1]])) {
         elliptic_data <- do.call(
           rbind,
@@ -550,27 +894,10 @@ save_analysis_results <- function(analysis_results, output_dir,
   )
 }
 
-#' Helper function to write analysis data to CSV
-#'
-#' Internal helper function to write analysis data matrices to CSV files with proper formatting.
-#'
-#' @param data The data matrix or vector to write.
-#' @param filename The name of the CSV file.
-#' @param row_names The row names for the data.
-#' @noRd
 write_analysis_csv <- function(data, filename, row_names) {
-  # Input validation
-  if (is.null(data)) {
-    stop("data cannot be NULL")
-  }
-
-  if (!is.character(filename) || length(filename) != 1) {
-    stop("filename must be a single character string")
-  }
-
-  if (!is.character(row_names)) {
-    stop("row_names must be a character vector")
-  }
+  if (is.null(data)) stop("data cannot be NULL")
+  if (!is.character(filename) || length(filename) != 1) stop("filename must be a single character string")
+  if (!is.character(row_names)) stop("row_names must be a character vector")
 
   if (is.vector(data)) {
     data <- matrix(data, nrow = 1)
@@ -584,12 +911,16 @@ write_analysis_csv <- function(data, filename, row_names) {
   write.table(data, file = filename, dec = ".", sep = ";", col.names = FALSE)
 }
 
-.setup_directories_and_files <- function(folder) {
+.setup_directories_and_files <- function(folder, coordinates = "both") {
   polar_dir <- file.path(folder, "Polar")
   cartesian_dir <- file.path(folder, "Cartesian")
 
-  if (!dir.exists(polar_dir)) dir.create(polar_dir, recursive = TRUE)
-  if (!dir.exists(cartesian_dir)) dir.create(cartesian_dir, recursive = TRUE)
+  if (coordinates %in% c("both", "polar")) {
+    if (!dir.exists(polar_dir)) dir.create(polar_dir, recursive = TRUE)
+  }
+  if (coordinates %in% c("both", "cartesian")) {
+    if (!dir.exists(cartesian_dir)) dir.create(cartesian_dir, recursive = TRUE)
+  }
 
   imag <- list.files(folder, pattern = "(?i)\\.(jpe?g|png|tiff?)$", full.names = TRUE)
   if (length(imag) == 0) {
@@ -600,50 +931,99 @@ write_analysis_csv <- function(data, filename, row_names) {
   list(polar_dir = polar_dir, cartesian_dir = cartesian_dir, imag = imag)
 }
 
-.extract_batch_contours <- function(imag, threshold, blur_size, blur_sigma, detect_scale, pixels_per_mm, scale_mm, min_points, min_area) {
-  contours_raw <- vector("list", length(imag))
-  binary_images_list <- vector("list", length(imag))
-  px_per_mm_list <- vector("list", length(imag))
-  valid_indices <- c()
+.process_single_image_worker <- function(image_file, threshold, blur_size, blur_sigma,
+                                        detect_scale, pixels_per_mm, scale_mm,
+                                        min_points, min_area, n_points, n_harmonics,
+                                        wavelets, ef, testing, save,
+                                        polar_dir, cartesian_dir,
+                                        plot_width, plot_height, plot_res,
+                                        downsample_threshold,
+                                        coordinates = "both",
+                                        start_point = NULL,
+                                        threshold_method = "adaptive",
+                                        threshold_factor = 1.0) {
+  tryCatch({
+    img_raw <- EBImage::readImage(image_file)
 
-  message("\nPhase 1: Extracting contours...")
-  pb <- utils::txtProgressBar(max = length(imag), style = 3)
-
-  for (i in seq_along(imag)) {
-    utils::setTxtProgressBar(pb, i)
-    tryCatch({
-      img_raw <- EBImage::readImage(imag[i])
-      binary_image <- preprocess_image(img_raw, threshold, blur_size = blur_size, blur_sigma = blur_sigma)
-      
-      current_pixels_per_mm <- pixels_per_mm
-      if (detect_scale) {
-        img_grey <- if (EBImage::colorMode(img_raw) != EBImage::Grayscale) EBImage::channel(img_raw, "grey") else img_raw
-        thresh_scale <- EBImage::otsu(img_grey)
-        binary_scale <- img_grey > thresh_scale
-        detected_px_per_mm <- find_scale_bar_length(binary_scale, scale_mm = scale_mm)
-        if (!is.null(detected_px_per_mm)) {
-          current_pixels_per_mm <- detected_px_per_mm
-        } else {
-          warning(paste("Scale bar not found for image", basename(imag[i]), ". Using unscaled values."))
-        }
-      }
-      px_per_mm_list[i] <- list(current_pixels_per_mm)
-
-      contorno <- extract_contour(binary_image, min_points = min_points, min_area = min_area)
-      if (!is.null(contorno)) {
-        contours_raw[[i]] <- contorno
-        binary_images_list[[i]] <- binary_image
-        valid_indices <- c(valid_indices, i)
+    current_pixels_per_mm <- pixels_per_mm
+    scale_info <- NULL
+    if (detect_scale) {
+      img_grey <- if (EBImage::colorMode(img_raw) != EBImage::Grayscale) {
+        EBImage::channel(img_raw, "grey")
       } else {
-        warning(paste("No suitable contour found for image:", basename(imag[i])))
+        img_raw
       }
-    }, error = function(e) {
-      warning(paste("Error processing image", basename(imag[i]), ":", e$message))
-    })
-  }
-  close(pb)
+      thresh_scale <- EBImage::otsu(img_grey)
+      binary_scale <- img_grey > thresh_scale
+      detected_px_per_mm <- find_scale_bar_length(binary_scale, scale_mm = scale_mm)
+      if (!is.null(detected_px_per_mm)) {
+        current_pixels_per_mm <- detected_px_per_mm
+        scale_info <- attr(detected_px_per_mm, "scale_info")
+      } else {
+        warning(paste("Scale bar not found for image", basename(image_file), ". Using unscaled values."))
+      }
+      rm(img_grey, binary_scale)
+    }
 
-  list(contours_raw = contours_raw, binary_images_list = binary_images_list, px_per_mm_list = px_per_mm_list, valid_indices = valid_indices)
+    binary_image <- preprocess_image(
+      img_raw, threshold = threshold, blur_size = blur_size,
+      blur_sigma = blur_sigma, downsample_threshold = downsample_threshold,
+      threshold_method = threshold_method, threshold_factor = threshold_factor
+    )
+
+    contorno_raw <- extract_contour(binary_image, min_points = min_points, min_area = min_area)
+    rm(binary_image)
+
+    if (is.null(contorno_raw)) {
+      warning(paste("No suitable contour found for image:", basename(image_file)))
+      rm(img_raw)
+      return(NULL)
+    }
+
+    coef_e <- if (ef) Momocs::efourier(contorno_raw, n_harmonics, norm = TRUE) else NULL
+    distances <- calculate_distances(contorno_raw, n_points = n_points, start_point = start_point)
+    wavelet_results <- if (wavelets) calculate_wavelets_analysis(distances, n_scales = floor(log2(n_points)), detail = FALSE) else NULL
+
+    morpho <- calculate_morphometrics(contorno_raw, current_pixels_per_mm)
+    morpho$Image <- basename(image_file)
+
+    do_polar <- coordinates %in% c("both", "polar")
+    do_cart  <- coordinates %in% c("both", "cartesian")
+
+    if (testing) {
+      if (do_polar) {
+        save_visualization(
+          image = img_raw, distances = distances, wavelets = wavelet_results,
+          image_name = basename(image_file), output_dir = polar_dir,
+          plot_width = plot_width, plot_height = plot_height, plot_res = plot_res,
+          scale_info = scale_info
+        )
+      }
+      if (do_cart) {
+        save_visualization_perimeter(
+          image = img_raw, distances = distances, wavelets = wavelet_results,
+          image_name = basename(image_file), output_dir = cartesian_dir,
+          plot_width = plot_width, plot_height = plot_height, plot_res = plot_res,
+          scale_info = scale_info
+        )
+      }
+    }
+    rm(img_raw)
+
+    res_polar <- if (save && do_polar) create_result_structure(distances$polar, wavelet_results$polar, basename(image_file), coef_e, "polar") else NULL
+    res_cart  <- if (save && do_cart)  create_result_structure(distances$perimeter, wavelet_results$perimeter, basename(image_file), coef_e, "perimeter") else NULL
+
+    list(
+      image = basename(image_file),
+      polar = res_polar,
+      perimeter = res_cart,
+      morpho = morpho,
+      contour = contorno_raw
+    )
+  }, error = function(e) {
+    warning(paste("Error processing image", basename(image_file), ":", e$message))
+    return(NULL)
+  })
 }
 
 .apply_gpa_alignment <- function(contours_raw, valid_indices, procrustes, n_points) {
@@ -653,9 +1033,18 @@ write_analysis_csv <- function(data, filename, row_names) {
     if (requireNamespace("Momocs", quietly = TRUE)) {
       valid_contours <- lapply(contours_raw[valid_indices], function(c) Momocs::coo_interpolate(c, n_points))
       out_obj <- Momocs::Out(valid_contours)
-      out_aligned <- suppressMessages(Momocs::fgProcrustes(out_obj))
-      for (j in seq_along(valid_indices)) {
-        contours_to_process[[valid_indices[j]]] <- out_aligned$coo[[j]]
+      out_aligned <- tryCatch(
+        suppressMessages(Momocs::fgProcrustes(out_obj)),
+        error = function(e) {
+          # Fallback if fgProcrustes hits Momocs internal bug (e.g. Qm2 unbound on 2 shapes)
+          aligned_shapes <- lapply(valid_contours, Momocs::coo_align)
+          list(coo = aligned_shapes)
+        }
+      )
+      if (!is.null(out_aligned) && !is.null(out_aligned$coo)) {
+        for (j in seq_along(valid_indices)) {
+          contours_to_process[[valid_indices[j]]] <- out_aligned$coo[[j]]
+        }
       }
     } else {
       warning("Momocs package is required for Procrustes alignment. Skipping alignment.")
@@ -666,177 +1055,467 @@ write_analysis_csv <- function(data, filename, row_names) {
   contours_to_process
 }
 
-.calculate_batch_descriptors <- function(imag, valid_indices, contours_to_process, contours_raw, binary_images_list, px_per_mm_list, procrustes, ef, n_harmonics, n_points, wavelets, save, testing, polar_dir, cartesian_dir) {
-  result <- list()
-  result2 <- list()
-  morpho_results <- list()
-
-  if (length(valid_indices) > 0) {
-    message("\nPhase 2: Calculating descriptors and saving results...")
-    pb2 <- utils::txtProgressBar(max = length(valid_indices), style = 3)
-    for (idx_counter in seq_along(valid_indices)) {
-      utils::setTxtProgressBar(pb2, idx_counter)
-      i <- valid_indices[idx_counter]
-      
-      contorno_proc <- contours_to_process[[i]]
-      contorno_raw <- contours_raw[[i]]
-      binary_image <- if (procrustes) NULL else binary_images_list[[i]]
-      current_pixels_per_mm <- px_per_mm_list[[i]]
-      
-      tryCatch({
-        coef_e <- if (ef) Momocs::efourier(contorno_proc, n_harmonics, norm = !procrustes) else NULL
-        distances <- calculate_distances(contorno_proc, n_points = n_points)
-        wavelet_results <- if (wavelets) calculate_wavelets_analysis(distances, n_scales = floor(log2(n_points)), detail = FALSE) else NULL
-        
-        morpho <- calculate_morphometrics(contorno_raw, current_pixels_per_mm)
-        morpho$Image <- basename(imag[i])
-        morpho_results[[i]] <- morpho
-        
-        if (save) {
-          result[[i]] <- create_result_structure(distances$polar, wavelet_results$polar, basename(imag[i]), coef_e, "polar")
-          result2[[i]] <- create_result_structure(distances$perimeter, wavelet_results$perimeter, basename(imag[i]), coef_e, "perimeter")
-        }
-        
-        if (testing) {
-          save_visualization(binary_image, distances, wavelet_results, basename(imag[i]), polar_dir)
-          save_visualization_perimeter(binary_image, distances, wavelet_results, basename(imag[i]), cartesian_dir)
-        }
-      }, error = function(e) {
-        warning(paste("Error in analysis phase for image", basename(imag[i]), ":", e$message))
-      })
-    }
-    close(pb2)
-  }
-  list(result = result, result2 = result2, morpho_results = morpho_results)
-}
-
-.save_batch_csv_results <- function(result, result2, morpho_results, polar_dir, cartesian_dir) {
-  if (length(result) > 0) {
-    save_analysis_results(result, polar_dir, "polar")
-    save_analysis_results(result2, cartesian_dir, "perimeter")
-  }
+.save_batch_csv_results <- function(result, result2, morpho_results, polar_dir, cartesian_dir, coordinates = "both") {
   morpho_results <- morpho_results[!sapply(morpho_results, is.null)]
-  if (length(morpho_results) > 0) {
-    morpho_df <- do.call(rbind, lapply(morpho_results, as.data.frame))
-    morpho_df <- morpho_df[, c("Image", setdiff(names(morpho_df), "Image"))]
-    utils::write.table(morpho_df, file = file.path(polar_dir, "MorphometricsEN.csv"), row.names = FALSE, sep = ";", dec = ".")
+  morpho_df <- if (length(morpho_results) > 0) {
+    df <- do.call(rbind, lapply(morpho_results, as.data.frame))
+    df[, c("Image", setdiff(names(df), "Image"))]
+  } else NULL
+
+  if (coordinates %in% c("both", "polar")) {
+    result <- result[!sapply(result, is.null)]
+    if (length(result) > 0) {
+      save_analysis_results(result, polar_dir, "polar")
+    }
+    if (!is.null(morpho_df)) {
+      utils::write.table(morpho_df, file = file.path(polar_dir, "MorphometricsEN.csv"), row.names = FALSE, sep = ";", dec = ".")
+    }
+  }
+  if (coordinates %in% c("both", "cartesian")) {
+    result2 <- result2[!sapply(result2, is.null)]
+    if (length(result2) > 0) {
+      save_analysis_results(result2, cartesian_dir, "perimeter")
+    }
+    if (!is.null(morpho_df) && coordinates == "cartesian") {
+      utils::write.table(morpho_df, file = file.path(cartesian_dir, "MorphometricsEN.csv"), row.names = FALSE, sep = ";", dec = ".")
+    }
   }
 }
 
 #' Process Images in Folder
 #'
 #' This function processes images in a specified folder, applying various transformations and analyses.
+#' Supports multi-core parallel processing, recursive subfolder processing, manual/interactive
+#' rostrum selection, and lightweight diagnostic visualization overlaid on real photographs.
 #'
 #' @param folder A string specifying the path to the folder containing images. Supported formats include `.jpg`, `.jpeg`, `.png`, `.tif`, and `.tiff`.
-#' @param subfolder A logical value indicating whether the folder has subfolders.
+#' @param subfolder A logical value indicating whether to recursively process subfolders. Default is FALSE.
 #' @param threshold A numeric value for binarization. If not provided, the Otsu method is used.
 #' @param wavelets A logical value indicating whether to obtain wavelets. Default is TRUE.
 #' @param ef A logical value indicating whether to obtain elliptic Fourier descriptors. Default is TRUE.
-#' @param testing A logical value indicating whether to save test images. Default is TRUE.
-#' @param pseudolandmarks A string specifying the type of pseudolandmarks. Options are 'curvilinear', 'polar', 'both'. Default is 'both'.
+#' @param testing A logical value indicating whether to save diagnostic test images. Default is TRUE.
+#' @param coordinates A string specifying which coordinate systems to compute and save:
+#'                    \code{"both"} (default), \code{"polar"}, or \code{"cartesian"}.
 #' @param save A logical value indicating whether to save the results as CSV files. Default is TRUE.
 #' @param pixels_per_mm A numeric value specifying the scale (pixels per mm). Default is NULL.
 #' @param detect_scale A logical value indicating whether to automatically detect the scale bar in the image. Default is FALSE.
-#' @param blur_size Size of the Gaussian brush for smoothing (default: 31).
-#' @param blur_sigma Sigma of the Gaussian brush for smoothing (default: 9).
+#' @param blur_size Size of the Gaussian brush for smoothing in pixels. Can be an odd integer,
+#'                  or \code{"auto"} (default) to dynamically calculate \eqn{\min(\text{width},\text{height}) \times 0.01}.
+#' @param blur_sigma Standard deviation of the Gaussian filter brush. Can be a numeric value,
+#'                   or \code{"auto"} (default) to calculate \eqn{\text{blur\_size} / 3.5}.
 #' @param min_points Minimum number of points required for a valid contour (default: 200).
 #' @param min_area Minimum area required for a valid contour (default: 5000).
 #' @param n_harmonics Number of elliptic Fourier harmonics to calculate (default: 32).
 #' @param n_points Target number of points for resampling (default: 512).
 #' @param scale_mm Total length in mm of the scale bar for detection (default: 1).
 #' @param procrustes A logical value indicating whether to apply Generalized Procrustes Analysis (GPA) to align all extracted contours before calculating shape descriptors. Default is FALSE.
+#' @param cores Number of CPU cores to use for parallel processing. If NULL (default) or <= 1, processing is sequential.
+#' @param plot_width Width in pixels for diagnostic JPEG images (default: 1200).
+#' @param plot_height Height in pixels for diagnostic JPEG images (default: 800).
+#' @param plot_res Resolution in dpi for diagnostic JPEG images (default: 150).
+#' @param downsample_threshold Logical; if TRUE, calculates Otsu threshold on a downsampled thumbnail for faster preprocessing (default: FALSE).
+#' @param threshold_method Method for automatic binarization: "adaptive", "otsu", or "fixed". Default is "adaptive".
+#' @param threshold_factor Multiplier applied to the calculated threshold (default: 1.0).
+#' @param interactive_rostrum Logical; if TRUE, sequentially prompts the user to click the rostrum on each image before dispatching the analysis (default: FALSE).
+#' @param start_points Optional named list or data.frame with custom starting point coordinates \code{c(x, y)} or index for specific images.
 #' @return Invisible NULL. The function is used for its side effects (creating files).
-#' @details
-#' The function generates the following files in the `Polar` (and `Cartesian`) directories:
-#' \itemize{
-#'   \item \code{MorphometricsEN.csv}: Table with morphometric measures (Area, Perimeter, Length, Width).
-#'   \item \code{DistanciaEN.csv} and \code{Distancia_NormEN.csv}: Raw and normalized distances (radii or perimeter).
-#'   \item \code{Wavelet_xEN.csv}: Wavelet coefficients for scales 1 to 9.
-#'   \item \code{EllipticCoeEN.csv}: Elliptic Fourier coefficients (if \code{ef = TRUE}).
-#'   \item \code{Coords.csv}: Contour coordinates.
-#' }
-#'
-#' If \code{testing = TRUE}, diagnostic images are also saved:
-#' \itemize{
-#'   \item \code{zonal_[ImageName].jpg}: Visualization of the contour and analysis sectors.
-#'   \item \code{wavelet_[ImageName].jpg}: Visualization of the wavelet transform.
-#' }
 #' @export
-#'
 #' @examples
 #' \dontrun{
 #' # Process all images in the "images" folder
 #' process_images(folder = "path/to/images", pixels_per_mm = 100)
+#'
+#' # Process in parallel across 4 cores with polar coordinates only
+#' process_images(folder = "path/to/images", cores = 4, coordinates = "polar")
 #' }
 process_images <- function(folder, subfolder = FALSE, threshold = NULL,
                            wavelets = TRUE, ef = TRUE, testing = TRUE,
-                           pseudolandmarks = "both", save = TRUE,
+                           coordinates = c("both", "polar", "cartesian"), save = TRUE,
                            pixels_per_mm = NULL, detect_scale = FALSE,
-                           blur_size = 31, blur_sigma = 9, min_points = 200,
+                           blur_size = "auto", blur_sigma = "auto", min_points = 200,
                            min_area = 5000, n_harmonics = 32, n_points = 512,
-                           scale_mm = 1, procrustes = FALSE) {
-  # Input validation
+                           scale_mm = 1, procrustes = FALSE,
+                           cores = NULL,
+                           plot_width = 1200, plot_height = 800, plot_res = 150,
+                           downsample_threshold = FALSE,
+                           threshold_method = c("adaptive", "otsu", "fixed"),
+                           threshold_factor = 1.0,
+                           interactive_rostrum = FALSE,
+                           start_points = NULL) {
+  coordinates <- match.arg(coordinates)
+  threshold_method <- match.arg(threshold_method)
+
+  if (!is.numeric(threshold_factor) || length(threshold_factor) != 1 || is.na(threshold_factor) || threshold_factor <= 0) {
+    stop("threshold_factor must be a positive number")
+  }
+
   if (!is.character(folder) || length(folder) != 1) stop("folder must be a single character string")
   if (!dir.exists(folder)) stop(paste("Folder does not exist:", folder))
-  if (!is.logical(wavelets) || !is.logical(ef) || !is.logical(testing) || !is.logical(save) || !is.logical(detect_scale) || !is.logical(procrustes)) {
-    stop("wavelets, ef, testing, save, detect_scale, and procrustes must be logical values")
+  if (!is.logical(wavelets) || !is.logical(ef) || !is.logical(testing) || !is.logical(save) || !is.logical(detect_scale) || !is.logical(procrustes) || !is.logical(subfolder) || !is.logical(downsample_threshold) || !is.logical(interactive_rostrum)) {
+    stop("wavelets, ef, testing, save, detect_scale, procrustes, subfolder, downsample_threshold, and interactive_rostrum must be logical values")
   }
-  if (!pseudolandmarks %in% c("curvilinear", "polar", "both")) stop("pseudolandmarks must be one of: 'curvilinear', 'polar', 'both'")
-  if (!is.null(pixels_per_mm) && (!is.numeric(pixels_per_mm) || pixels_per_mm <= 0)) stop("pixels_per_mm must be a positive numeric value")
+  if (!is.null(pixels_per_mm) && (!is.numeric(pixels_per_mm) || length(pixels_per_mm) != 1 || is.na(pixels_per_mm) || is.infinite(pixels_per_mm) || pixels_per_mm <= 0)) {
+    stop("pixels_per_mm must be a positive numeric value")
+  }
+  if (!is.null(cores) && (!is.numeric(cores) || length(cores) != 1 || is.na(cores) || is.infinite(cores) || cores <= 0 || cores != as.integer(cores))) {
+    stop("cores must be a positive integer or NULL")
+  }
+  if (!is.numeric(scale_mm) || length(scale_mm) != 1 || is.na(scale_mm) || is.infinite(scale_mm) || scale_mm <= 0) {
+    stop("scale_mm must be a positive numeric value")
+  }
+  if (!is.numeric(n_points) || length(n_points) != 1 || is.na(n_points) || is.infinite(n_points) || n_points < 3 || n_points != as.integer(n_points)) {
+    stop("n_points must be an integer >= 3")
+  }
+  if (!is.numeric(n_harmonics) || length(n_harmonics) != 1 || is.na(n_harmonics) || is.infinite(n_harmonics) || n_harmonics < 1 || n_harmonics != as.integer(n_harmonics)) {
+    stop("n_harmonics must be a positive integer")
+  }
+  if (!is.numeric(min_points) || length(min_points) != 1 || is.na(min_points) || is.infinite(min_points) || min_points < 3 || min_points != as.integer(min_points)) {
+    stop("min_points must be an integer >= 3")
+  }
+  if (!is.numeric(min_area) || length(min_area) != 1 || is.na(min_area) || is.infinite(min_area) || min_area < 0) {
+    stop("min_area must be a numeric value >= 0")
+  }
+
+  if (subfolder) {
+    all_dirs <- list.dirs(folder, full.names = TRUE, recursive = TRUE)
+    all_dirs <- all_dirs[!grepl("(Polar|Cartesian)$", all_dirs)]
+    dirs_with_images <- all_dirs[sapply(all_dirs, function(d) {
+      length(list.files(d, pattern = "(?i)\\.(jpe?g|png|tiff?)$")) > 0
+    })]
+    if (length(dirs_with_images) == 0) {
+      warning(paste("No subfolders containing supported images found in:", folder))
+      return(invisible(NULL))
+    }
+    for (d in dirs_with_images) {
+      message(paste("\n--- Processing subfolder:", d, "---"))
+      process_images(
+        folder = d, subfolder = FALSE, threshold = threshold,
+        wavelets = wavelets, ef = ef, testing = testing,
+        coordinates = coordinates, save = save,
+        pixels_per_mm = pixels_per_mm, detect_scale = detect_scale,
+        blur_size = blur_size, blur_sigma = blur_sigma,
+        min_points = min_points, min_area = min_area,
+        n_harmonics = n_harmonics, n_points = n_points,
+        scale_mm = scale_mm, procrustes = procrustes,
+        cores = cores,
+        plot_width = plot_width, plot_height = plot_height, plot_res = plot_res,
+        downsample_threshold = downsample_threshold,
+        threshold_method = threshold_method,
+        threshold_factor = threshold_factor,
+        interactive_rostrum = interactive_rostrum,
+        start_points = start_points
+      )
+    }
+    return(invisible(NULL))
+  }
 
   tryCatch({
-    # 1. Setup
-    setup_data <- .setup_directories_and_files(folder)
+    setup_data <- .setup_directories_and_files(folder, coordinates = coordinates)
     if (is.null(setup_data)) return(invisible(NULL))
-    
-    # 2. Extract
-    extr <- .extract_batch_contours(setup_data$imag, threshold, blur_size, blur_sigma, detect_scale, pixels_per_mm, scale_mm, min_points, min_area)
-    
-    # 3. Procrustes
-    contours_to_process <- .apply_gpa_alignment(extr$contours_raw, extr$valid_indices, procrustes, n_points)
-    
-    # 4. Descriptors
-    analysis <- .calculate_batch_descriptors(setup_data$imag, extr$valid_indices, contours_to_process, extr$contours_raw, extr$binary_images_list, extr$px_per_mm_list, procrustes, ef, n_harmonics, n_points, wavelets, save, testing, setup_data$polar_dir, setup_data$cartesian_dir)
-    
-    # 5. Save
-    if (save) {
-      .save_batch_csv_results(analysis$result, analysis$result2, analysis$morpho_results, setup_data$polar_dir, setup_data$cartesian_dir)
+
+    imag <- setup_data$imag
+    n_imgs <- length(imag)
+
+    # Interactive rostrum selection if requested
+    chosen_rostrums <- vector("list", n_imgs)
+    names(chosen_rostrums) <- basename(imag)
+
+    if (isTRUE(interactive_rostrum)) {
+      message("\nInteractive rostrum selection mode: Click on each otolith to set the starting point...")
+      for (i in seq_along(imag)) {
+        message(paste("Select rostrum for:", basename(imag[i])))
+        img_preview <- EBImage::readImage(imag[i])
+        bin_preview <- preprocess_image(img_preview, threshold = threshold, blur_size = blur_size,
+                                        blur_sigma = blur_sigma, downsample_threshold = TRUE,
+                                        threshold_method = threshold_method, threshold_factor = threshold_factor)
+        cnt_preview <- extract_contour(bin_preview, min_points = min_points, min_area = min_area)
+        chosen_rostrums[[i]] <- select_starting_point(img_preview, cnt_preview)
+        rm(img_preview, bin_preview, cnt_preview)
+      }
+    }
+
+    if (!is.null(start_points)) {
+      if (is.data.frame(start_points) && all(c("Image", "X", "Y") %in% names(start_points))) {
+        for (r in seq_len(nrow(start_points))) {
+          img_name <- start_points$Image[r]
+          chosen_rostrums[[img_name]] <- c(start_points$X[r], start_points$Y[r])
+        }
+      } else if (is.list(start_points)) {
+        for (nm in names(start_points)) {
+          chosen_rostrums[[nm]] <- start_points[[nm]]
+        }
+      }
+    }
+
+    # Determine parallelization
+    use_parallel <- !is.null(cores) && cores > 1 && n_imgs > 1
+    actual_cores <- if (use_parallel) min(as.integer(cores), n_imgs, parallel::detectCores()) else 1
+
+    if (!procrustes) {
+      message(paste("\nProcessing", n_imgs, "images in:", basename(folder),
+                    if (use_parallel) paste("using", actual_cores, "cores") else "sequentially"))
+
+      if (use_parallel) {
+        cl <- parallel::makeCluster(actual_cores)
+        on.exit({
+          if (!is.null(cl)) {
+            try(parallel::stopCluster(cl), silent = TRUE)
+            cl <- NULL
+          }
+        }, add = TRUE)
+
+        parallel::clusterEvalQ(cl, {
+          suppressPackageStartupMessages(library(aforoR))
+        })
+        parallel::clusterExport(cl, c(".process_single_image_worker", "find_scale_bar_length", "calculate_adaptive_threshold"),
+                                envir = environment(process_images))
+
+        # Bundle image path with custom start point
+        task_data <- lapply(imag, function(f) {
+          list(file = f, start_point = chosen_rostrums[[basename(f)]])
+        })
+
+        processed_list <- parallel::parLapply(cl, task_data, function(item) {
+          .process_single_image_worker(
+            image_file = item$file, threshold = threshold, blur_size = blur_size,
+            blur_sigma = blur_sigma, detect_scale = detect_scale,
+            pixels_per_mm = pixels_per_mm, scale_mm = scale_mm,
+            min_points = min_points, min_area = min_area,
+            n_points = n_points, n_harmonics = n_harmonics,
+            wavelets = wavelets, ef = ef, testing = testing, save = save,
+            polar_dir = setup_data$polar_dir, cartesian_dir = setup_data$cartesian_dir,
+            plot_width = plot_width, plot_height = plot_height, plot_res = plot_res,
+            downsample_threshold = downsample_threshold,
+            coordinates = coordinates,
+            start_point = item$start_point,
+            threshold_method = threshold_method,
+            threshold_factor = threshold_factor
+          )
+        })
+        try(parallel::stopCluster(cl), silent = TRUE)
+        cl <- NULL
+      } else {
+        pb <- utils::txtProgressBar(max = n_imgs, style = 3)
+        processed_list <- vector("list", n_imgs)
+        for (i in seq_along(imag)) {
+          utils::setTxtProgressBar(pb, i)
+          processed_list[[i]] <- .process_single_image_worker(
+            image_file = imag[i], threshold = threshold, blur_size = blur_size,
+            blur_sigma = blur_sigma, detect_scale = detect_scale,
+            pixels_per_mm = pixels_per_mm, scale_mm = scale_mm,
+            min_points = min_points, min_area = min_area,
+            n_points = n_points, n_harmonics = n_harmonics,
+            wavelets = wavelets, ef = ef, testing = testing, save = save,
+            polar_dir = setup_data$polar_dir, cartesian_dir = setup_data$cartesian_dir,
+            plot_width = plot_width, plot_height = plot_height, plot_res = plot_res,
+            downsample_threshold = downsample_threshold,
+            coordinates = coordinates,
+            start_point = chosen_rostrums[[basename(imag[i])]],
+            threshold_method = threshold_method,
+            threshold_factor = threshold_factor
+          )
+        }
+        close(pb)
+      }
+
+      processed_list <- processed_list[!sapply(processed_list, is.null)]
+      if (length(processed_list) == 0) {
+        warning("No images were successfully processed")
+        return(invisible(NULL))
+      }
+
+      result_polar <- lapply(processed_list, function(x) x$polar)
+      result_cart  <- lapply(processed_list, function(x) x$perimeter)
+      morpho_list  <- lapply(processed_list, function(x) x$morpho)
+
+      if (save) {
+        .save_batch_csv_results(result_polar, result_cart, morpho_list,
+                                setup_data$polar_dir, setup_data$cartesian_dir,
+                                coordinates = coordinates)
+      }
+
+    } else {
+      # PROCRUSTES (GPA) PATH
+      message(paste("\nPhase 1: Extracting contours for GPA alignment (", n_imgs, "images)..."))
+      extract_worker <- function(item) {
+        tryCatch({
+          img_file <- item$file
+          st_pt <- item$start_point
+          img_raw <- EBImage::readImage(img_file)
+          current_px <- pixels_per_mm
+          if (detect_scale) {
+            img_g <- if (EBImage::colorMode(img_raw) != EBImage::Grayscale) EBImage::channel(img_raw, "grey") else img_raw
+            b_sc <- img_g > EBImage::otsu(img_g)
+            d_px <- find_scale_bar_length(b_sc, scale_mm = scale_mm)
+            if (!is.null(d_px)) current_px <- d_px
+          }
+          bin_img <- preprocess_image(
+            img_raw, threshold = threshold, blur_size = blur_size,
+            blur_sigma = blur_sigma, downsample_threshold = downsample_threshold,
+            threshold_method = threshold_method, threshold_factor = threshold_factor
+          )
+          cnt <- extract_contour(bin_img, min_points, min_area)
+          list(contour = cnt, px = current_px, start_point = st_pt)
+        }, error = function(e) NULL)
+      }
+
+      task_data <- lapply(imag, function(f) {
+        list(file = f, start_point = chosen_rostrums[[basename(f)]])
+      })
+
+      if (use_parallel) {
+        cl <- parallel::makeCluster(actual_cores)
+        on.exit({
+          if (!is.null(cl)) {
+            try(parallel::stopCluster(cl), silent = TRUE)
+            cl <- NULL
+          }
+        }, add = TRUE)
+        parallel::clusterEvalQ(cl, { suppressPackageStartupMessages(library(aforoR)) })
+        parallel::clusterExport(cl, c("find_scale_bar_length", "calculate_adaptive_threshold"), envir = environment(process_images))
+        extr_list <- parallel::parLapply(cl, task_data, extract_worker)
+        try(parallel::stopCluster(cl), silent = TRUE)
+        cl <- NULL
+      } else {
+        pb <- utils::txtProgressBar(max = n_imgs, style = 3)
+        extr_list <- vector("list", n_imgs)
+        for (i in seq_along(imag)) {
+          utils::setTxtProgressBar(pb, i)
+          extr_list[[i]] <- extract_worker(task_data[[i]])
+        }
+        close(pb)
+      }
+
+      valid_indices <- which(!sapply(extr_list, is.null) & sapply(extr_list, function(x) !is.null(x$contour)))
+      if (length(valid_indices) == 0) {
+        warning("No valid contours found for Procrustes alignment.")
+        return(invisible(NULL))
+      }
+
+      contours_raw <- lapply(extr_list, function(x) x$contour)
+      px_list <- lapply(extr_list, function(x) x$px)
+      st_list <- lapply(extr_list, function(x) x$start_point)
+
+      contours_to_process <- .apply_gpa_alignment(contours_raw, valid_indices, procrustes = TRUE, n_points = n_points)
+
+      message("\nPhase 2: Calculating shape descriptors on GPA-aligned contours...")
+      result_polar <- list()
+      result_cart  <- list()
+      morpho_list  <- list()
+
+      do_polar <- coordinates %in% c("both", "polar")
+      do_cart  <- coordinates %in% c("both", "cartesian")
+
+      pb2 <- utils::txtProgressBar(max = length(valid_indices), style = 3)
+      for (idx_counter in seq_along(valid_indices)) {
+        utils::setTxtProgressBar(pb2, idx_counter)
+        i <- valid_indices[idx_counter]
+        c_proc <- contours_to_process[[i]]
+        c_raw  <- contours_raw[[i]]
+        cur_px <- px_list[[i]]
+        st_pt  <- st_list[[i]]
+
+        coef_e <- if (ef) Momocs::efourier(c_proc, n_harmonics, norm = FALSE) else NULL
+        distances <- calculate_distances(c_proc, n_points = n_points, start_point = st_pt)
+        wavelet_results <- if (wavelets) calculate_wavelets_analysis(distances, n_scales = floor(log2(n_points)), detail = FALSE) else NULL
+        morpho <- calculate_morphometrics(c_raw, cur_px)
+        morpho$Image <- basename(imag[i])
+        morpho_list[[length(morpho_list) + 1]] <- morpho
+
+        if (save) {
+          if (do_polar) result_polar[[length(result_polar) + 1]] <- create_result_structure(distances$polar, wavelet_results$polar, basename(imag[i]), coef_e, "polar")
+          if (do_cart)  result_cart[[length(result_cart) + 1]]   <- create_result_structure(distances$perimeter, wavelet_results$perimeter, basename(imag[i]), coef_e, "perimeter")
+        }
+
+        if (testing) {
+          if (do_polar) {
+            save_visualization(
+              image = NULL, distances = distances, wavelets = wavelet_results,
+              image_name = basename(imag[i]), output_dir = setup_data$polar_dir,
+              plot_width = plot_width, plot_height = plot_height, plot_res = plot_res
+            )
+          }
+          if (do_cart) {
+            save_visualization_perimeter(
+              image = NULL, distances = distances, wavelets = wavelet_results,
+              image_name = basename(imag[i]), output_dir = setup_data$cartesian_dir,
+              plot_width = plot_width, plot_height = plot_height, plot_res = plot_res
+            )
+          }
+        }
+      }
+      close(pb2)
+
+      if (save) {
+        .save_batch_csv_results(result_polar, result_cart, morpho_list,
+                                setup_data$polar_dir, setup_data$cartesian_dir,
+                                coordinates = coordinates)
+      }
     }
   }, error = function(e) {
     stop(paste("Error in process_images:", e$message))
   })
 }
 
-#' @param binary_image A binarized image.
-#' @param scale_mm The actual length of the scale bar in millimeters (default: 1).
-#' @return The number of pixels per mm, or NULL if not found.
-#' @noRd
 find_scale_bar_length <- function(binary_image, scale_mm = 1) {
+  if (!is.numeric(scale_mm) || length(scale_mm) != 1 || is.na(scale_mm) || is.infinite(scale_mm) || scale_mm <= 0) {
+    stop("scale_mm must be a positive numeric value")
+  }
   tryCatch(
     {
       labeled <- EBImage::bwlabel(binary_image)
       features <- EBImage::computeFeatures.shape(labeled)
       moments <- EBImage::computeFeatures.moment(labeled)
 
-      if (is.null(features)) {
+      if (is.null(features) || nrow(features) == 0) {
         return(NULL)
       }
 
-      # Filter for scale bar candidates
-      candidates <- which(features[, "s.area"] > 100 &
-        features[, "s.area"] < 5000 &
-        moments[, "m.eccentricity"] > 0.8)
+      dims <- dim(binary_image)
+      total_px <- prod(dims[1:2])
+      max_area <- max(5000, min(30000, 0.005 * total_px))
+      min_area <- max(50, 0.00005 * total_px)
+      largest_idx <- which.max(features[, "s.area"])
+
+      # Scale bar is a thin straight line and never the main specimen
+      candidates <- which(
+        seq_len(nrow(features)) != largest_idx &
+        features[, "s.area"] > min_area &
+        features[, "s.area"] < max_area &
+        moments[, "m.eccentricity"] > 0.95
+      )
+
+      if (length(candidates) == 0) {
+        candidates <- which(
+          seq_len(nrow(features)) != largest_idx &
+          features[, "s.area"] > min_area &
+          features[, "s.area"] < max_area &
+          moments[, "m.eccentricity"] > 0.88
+        )
+      }
 
       if (length(candidates) == 0) {
         return(NULL)
       }
 
-      # For now, picking the candidate with the highest eccentricity
-      best_idx <- which.max(moments[candidates, "m.eccentricity"])
+      best_idx <- which.max(moments[candidates, "m.majoraxis"])
       best_candidate <- candidates[best_idx]
 
-      # Return pixels per mm (Major Axis length / scale_mm)
-      return(moments[best_candidate, "m.majoraxis"] / scale_mm)
+      val <- moments[best_candidate, "m.majoraxis"] / scale_mm
+      bar_pts <- which(labeled == best_candidate, arr.ind = TRUE)
+      if (length(bar_pts) > 0) {
+        bbox <- list(
+          min_x = min(bar_pts[, 1]),
+          max_x = max(bar_pts[, 1]),
+          min_y = min(bar_pts[, 2]),
+          max_y = max(bar_pts[, 2]),
+          bar_length_px = moments[best_candidate, "m.majoraxis"],
+          scale_mm = scale_mm,
+          px_per_mm = val
+        )
+        attr(val, "scale_info") <- bbox
+      }
+      return(val)
     },
     error = function(e) {
       warning(paste("Scale detection error:", e$message))
@@ -845,7 +1524,7 @@ find_scale_bar_length <- function(binary_image, scale_mm = 1) {
   )
 }
 
-#' Create Result Structure for Analysis Data
+#' Create Standardized Analysis Result Structure
 #'
 #' Creates a standardized result structure for storing analysis data.
 #'
@@ -856,10 +1535,13 @@ find_scale_bar_length <- function(binary_image, scale_mm = 1) {
 #' @param result_type The type of result ("polar" or "perimeter").
 #' @return A list containing the structured analysis results.
 #' @export
+#' @examples
+#' dists <- list(radii = runif(512), dist = runif(512), normalized = runif(512))
+#' res <- create_result_structure(dists, NULL, "sample", result_type = "polar")
+#' str(res)
 create_result_structure <- function(distances, wavelets, image_name,
                                     elliptic_coef = NULL,
                                     result_type = "polar") {
-  # Input validation
   if (!is.list(distances)) {
     stop("distances must be a list")
   }
@@ -878,21 +1560,26 @@ create_result_structure <- function(distances, wavelets, image_name,
     nombre = image_name
   )
 
-  # Add wavelet data if available
   if (!is.null(wavelets)) {
+    if (is.vector(wavelets)) {
+      wavelets <- matrix(wavelets, nrow = 1)
+    } else if (!is.matrix(wavelets) && !is.data.frame(wavelets)) {
+      stop("wavelets must be a matrix, data.frame, vector, or NULL")
+    }
     for (i in seq_len(nrow(wavelets))) {
       result[[paste0("Wavelet_", i)]] <- wavelets[i, ]
     }
   }
 
-  # Add coordinates
-  if (result_type == "polar") {
-    result$coords <- cbind(image_name, distances$coord)
+  coord_data <- if (result_type == "polar") {
+    if (!is.null(distances$coord)) distances$coord else distances$coords
   } else {
-    result$coords <- cbind(image_name, distances$coords)
+    if (!is.null(distances$coords)) distances$coords else distances$coord
+  }
+  if (!is.null(coord_data)) {
+    result$coords <- cbind(image_name, coord_data)
   }
 
-  # Add elliptic coefficients if available
   if (!is.null(elliptic_coef)) {
     result$elliptic <- c(
       elliptic_coef$an, elliptic_coef$bn, elliptic_coef$cn, elliptic_coef$dn
@@ -905,20 +1592,37 @@ create_result_structure <- function(distances, wavelets, image_name,
 #' Save Perimeter Visualization Images
 #'
 #' Creates and saves visualization images for perimeter-based analysis.
+#' Overlays the extracted contour, centroid, rostrum, and perimeter sectors
+#' directly onto the original photograph in high contrast colors.
 #'
-#' @param binary_image The binarized image from preprocessing.
-#' @param distances The distance measures from calculate_distances().
-#' @param wavelets The wavelet analysis from calculate_wavelets_analysis().
+#' @param image An \code{Image} object (original or binary) OR a string specifying
+#'              the image file path. If NULL, draws on coordinate space (useful for GPA).
+#' @param distances The distance measures from \code{\link{calculate_distances}}.
+#' @param wavelets The wavelet analysis from \code{\link{calculate_wavelets_analysis}}.
 #' @param image_name The base name of the image file.
 #' @param output_dir The directory to save visualization images.
-#' @importFrom grDevices dev.off jpeg
-#' @importFrom graphics legend lines points polygon
+#' @param wavelet_scale The wavelet scale to visualize (default: 5).
+#' @param plot_width Width in pixels for diagnostic JPEG images (default: 1200).
+#' @param plot_height Height in pixels for diagnostic JPEG images (default: 800).
+#' @param plot_res Resolution in dpi for diagnostic JPEG images (default: 150).
+#' @param binary_image Deprecated alias for \code{image} for backwards compatibility.
+#' @param scale_info Optional list with scale bar metrics (min_x, max_x, min_y, max_y, bar_length_px, scale_mm, px_per_mm).
+#' @return An invisible NULL, called for its side effect of saving diagnostic visualization images.
+#' @importFrom grDevices dev.off jpeg adjustcolor rgb
+#' @importFrom graphics lines points polygon legend
 #' @export
-save_visualization_perimeter <- function(binary_image, distances, wavelets,
-                                         image_name, output_dir) {
-  # Input validation
-  # binary_image can be NULL if using procrustes (GPA) as coordinates will not match the image.
-
+#' @examples
+#' \dontrun{
+#' save_visualization_perimeter(image, distances, wavelets, "sample_image", tempdir())
+#' }
+save_visualization_perimeter <- function(image = NULL, distances, wavelets,
+                                         image_name, output_dir,
+                                         wavelet_scale = 5,
+                                         plot_width = 1200, plot_height = 800, plot_res = 150,
+                                         binary_image = NULL, scale_info = NULL) {
+  if (is.null(image) && !is.null(binary_image)) {
+    image <- binary_image
+  }
 
   if (!is.list(distances)) {
     stop("distances must be a list")
@@ -936,89 +1640,161 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets,
     stop("output_dir must be a single character string")
   }
 
+  if (!is.numeric(wavelet_scale) || length(wavelet_scale) != 1 || is.na(wavelet_scale) || wavelet_scale <= 0) {
+    stop("wavelet_scale must be a positive integer")
+  }
+
+  if (!is.numeric(plot_width) || length(plot_width) != 1 || is.na(plot_width) || plot_width <= 0) {
+    stop("plot_width must be a positive number")
+  }
+
+  if (!is.numeric(plot_height) || length(plot_height) != 1 || is.na(plot_height) || plot_height <= 0) {
+    stop("plot_height must be a positive number")
+  }
+
+  if (!is.numeric(plot_res) || length(plot_res) != 1 || is.na(plot_res) || plot_res <= 0) {
+    stop("plot_res must be a positive number")
+  }
+
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
 
+  cur_dev <- NULL
+  on.exit({
+    if (!is.null(cur_dev) && cur_dev > 1) {
+      try(grDevices::dev.off(cur_dev), silent = TRUE)
+      cur_dev <- NULL
+    }
+  }, add = TRUE)
+
   tryCatch(
     {
-      # Save zonal analysis plot for perimeter
-      jpeg(
-        filename = file.path(output_dir, paste("zonal_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")),
-        res = 600, width = 600, height = 400, units = "mm"
+      zonal_file <- file.path(
+        output_dir,
+        paste0("zonal_", tools::file_path_sans_ext(image_name), ".jpg")
       )
-      if (!is.null(binary_image)) {
-        plot(binary_image)
-      } else {
-        # Determine plot limits from coordinates
+      jpeg(filename = zonal_file, width = plot_width, height = plot_height,
+           res = plot_res, quality = 90)
+      cur_dev <- grDevices::dev.cur()
+
+      has_img <- FALSE
+      if (!is.null(image)) {
+        if (is.character(image) && file.exists(image)) {
+          img_to_plot <- EBImage::readImage(image)
+          plot(img_to_plot)
+          has_img <- TRUE
+        } else if (inherits(image, "Image")) {
+          plot(image)
+          has_img <- TRUE
+        }
+      }
+
+      cx <- mean(distances$reordered_coords$x)
+      cy <- mean(distances$reordered_coords$y)
+
+      if (!has_img) {
         xlims <- range(distances$perimeter$coords[, 1])
         ylims <- range(distances$perimeter$coords[, 2])
-        # Add 10% padding
-        xpad <- diff(xlims) * 0.1
-        ypad <- diff(ylims) * 0.1
-        plot(NA, xlim = c(xlims[1] - xpad, xlims[2] + xpad), 
-             ylim = c(ylims[1] - ypad, ylims[2] + ypad), 
+        xpad <- if (is.na(diff(xlims)) || diff(xlims) == 0) 1 else diff(xlims) * 0.1
+        ypad <- if (is.na(diff(ylims)) || diff(ylims) == 0) 1 else diff(ylims) * 0.1
+        plot(NA, xlim = c(xlims[1] - xpad, xlims[2] + xpad),
+             ylim = c(ylims[1] - ypad, ylims[2] + ypad),
              xlab = "X", ylab = "Y", main = paste("Perimeter Analysis -", image_name))
       }
-      
-      points(mean(distances$reordered_coords$x),
-        mean(distances$reordered_coords$y),
-        pch = 16
-      )
+
+      points(cx, cy, pch = 3, col = "red", lwd = 2.5, cex = 1.6)
       points(distances$reordered_coords$x[1], distances$reordered_coords$y[1],
-        col = 3, pch = 16
-      )
+             pch = 16, col = "red", cex = 1.6)
 
-      # Draw colored zones for perimeter coordinates dynamically
       n_points <- length(distances$perimeter$dist)
-      z1 <- 1:floor(n_points * 0.25)
-      z2 <- (max(z1) + 1):floor(n_points * 0.5)
-      z3 <- (max(z2) + 1):floor(n_points * 0.75)
-      z4 <- (max(z3) + 1):n_points
-
-      zones <- list(z1, z2, z3, z4)
-      colors <- c(4, 5, 6, 7)
+      b <- round(seq(0, n_points, length.out = 5))
+      zones <- lapply(1:4, function(idx) if (b[idx + 1] > b[idx]) (b[idx] + 1L):b[idx + 1] else integer(0))
+      colors <- c("#00E5FF", "#FFEA00", "#FF007F", "#00E676")
 
       for (i in seq_along(zones)) {
-        lines(distances$perimeter$coords[zones[[i]], 1],
-          distances$perimeter$coords[zones[[i]], 2],
-          col = colors[i], pch = 16, lwd = 2, type = "b"
-        )
-      }
-      dev.off()
-
-      # Save wavelet plot for perimeter if available
-      if (!is.null(wavelets)) {
-        jpeg(filename = file.path(
-          output_dir,
-          paste("wavelet_", tools::file_path_sans_ext(image_name), ".jpg", sep = "")
-        ))
-        plot(wavelets$perimeter[5, ],
-          main = paste("Wavelet 5", image_name),
-          xlab = "", ylab = "", type = "l", col = 3, lwd = 2
-        )
-
-        # Add colored polygons for zones
-        for (i in seq_along(zones)) {
-          polygon(
-            x = c(min(zones[[i]]), zones[[i]], max(zones[[i]])),
-            y = c(
-              min(wavelets$perimeter[5, ]),
-              wavelets$perimeter[5, zones[[i]]],
-              min(wavelets$perimeter[5, ])
-            ),
-            col = colors[i]
+        if (length(zones[[i]]) > 0) {
+          lines(
+            distances$perimeter$coords[zones[[i]], 1],
+            distances$perimeter$coords[zones[[i]], 2],
+            col = colors[i], lwd = 2.5
           )
         }
+      }
 
-        legend("topleft",
-          legend = paste(
-            "Zone",
-            sapply(zones, function(z) paste0(min(z), ":", max(z)))
-          ),
-          pch = c(15, 15, 15, 15), col = colors, border = NULL, bg = "white"
+      if (!is.null(scale_info) && is.list(scale_info) && !is.null(scale_info$min_x)) {
+        pad <- 15
+        graphics::rect(scale_info$min_x - pad, scale_info$min_y - pad,
+                       scale_info$max_x + pad, scale_info$max_y + pad,
+                       border = "#00FF66", lwd = 2.5)
+        scale_label <- sprintf("Scale: %g mm (%.0f px | %.1f px/mm)",
+                               scale_info$scale_mm, scale_info$bar_length_px, scale_info$px_per_mm)
+        img_w <- if (has_img) dim(image)[1] else max(scale_info$max_x + 100, 1000)
+        if (mean(c(scale_info$min_x, scale_info$max_x)) > img_w * 0.5) {
+          t_x <- min(img_w - 30, scale_info$max_x + pad)
+          a_x <- 1
+        } else {
+          t_x <- max(30, scale_info$min_x - pad)
+          a_x <- 0
+        }
+        t_y <- max(35, scale_info$min_y - pad - 20)
+        graphics::text(t_x, t_y, labels = scale_label, adj = c(a_x, 0.5),
+                       col = "#00FF66", font = 2, cex = 0.80)
+      }
+
+      leg_labels <- c("Zone 1", "Zone 2", "Zone 3", "Zone 4", "Centroid (+)", "Rostrum (o)")
+      leg_cols   <- c(colors, "red", "red")
+      leg_pch    <- c(rep(NA, 4), 3, 16)
+      leg_lty    <- c(rep(1, 4), NA, NA)
+
+      if (!is.null(scale_info) && is.list(scale_info) && !is.null(scale_info$min_x)) {
+        leg_labels <- c(leg_labels, sprintf("Scale bar (%g mm)", scale_info$scale_mm))
+        leg_cols   <- c(leg_cols, "#00FF66")
+        leg_pch    <- c(leg_pch, NA)
+        leg_lty    <- c(leg_lty, 1)
+      }
+
+      legend("topleft",
+             legend = leg_labels,
+             col = leg_cols, pch = leg_pch,
+             lty = leg_lty, lwd = 2, bg = rgb(0, 0, 0, 0.65), text.col = "white",
+             cex = 0.80, pt.cex = 1.1, inset = c(0.02, 0.03))
+      if (!is.null(cur_dev) && cur_dev > 1) {
+        try(grDevices::dev.off(cur_dev), silent = TRUE)
+        cur_dev <- NULL
+      }
+
+      if (!is.null(wavelets) && !is.null(wavelets$perimeter) && nrow(wavelets$perimeter) > 0) {
+        scale_to_plot <- min(as.integer(wavelet_scale), nrow(wavelets$perimeter))
+        wav_file <- file.path(
+          output_dir,
+          paste0("wavelet_", tools::file_path_sans_ext(image_name), ".jpg")
         )
-        dev.off()
+        jpeg(filename = wav_file, width = 800, height = 500, res = 100, quality = 85)
+        cur_dev <- grDevices::dev.cur()
+        plot(wavelets$perimeter[scale_to_plot, ],
+          main = paste("Perimeter Wavelet Scale", scale_to_plot, "-", image_name),
+          xlab = "Points", ylab = "Coefficient", type = "l", col = "#00E5FF", lwd = 2
+        )
+
+        for (i in seq_along(zones)) {
+          if (length(zones[[i]]) > 0) {
+            polygon(
+              x = c(min(zones[[i]]), zones[[i]], max(zones[[i]])),
+              y = c(
+                min(wavelets$perimeter[scale_to_plot, ]),
+                wavelets$perimeter[scale_to_plot, zones[[i]]],
+                min(wavelets$perimeter[scale_to_plot, ])
+              ),
+              col = adjustcolor(colors[i], alpha.f = 0.5),
+              border = colors[i]
+            )
+          }
+        }
+        if (!is.null(cur_dev) && cur_dev > 1) {
+          try(grDevices::dev.off(cur_dev), silent = TRUE)
+          cur_dev <- NULL
+        }
       }
     },
     error = function(e) {
@@ -1026,3 +1802,4 @@ save_visualization_perimeter <- function(binary_image, distances, wavelets,
     }
   )
 }
+

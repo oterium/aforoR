@@ -1,6 +1,8 @@
 Package: aforoR
-Title: Anàlisi de FORmes d'Otòlits (Shape Analysis of Fish Otoliths) in R
+Title: Shape Analysis of Fish Otoliths and Biological Contours
 Version: 0.2.0
+Depends:
+    R (>= 3.5.0),
 Authors@R: c(
     person(given   = "Jose Luis",
            family  = "Otero Ferrer",
@@ -22,9 +24,14 @@ Authors@R: c(
            email   = "toni@icm.csic.es",
            role    = "aut",
            comment = c(ORCID = "0000-0001-5215-4587")))
-Description: This package is developed for the shape analysis of fish otoliths. 
-    The methodology developed by the  AFORO team, based on discrete wavelet transform  (Parisi-Baradad et al., 2005), and originally available through the AFORO website (aforo.cmima.csic.es, Lombarte et al., 2006). Although workflow is initially focused on otoliths, it can be applied to other biological structures such as limpets, leaves, statoliths, beaks, and more.
-    Graphical outputs are included. Visit the 'aforoR' website for more information, documentation and examples.
+Description: Provides tools for quantitative contour and shape analysis of
+    fish otoliths and other biological structures (such as limpets, leaves,
+    statoliths, and cephalopod beaks). Implements the discrete wavelet transform
+    methodology developed by the AFORO team (Parisi-Baradad et al., 2005
+    <doi:10.1109/ICIP.2005.1530182>; Lombarte et al., 2006
+    <doi:10.1016/j.scienta.2006.01.037>), along with Curvature Scale Space (CSS),
+    elliptic Fourier analysis, and relative allometric indices. Includes lightweight
+    multicore pipelines and visual diagnostic overlays on real photographs.
 VignetteBuilder: knitr
 License: MIT + file LICENSE
 Imports: 
@@ -33,7 +40,8 @@ Imports:
     utils,
     stats,
     graphics,
-    grDevices
+    grDevices,
+    parallel
 Suggests: 
     testthat (>= 3.0.0),
     fda.usc,
@@ -53,12 +61,10 @@ Suggests:
     caret,
     ggpubr,
     pracma
-Remotes: 
-    bioc::EBImage,
-    MomX/Momocs
 Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 URL: https://oterium.github.io/aforoR
 BugReports: https://github.com/oterium/aforoR/issues
 RoxygenNote: 7.3.3
+Additional_repositories: https://bioconductor.org/packages/release/bioc

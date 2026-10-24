@@ -13,3 +13,6 @@
 ^\.Renviron$
 ^\.agents$
 ^skills-lock\.json$
+^\.zenodo\.json$
+^README\.html$
+^cran-comments\.md$

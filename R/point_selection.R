@@ -32,6 +32,22 @@
 select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
                                p = 0.01, delta_t = 0.01, mean_error = "mgroups",
                                parallel = FALSE) {
+    method <- match.arg(method, c("lda", "qda", "NaiveBayes", "logistic", "knn", "svm"))
+    mean_error <- match.arg(mean_error, c("mgroups", "mtotal"))
+
+    if (!is.logical(cv) || length(cv) != 1 || is.na(cv)) {
+        stop("cv must be a logical value (TRUE or FALSE)")
+    }
+    if (!is.logical(parallel) || length(parallel) != 1 || is.na(parallel)) {
+        stop("parallel must be a logical value (TRUE or FALSE)")
+    }
+    if (!is.numeric(p) || length(p) != 1 || is.na(p) || p <= 0) {
+        stop("p must be a positive numeric value")
+    }
+    if (!is.numeric(delta_t) || length(delta_t) != 1 || is.na(delta_t) || delta_t <= 0 || delta_t >= 1) {
+        stop("delta_t must be a numeric value between 0 and 1")
+    }
+
     # Ensure fda.usc is available if data is fdata
     if (inherits(data, "fdata")) {
         if (!requireNamespace("fda.usc", quietly = TRUE)) {
@@ -42,17 +58,32 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
         x_data <- as.matrix(data)
     }
 
+    if (!is.numeric(x_data)) {
+        stop("data must be numeric")
+    }
+    if (any(is.na(x_data))) {
+        stop("data cannot contain NA values")
+    }
+
+    if (any(is.na(grouping))) {
+        stop("grouping cannot contain NA values")
+    }
     grouping <- as.factor(grouping)
+    if (nrow(x_data) != length(grouping)) {
+        stop("nrow(data) must match length(grouping)")
+    }
+    if (nrow(x_data) < 2) {
+        stop("data must contain at least 2 observations")
+    }
+    if (ncol(x_data) < 1) {
+        stop("data must contain at least 1 variable/column")
+    }
+    if (length(levels(grouping)) < 2) {
+        stop("grouping must contain at least 2 distinct classes")
+    }
+
     n_points <- ncol(x_data)
     delta_idx <- max(1, floor(delta_t * n_points))
-
-    # Windows parallel cluster initialization
-    cl <- NULL
-    if (parallel && .Platform$OS.type != "unix") {
-        cl <- parallel::makeCluster(parallel::detectCores() - 1)
-        on.exit(if (!is.null(cl)) parallel::stopCluster(cl))
-        parallel::clusterExport(cl, varlist = c("x_data", "grouping", "method", "cv", "mean_error", "run_discriminant", "calc_ferror"), envir = environment())
-    }
 
     # helper for error calculation
     calc_ferror <- function(groups, pred, metric) {
@@ -125,7 +156,8 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
                 return(predict(fit, as.data.frame(x_train)))
             }
         } else if (method == "knn") {
-            k_val <- length(levels(groups))
+            k_val <- min(length(levels(groups)), nrow(x_train) - 1)
+            if (k_val < 1) k_val <- 1
             if (cv_opt) {
                 return(class::knn.cv(train = x_train, cl = groups, k = k_val))
             } else {
@@ -144,6 +176,21 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
                 return(predict(fit, x_train))
             }
         }
+    }
+
+    # Windows parallel cluster initialization
+    cl <- NULL
+    if (parallel && .Platform$OS.type != "unix") {
+        detected <- parallel::detectCores()
+        actual_cores <- if (is.na(detected) || detected < 2) 1 else detected - 1
+        cl <- parallel::makeCluster(actual_cores)
+        on.exit({
+            if (!is.null(cl)) {
+                try(parallel::stopCluster(cl), silent = TRUE)
+                cl <- NULL
+            }
+        }, add = TRUE)
+        parallel::clusterExport(cl, varlist = c("x_data", "grouping", "method", "cv", "mean_error", "run_discriminant", "calc_ferror"), envir = environment())
     }
 
     find_best_next_point <- function(available_indices, current_indices) {
@@ -256,6 +303,11 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
     # Final cross-validation confusion matrix
     final_preds <- run_discriminant(x_data[, selected_tn, drop = FALSE], grouping, method, cv_opt = TRUE)
     conf_matrix <- table(groups = grouping, predicted = final_preds)
+
+    if (!is.null(cl)) {
+        try(parallel::stopCluster(cl), silent = TRUE)
+        cl <- NULL
+    }
 
     return(list(
         selected_indices = selected_tn,

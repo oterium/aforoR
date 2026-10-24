@@ -4,7 +4,15 @@
 \alias{preprocess_image}
 \title{Preprocess Image for Contour Analysis}
 \usage{
-preprocess_image(image_path, threshold = NULL, blur_size = 31, blur_sigma = 9)
+preprocess_image(
+  image_path,
+  threshold = NULL,
+  blur_size = "auto",
+  blur_sigma = "auto",
+  downsample_threshold = FALSE,
+  threshold_method = c("adaptive", "otsu", "fixed"),
+  threshold_factor = 1
+)
 }
 \arguments{
 \item{image_path}{A string specifying the path to the image file (e.g., .jpg,
@@ -13,9 +21,26 @@ preprocess_image(image_path, threshold = NULL, blur_size = 31, blur_sigma = 9)
 \item{threshold}{A numeric value (0-1) for binarization. If NULL, Otsu's method
 is automatically applied.}
 
-\item{blur_size}{Size of the Gaussian brush for smoothing (default: 31).}
+\item{blur_size}{Size of the Gaussian brush for smoothing in pixels. Can be an
+odd integer (e.g., 15, 31), or \code{"auto"} / \code{NULL} (default)
+to dynamically adapt the kernel size to ~1% of the image's minimum
+dimension (\eqn{\min(\text{width}, \text{height}) \times 0.01}).
+This preserves fine crenulations in small images while effectively
+suppressing noise in high-resolution or 4K images.}
 
-\item{blur_sigma}{Sigma of the Gaussian brush for smoothing (default: 9).}
+\item{blur_sigma}{Standard deviation of the Gaussian filter brush. Can be a numeric
+value (e.g., 9), or \code{"auto"} / \code{NULL} (default) to
+automatically scale with \eqn{\sigma \approx \text{blur\_size} / 3.5}.}
+
+\item{downsample_threshold}{Logical; if TRUE, calculates Otsu threshold on a
+downsampled thumbnail for faster preprocessing of
+very large images (default: FALSE).}
+
+\item{threshold_method}{Method for automatic binarization: "adaptive" (three-class Otsu
+separating background, edge, and core), "otsu" (standard Otsu),
+or "fixed". Default is "adaptive".}
+
+\item{threshold_factor}{Multiplier applied to the calculated threshold (default: 1.0).}
 }
 \value{
 A \code{pixset} (EBImage) representing the binarized image.
@@ -29,5 +54,4 @@ Gaussian smoothing to reduce noise, and binarization using the Otsu method
 # Use the sample otolith image included in the package
 image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
 processed_img <- preprocess_image(image_path)
-# display(processed_img) # if using EBImage
 }

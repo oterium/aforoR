@@ -7,39 +7,46 @@
 #' @param ra0 A numeric vector representing the input signal (must be a power of
 #'            2 length for some applications, though here it uses the signal
 #'            length).
-#' @param sjm An integer specifying the number of decomposition scales.
-#' @param det A logical value. If FALSE (default), it returns the approximation
-#'            coefficients (low-frequency). If TRUE, it returns the detail
-#'            coefficients (high-frequency).
+#' @param sjm A positive integer specifying the number of decomposition scales (e.g., 9).
+#' @param det A logical value. If FALSE (default), it returns the wavelet
+#'            detail coefficients (high-to-medium frequency differences between
+#'            consecutive scales, centered around zero, capturing localized
+#'            features such as lobation). If TRUE, it returns the smoothed
+#'            approximation coefficients (low-frequency smoothed outline).
 #' @return A matrix of dimensions (sjm x length(ra0)) containing the
 #'         coefficients for each scale.
 #' @export
 #' @examples
-#' # Decompose a signal into 5 scales
+#' # Decompose a signal into 9 scales
 #' sig <- rnorm(512)
-#' sjm <- 9 # Number of scales
+#' sjm <- 9
 #' wavelets <- fwaveletspl_3(sig, sjm)
-#' # plot(wavelets[1,], type="l") # Plot first scale
+#' dim(wavelets)
 fwaveletspl_3 <- function(ra0, sjm, det = FALSE) {
   # Input validation
   if (!is.numeric(ra0)) {
     stop("ra0 must be a numeric vector")
   }
 
-  if (length(ra0) == 0) {
-    stop("ra0 cannot be empty")
-  }
-
-  if (!is.numeric(sjm) || length(sjm) != 1 || sjm <= 0) {
-    stop("sjm must be a positive integer")
-  }
-
-  if (!is.logical(det) || length(det) != 1) {
-    stop("det must be a logical value")
+  if (length(ra0) < 2) {
+    stop("ra0 must contain at least 2 points")
   }
 
   if (any(is.na(ra0))) {
     stop("ra0 cannot contain NA values")
+  }
+
+  if (any(is.infinite(ra0))) {
+    stop("ra0 cannot contain infinite values")
+  }
+
+  if (!is.numeric(sjm) || length(sjm) != 1 || is.na(sjm) || is.infinite(sjm) || sjm <= 0 || sjm != as.integer(sjm)) {
+    stop("sjm must be a positive integer")
+  }
+  sjm <- as.integer(sjm)
+
+  if (!is.logical(det) || length(det) != 1 || is.na(det)) {
+    stop("det must be a logical value (TRUE or FALSE)")
   }
 
   # Filters
@@ -66,7 +73,7 @@ fwaveletspl_3 <- function(ra0, sjm, det = FALSE) {
   wave <- matrix(nrow = sjm, ncol = s_n)
   for (sj in 1:sjm) {
     raj_1 <- fatrous1d(raj_1_anterior, rh_, snh_min, snh_max, sj)
-    rd_j <- raj_1_anterior - raj_1 # Approximation
+    rd_j <- raj_1_anterior - raj_1 # Detail (wavelet plane: difference between consecutive approximations)
     raj_1_anterior <- raj_1
     if (det == FALSE) {
       wave[sj, ] <- rd_j

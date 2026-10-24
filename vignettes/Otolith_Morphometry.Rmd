@@ -23,7 +23,7 @@ This tutorial is dedicated to provide examples that illustrate alternative appro
 
 ## 1. Fish-otolith length relationship
 
-**Linear models must not be used**. Only power models **Y=*a*X^*b*^** has **biologically meaningful** (Lleonart et al., 1993). Parameter estimation can be performed using log-linear or non-linear regression (NLS). Example with NLS (Giménez et al., 2016; Tuset et al., in press).
+**Linear models must not be used**. Only power models **Y=*a*X^*b*^** has **biologically meaningful** (Lleonart et al., 1993). Parameter estimation can be performed using log-linear or non-linear regression (NLS). Example with NLS (Giménez et al., 2016; Tuset et al., 2026).
 
 ``` r
 # Using the built-in Aphanopus dataset
@@ -117,10 +117,10 @@ deviance_results <- fit_allometric_Species %>%
 
 ## 2. Relative Otolith Indices
 
-Otolith measurements can be used to compute relative otolith indices, which are related to life-history strategies in fishes (Cruz and Lombarte, 2004; Lombate and Cruz, 2007; Tuset et al., 2026, in press). There are two indices:
+Otolith measurements can be used to compute relative otolith indices, which are related to life-history strategies in fishes (Cruz and Lombarte, 2004; Lombarte and Cruz, 2007; Tuset et al., 2026). There are two indices:
 
--   Otolith relative length (**ORL**)= otolith length\*100/fish length,
--   Otolith relative size (**ORS**)= otolith area\*1000/(fish length^3^).
+-   Relative otolith length (**ROL**) = otolith length * 100 / fish length,
+-   Relative otolith surface / size (**ROS**) = otolith area * 1000 / (fish length^3^).
 
 Example illustrating how to asses growth rate variation between otolith and fish.
 
@@ -131,8 +131,7 @@ ggplot(Aphanopus, aes(x = SL, y = (OL*100)/SL, color = Species, shape = Species)
   scale_shape_manual(values = c(1,2)) +
   scale_color_manual(values = c("blue","coral2")) +
   geom_smooth(aes(color = Species),
-              method = "lm",
-              formula = y ~ x,
+              method = "loess",
               se = FALSE,
               size = 1) +
   labs(

@@ -2,7 +2,7 @@
 % Please edit documentation in R/process_images.R
 \name{create_result_structure}
 \alias{create_result_structure}
-\title{Create Result Structure for Analysis Data}
+\title{Create Standardized Analysis Result Structure}
 \usage{
 create_result_structure(
   distances,
@@ -28,4 +28,9 @@ A list containing the structured analysis results.
 }
 \description{
 Creates a standardized result structure for storing analysis data.
+}
+\examples{
+dists <- list(radii = runif(512), dist = runif(512), normalized = runif(512))
+res <- create_result_structure(dists, NULL, "sample", result_type = "polar")
+str(res)
 }

@@ -5,24 +5,53 @@
 \title{Save Perimeter Visualization Images}
 \usage{
 save_visualization_perimeter(
-  binary_image,
+  image = NULL,
   distances,
   wavelets,
   image_name,
-  output_dir
+  output_dir,
+  wavelet_scale = 5,
+  plot_width = 1200,
+  plot_height = 800,
+  plot_res = 150,
+  binary_image = NULL,
+  scale_info = NULL
 )
 }
 \arguments{
-\item{binary_image}{The binarized image from preprocessing.}
+\item{image}{An \code{Image} object (original or binary) OR a string specifying
+the image file path. If NULL, draws on coordinate space (useful for GPA).}
 
-\item{distances}{The distance measures from calculate_distances().}
+\item{distances}{The distance measures from \code{\link{calculate_distances}}.}
 
-\item{wavelets}{The wavelet analysis from calculate_wavelets_analysis().}
+\item{wavelets}{The wavelet analysis from \code{\link{calculate_wavelets_analysis}}.}
 
 \item{image_name}{The base name of the image file.}
 
 \item{output_dir}{The directory to save visualization images.}
+
+\item{wavelet_scale}{The wavelet scale to visualize (default: 5).}
+
+\item{plot_width}{Width in pixels for diagnostic JPEG images (default: 1200).}
+
+\item{plot_height}{Height in pixels for diagnostic JPEG images (default: 800).}
+
+\item{plot_res}{Resolution in dpi for diagnostic JPEG images (default: 150).}
+
+\item{binary_image}{Deprecated alias for \code{image} for backwards compatibility.}
+
+\item{scale_info}{Optional list with scale bar metrics (min_x, max_x, min_y, max_y, bar_length_px, scale_mm, px_per_mm).}
+}
+\value{
+An invisible NULL, called for its side effect of saving diagnostic visualization images.
 }
 \description{
 Creates and saves visualization images for perimeter-based analysis.
+Overlays the extracted contour, centroid, rostrum, and perimeter sectors
+directly onto the original photograph in high contrast colors.
+}
+\examples{
+\dontrun{
+save_visualization_perimeter(image, distances, wavelets, "sample_image", tempdir())
+}
 }

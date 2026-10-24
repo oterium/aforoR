@@ -2,6 +2,8 @@
 
 ## 🚀 Major Features & Algorithms
 
+* **Intelligent Scale Detection & Visual Overlay**: Enhanced `find_scale_bar_length()` with dynamic area scaling to reliably detect physical scale bars (e.g., 2mm bars) in high-resolution and 4K photographs. Added automated visual bounding boxes, technical metric annotations, and scale bar entries to diagnostic validation plots (`save_visualization` and `save_visualization_perimeter`) for quality control.
+* **Intelligent Adaptive Tri-Class Threshold**: Implemented `calculate_adaptive_threshold()` utilizing a 3-class Otsu variance maximization to accurately delineate translucent edges and shaded margins in otolith photographs without clipping.
 * **Generalized Procrustes Analysis (GPA)**: Added native support for GPA alignment (`procrustes = TRUE` in `process_images()`). It mathematically registers and scales a collection of otolith contours to a global "consensus shape," minimizing non-biological shape variance before extracting descriptors.
 * **Advanced Morphometric Metrics**: Upgraded [calculate_morphometrics()](file:///c:/aforoR/R/morphometrics.R) to extract cutting-edge geometric shape descriptors:
   * **Feret_Max** (Maximum Feret/Caliper Diameter): The maximum distance between any two contour points, serving as a highly robust measure of maximum otolith length.

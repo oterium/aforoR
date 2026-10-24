@@ -26,6 +26,10 @@ ild <- function(p1, p2) {
     stop("Points cannot contain NA values")
   }
 
+  if (any(is.infinite(p1)) || any(is.infinite(p2))) {
+    stop("Points cannot contain infinite values")
+  }
+
   sqrt(sum((p1 - p2)^2))
 }
 
@@ -61,7 +65,7 @@ regularradius <- function(Rx, Ry, n) {
     stop("Rx and Ry must have the same length")
   }
 
-  if (!is.numeric(n) || length(n) != 1 || n <= 0) {
+  if (!is.numeric(n) || length(n) != 1 || is.na(n) || is.infinite(n) || n <= 0 || n != as.integer(n)) {
     stop("n must be a positive integer")
   }
 
@@ -69,6 +73,19 @@ regularradius <- function(Rx, Ry, n) {
     stop("Rx and Ry cannot contain NA values")
   }
 
+  if (any(is.infinite(Rx)) || any(is.infinite(Ry))) {
+    stop("Rx and Ry cannot contain infinite values")
+  }
+
+  if (length(Rx) < 3) {
+    stop("Rx and Ry must contain at least 3 points")
+  }
+
+  if (all(Rx == Rx[1]) && all(Ry == Ry[1])) {
+    stop("Contour is degenerate with identical coordinates")
+  }
+
+  n <- as.integer(n)
   le <- length(Rx)
 
   M1 <- matrix(c(Rx - mean(Rx), Ry - mean(Ry)), le, 2)
@@ -79,7 +96,7 @@ regularradius <- function(Rx, Ry, n) {
     V2[i + 1] <- which.max((cos(M2[, 1] - 2 * i * pi / n)))
   }
   V2 <- sort(V2)
-  list("pixindices" = V2, "radii" = M2[V2, 2], "coord" = M1[V2, ])
+  list("pixindices" = V2, "radii" = M2[V2, 2], "coord" = M1[V2, , drop = FALSE])
 }
 
 #' Compute Perimeter Distances (Curvilinear Resampling)
@@ -113,29 +130,30 @@ dper <- function(x, y, n) {
     stop("x and y must have the same length")
   }
 
-  if (!is.numeric(n) || length(n) != 1 || n <= 0) {
-    stop("n must be a positive integer")
+  if (!is.numeric(n) || length(n) != 1 || is.na(n) || is.infinite(n) || n < 2 || n != as.integer(n)) {
+    stop("n must be an integer >= 2")
   }
 
   if (any(is.na(x)) || any(is.na(y))) {
     stop("x and y cannot contain NA values")
   }
 
-  if (length(x) < 2) {
-    stop("Need at least 2 points to calculate perimeter distances")
+  if (any(is.infinite(x)) || any(is.infinite(y))) {
+    stop("x and y cannot contain infinite values")
   }
 
-  # x values ordered
-  # y values ordered
-  # n values of interest (e.g., 512)
-
-  xr <- (x[round(seq(1, length(x), length.out = n + 1))])[-1]
-  yr <- (y[round(seq(1, length(y), length.out = n + 1))])[-1]
-
-  centroid <- c(mean(x), mean(y))
-  distances <- numeric(n)
-  for (i in 1:n) {
-    distances[i] <- ild(centroid, c(xr[i], yr[i]))
+  if (length(x) < 3) {
+    stop("Need at least 3 points to calculate perimeter distances")
   }
-  return(list(dist = distances, coords = cbind(xr, yr)))
+
+  if (all(x == x[1]) && all(y == y[1])) {
+    stop("Contour is degenerate with identical coordinates")
+  }
+
+  # Sample n points along the perimeter at strictly equidistant metric arc lengths
+  coo_sampled <- Momocs::coo_interpolate(cbind(x, y), n = as.integer(n))
+  centroid <- c(mean(coo_sampled[, 1]), mean(coo_sampled[, 2]))
+  distances <- sqrt((coo_sampled[, 1] - centroid[1])^2 + (coo_sampled[, 2] - centroid[2])^2)
+
+  return(list(dist = distances, coords = coo_sampled))
 }

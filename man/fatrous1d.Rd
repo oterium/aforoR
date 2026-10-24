@@ -2,7 +2,7 @@
 % Please edit documentation in R/fatrous1d.R
 \name{fatrous1d}
 \alias{fatrous1d}
-\title{Discrete Wavelet Transform (à trous algorithm)}
+\title{Discrete Wavelet Transform (a trous algorithm)}
 \usage{
 fatrous1d(rx, rh, snmin, snmax, sj)
 }
@@ -21,7 +21,7 @@ fatrous1d(rx, rh, snmin, snmax, sj)
 A numeric matrix (1 x length(rx)) representing the convolution result.
 }
 \description{
-Computes the 1D discrete wavelet transform using the "à trous" (with holes)
+Computes the 1D discrete wavelet transform using the a trous (with holes)
 algorithm. This is a non-decimated transform, meaning the signal length
 remains constant across scales.
 }
