@@ -12,7 +12,8 @@ select_points_hall(
   p = 0.01,
   delta_t = 0.01,
   mean_error = "mgroups",
-  parallel = FALSE
+  parallel = FALSE,
+  n_cores = NULL
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ select_points_hall(
 \item{mean_error}{Metric for error. Either "mtotal" (overall error) or "mgroups" (mean error per group).}
 
 \item{parallel}{Logical. If TRUE, use parallel processing (supported on Windows via \code{parLapply} or Unix via \code{mclapply}).}
+
+\item{n_cores}{Optional integer. Number of cores to use when \code{parallel = TRUE}. If NULL, automatically detected and safely constrained to CRAN/CI limits.}
 }
 \value{
 A list containing:

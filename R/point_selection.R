@@ -13,6 +13,7 @@
 #' @param delta_t Numeric. Minimum distance between selected points (as a fraction of total points).
 #' @param mean_error Metric for error. Either "mtotal" (overall error) or "mgroups" (mean error per group).
 #' @param parallel Logical. If TRUE, use parallel processing (supported on Windows via \code{parLapply} or Unix via \code{mclapply}).
+#' @param n_cores Optional integer. Number of cores to use when \code{parallel = TRUE}. If NULL, automatically detected and safely constrained to CRAN/CI limits.
 #'
 #' @return A list containing:
 #'   \itemize{
@@ -31,7 +32,7 @@
 #' }
 select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
                                p = 0.01, delta_t = 0.01, mean_error = "mgroups",
-                               parallel = FALSE) {
+                               parallel = FALSE, n_cores = NULL) {
     method <- match.arg(method, c("lda", "qda", "NaiveBayes", "logistic", "knn", "svm"))
     mean_error <- match.arg(mean_error, c("mgroups", "mtotal"))
 
@@ -178,11 +179,30 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
         }
     }
 
+    # Determine number of cores respecting CRAN/CI limits
+    actual_cores <- 1L
+    if (parallel) {
+        chk_limit <- tolower(Sys.getenv("_R_CHECK_LIMIT_CORES_", ""))
+        limit_2 <- nzchar(chk_limit) && chk_limit != "false"
+
+        if (!is.null(n_cores)) {
+            if (!is.numeric(n_cores) || length(n_cores) != 1 || is.na(n_cores) || n_cores < 1) {
+                stop("n_cores must be a positive integer")
+            }
+            actual_cores <- as.integer(n_cores)
+        } else {
+            detected <- parallel::detectCores()
+            actual_cores <- if (is.na(detected) || detected < 2) 1L else (detected - 1L)
+        }
+
+        if (limit_2) {
+            actual_cores <- min(actual_cores, 2L)
+        }
+    }
+
     # Windows parallel cluster initialization
     cl <- NULL
     if (parallel && .Platform$OS.type != "unix") {
-        detected <- parallel::detectCores()
-        actual_cores <- if (is.na(detected) || detected < 2) 1 else detected - 1
         cl <- parallel::makeCluster(actual_cores)
         on.exit({
             if (!is.null(cl)) {
@@ -202,7 +222,7 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
 
         if (parallel) {
             if (.Platform$OS.type == "unix") {
-                errors <- parallel::mclapply(available_indices, eval_point)
+                errors <- parallel::mclapply(available_indices, eval_point, mc.cores = actual_cores)
             } else {
                 # Windows parallel - reuse cl
                 errors <- parallel::parLapply(cl, available_indices, eval_point)
@@ -281,7 +301,7 @@ select_points_hall <- function(data, grouping, method = "lda", cv = TRUE,
         if (parallel) {
             # Re-use or create cluster for grid search if necessary
             if (.Platform$OS.type == "unix") {
-                grid_errors <- parallel::mclapply(1:nrow(grid), eval_comb)
+                grid_errors <- parallel::mclapply(1:nrow(grid), eval_comb, mc.cores = actual_cores)
             } else {
                 # Export grid to the existing cl cluster
                 parallel::clusterExport(cl, varlist = "grid", envir = environment())

@@ -1250,6 +1250,10 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
     # Determine parallelization
     use_parallel <- !is.null(cores) && cores > 1 && n_imgs > 1
     actual_cores <- if (use_parallel) min(as.integer(cores), n_imgs, parallel::detectCores()) else 1
+    chk_limit <- tolower(Sys.getenv("_R_CHECK_LIMIT_CORES_", ""))
+    if (use_parallel && nzchar(chk_limit) && chk_limit != "false") {
+      actual_cores <- min(actual_cores, 2L)
+    }
 
     if (!procrustes) {
       message(paste("\nProcessing", n_imgs, "images in:", basename(folder),

@@ -187,7 +187,7 @@ test_that("select_points_hall runs with parallel = TRUE across cores without exp
     data[16:30, 5] <- data[16:30, 5] + 4
     groups <- factor(rep(c("Class1", "Class2"), each = 15))
 
-    res_par <- select_points_hall(data, groups, method = "lda", cv = FALSE, parallel = TRUE)
+    res_par <- select_points_hall(data, groups, method = "lda", cv = FALSE, parallel = TRUE, n_cores = 2)
     expect_type(res_par, "list")
     expect_true(length(res_par$selected_indices) >= 1)
     expect_true(all(res_par$selected_indices %in% 1:8))
