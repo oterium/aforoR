@@ -276,12 +276,12 @@ test_that("circ_conv handles n_pad >= N without negative indexing errors", {
     expect_s3_class(res, "css")
 
     # plot.css validation and return value
-    expect_error(plot.css(NULL), "x must be an object of class 'css'")
-    expect_error(plot.css(list(a = 1)), "x must be an object of class 'css'")
+    expect_error(aforoR:::plot.css(NULL), "x must be an object of class 'css'")
+    expect_error(aforoR:::plot.css(list(a = 1)), "x must be an object of class 'css'")
 
     pdf(NULL)
     on.exit(dev.off(), add = TRUE)
-    plot_ret <- plot.css(res)
+    plot_ret <- plot(res)
     expect_null(plot_ret)
 })
 
