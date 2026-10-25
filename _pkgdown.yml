@@ -94,6 +94,9 @@ reference:
     contents:
       - calculate_distances
       - calculate_morphometrics
+      - calculate_rol
+      - calculate_ros
+      - calculate_relative_indices
       - calculate_wavelets_analysis
       - calculate_css
       - fwaveletspl_3
@@ -103,6 +106,7 @@ reference:
     desc: "Advanced analysis and point selection"
     contents:
       - select_points_hall
+      - select_starting_point
 
   - title: "Visualization & Export"
     desc: "Functions for saving results and images"
