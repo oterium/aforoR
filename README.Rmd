@@ -9,7 +9,7 @@ output: github_document
 
 <br clear="right"/>
 
-[![Version](https://img.shields.io/badge/version-0.2.0-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR)
+[![Version](https://img.shields.io/badge/version-0.2.1-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR)
 [![License: MIT](https://img.shields.io/badge/license-MIT-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR/blob/main/LICENSE)
 [![R Version](https://img.shields.io/badge/R-%E2%89%A5%204.0.0-6b94ff.svg?style=flat-square)](https://cran.r-project.org/)
 [![Documentation](https://img.shields.io/badge/docs-vignettes-6b94ff.svg?style=flat-square)](https://oterium.github.io/aforoR)

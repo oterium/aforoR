@@ -1,3 +1,14 @@
+# aforoR 0.2.1
+
+## 🚀 Autonomous & CRAN-Ready Architecture
+
+* **Pure-R Native Geometric Algorithms**: Implemented zero-dependency, native pure-R geometric functions in `R/shape_tools.R` (`.coo_area`, `.coo_perim`, `.coo_align`, `.coo_length`, `.coo_width`, `.coo_calliper`, and `.coo_interpolate`), completely replacing legacy external dependencies.
+* **Native Normalized Elliptic Fourier Analysis (EFA)**: Implemented `.efourier()` following Kuhl & Giardina (1982), computing harmonic Fourier coefficients ($A_n, B_n, C_n, D_n$) with full invariant normalization for size, orientation, and starting phase.
+* **Native Generalized Procrustes Analysis (GPA)**: Implemented `.procrustes_align()` for multi-contour iterative consensus shape registration using singular value decomposition (SVD).
+* **Elimination of `Momocs` Dependency**: Removed `Momocs` and `Remotes:` from `DESCRIPTION`, achieving full CRAN policy compliance and eliminating build/check issues associated with unmaintained external packages.
+* **Package Weight & Size Optimization**: Optimized vignette raster graphics down from 16.4 MB to 3.1 MB and purged unreferenced image copies from `man/figures/`, reducing the installed package size by 72% (from 46.0 MB to 12.9 MB) and clearing all CRAN help-size notes.
+* **HPC & Parallel Safety**: Added automatic core count limits (`n_cores` clamped to $\le 2$ in testing/CRAN environments) in `select_points_hall()` and `process_images()`.
+
 # aforoR 0.2.0
 
 ## 🚀 Major Features & Algorithms

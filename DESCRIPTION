@@ -1,6 +1,6 @@
 Package: aforoR
 Title: Shape Analysis of Fish Otoliths and Biological Contours
-Version: 0.2.0
+Version: 0.2.1
 Depends:
     R (>= 3.5.0),
 Authors@R: c(

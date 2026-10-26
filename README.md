@@ -6,7 +6,7 @@
 
 <br clear="right"/>
 
-[![Version](https://img.shields.io/badge/version-0.2.0-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR)
+[![Version](https://img.shields.io/badge/version-0.2.1-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR)
 [![License:
 MIT](https://img.shields.io/badge/license-MIT-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR/blob/main/LICENSE)
 [![R
