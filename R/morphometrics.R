@@ -83,24 +83,22 @@ calculate_morphometrics <- function(contour, pixels_per_mm = NULL) {
         stop("pixels_per_mm must be a positive numeric value")
     }
 
-    # Convert contour for Momocs
+    # Convert contour matrix
     coo <- as.matrix(contour[, c("X", "Y")])
 
     # Calculate basic measurements in pixels
-    # Area
-    area_px <- Momocs::coo_area(coo)
+    # Area (Shoelace formula)
+    area_px <- .coo_area(coo)
 
-    # Perimeter
-    perimeter_px <- Momocs::coo_perim(coo)
+    # Perimeter (Euclidean edge lengths)
+    perimeter_px <- .coo_perim(coo)
 
-    # Length (Major Axis) and Width (Minor Axis)
-    # Momocs::coo_length gives the maximum dimension (Length)
-    # Momocs::coo_width gives the minimum dimension (Width)
-    length_px <- Momocs::coo_length(coo)
-    width_px <- Momocs::coo_width(coo)
+    # Length (Major Axis) and Width (Minor Axis) via SVD alignment
+    length_px <- .coo_length(coo)
+    width_px <- .coo_width(coo)
 
     # Feret Max (Caliper Length / Maximum Feret Diameter)
-    feret_max_px <- Momocs::coo_calliper(coo)
+    feret_max_px <- .coo_calliper(coo)
 
     # Feret Min (Minimum Feret Diameter) via angular sweep (360 angles)
     angles <- seq(0, pi, length.out = 360)

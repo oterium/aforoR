@@ -1,5 +1,4 @@
 test_that("calculate_morphometrics works correctly", {
-    skip_if_not_installed("Momocs")
 
     # Create a simple square contour 10x10
     # Area = 100, Perimeter = 40
@@ -14,7 +13,7 @@ test_that("calculate_morphometrics works correctly", {
     expect_equal(metrics$Units, "px")
     expect_equal(metrics$Area, 100, tolerance = 0.01)
     expect_equal(metrics$Perimeter, 40, tolerance = 0.01)
-    expect_equal(metrics$Length, sqrt(200), tolerance = 0.01) # Momocs measures max dimension (diagonal for square)
+    expect_equal(metrics$Length, sqrt(200), tolerance = 0.01) # Measures max dimension (diagonal for square)
     expect_gt(metrics$Length, 10)
     expect_equal(metrics$Feret_Max, sqrt(200), tolerance = 0.01) # Exact max Feret is diagonal
     expect_equal(metrics$Feret_Min, 10, tolerance = 0.02)       # Min Feret is the side length
@@ -36,7 +35,6 @@ test_that("calculate_morphometrics works correctly", {
 
 test_that("process_images integrates morphometrics", {
     skip_if_not_installed("EBImage")
-    skip_if_not_installed("Momocs")
 
     # Setup temp dir
     temp_dir <- file.path(tempdir(), "test_morpho")

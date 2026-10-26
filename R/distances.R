@@ -151,7 +151,7 @@ dper <- function(x, y, n) {
   }
 
   # Sample n points along the perimeter at strictly equidistant metric arc lengths
-  coo_sampled <- Momocs::coo_interpolate(cbind(x, y), n = as.integer(n))
+  coo_sampled <- .coo_interpolate(cbind(x, y), n = as.integer(n))
   centroid <- c(mean(coo_sampled[, 1]), mean(coo_sampled[, 2]))
   distances <- sqrt((coo_sampled[, 1] - centroid[1])^2 + (coo_sampled[, 2] - centroid[2])^2)
 

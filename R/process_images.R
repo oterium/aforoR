@@ -277,7 +277,7 @@ extract_contour <- function(binary_image, min_points = 200, min_area = 5000) {
         if (is.null(c_mat) || !is.matrix(c_mat) || nrow(c_mat) < min_points) {
           next
         }
-        current_area <- Momocs::coo_area(c_mat)
+        current_area <- .coo_area(c_mat)
         if (current_area > min_area && current_area > max_area) {
           max_area <- current_area
           contorno <- c_mat
@@ -980,7 +980,7 @@ write_analysis_csv <- function(data, filename, row_names) {
       return(NULL)
     }
 
-    coef_e <- if (ef) Momocs::efourier(contorno_raw, n_harmonics, norm = TRUE) else NULL
+    coef_e <- if (ef) .efourier(contorno_raw, n_harmonics, norm = TRUE) else NULL
     distances <- calculate_distances(contorno_raw, n_points = n_points, start_point = start_point)
     wavelet_results <- if (wavelets) calculate_wavelets_analysis(distances, n_scales = floor(log2(n_points)), detail = FALSE) else NULL
 
@@ -1030,24 +1030,17 @@ write_analysis_csv <- function(data, filename, row_names) {
   contours_to_process <- contours_raw
   if (procrustes && length(valid_indices) > 1) {
     message("\nPhase 1.5: Applying Generalized Procrustes Analysis (GPA)...")
-    if (requireNamespace("Momocs", quietly = TRUE)) {
-      valid_contours <- lapply(contours_raw[valid_indices], function(c) Momocs::coo_interpolate(c, n_points))
-      out_obj <- Momocs::Out(valid_contours)
-      out_aligned <- tryCatch(
-        suppressMessages(Momocs::fgProcrustes(out_obj)),
-        error = function(e) {
-          # Fallback if fgProcrustes hits Momocs internal bug (e.g. Qm2 unbound on 2 shapes)
-          aligned_shapes <- lapply(valid_contours, Momocs::coo_align)
-          list(coo = aligned_shapes)
-        }
-      )
-      if (!is.null(out_aligned) && !is.null(out_aligned$coo)) {
-        for (j in seq_along(valid_indices)) {
-          contours_to_process[[valid_indices[j]]] <- out_aligned$coo[[j]]
-        }
+    valid_contours <- lapply(contours_raw[valid_indices], function(c) .coo_interpolate(c, n_points))
+    out_aligned <- tryCatch(
+      .procrustes_align(valid_contours),
+      error = function(e) {
+        lapply(valid_contours, .coo_align)
       }
-    } else {
-      warning("Momocs package is required for Procrustes alignment. Skipping alignment.")
+    )
+    if (!is.null(out_aligned) && length(out_aligned) == length(valid_indices)) {
+      for (j in seq_along(valid_indices)) {
+        contours_to_process[[valid_indices[j]]] <- out_aligned[[j]]
+      }
     }
   } else if (procrustes) {
     warning("Not enough valid contours found to apply Procrustes alignment.")
@@ -1419,7 +1412,7 @@ process_images <- function(folder, subfolder = FALSE, threshold = NULL,
         cur_px <- px_list[[i]]
         st_pt  <- st_list[[i]]
 
-        coef_e <- if (ef) Momocs::efourier(c_proc, n_harmonics, norm = FALSE) else NULL
+        coef_e <- if (ef) .efourier(c_proc, n_harmonics, norm = FALSE) else NULL
         distances <- calculate_distances(c_proc, n_points = n_points, start_point = st_pt)
         wavelet_results <- if (wavelets) calculate_wavelets_analysis(distances, n_scales = floor(log2(n_points)), detail = FALSE) else NULL
         morpho <- calculate_morphometrics(c_raw, cur_px)

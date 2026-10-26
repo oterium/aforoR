@@ -120,7 +120,6 @@ test_that("calculate_adaptive_threshold works on numeric vectors and handles ext
 
 test_that("save_visualization and save_visualization_perimeter clamp scale gracefully", {
     skip_if_not_installed("EBImage")
-    skip_if_not_installed("Momocs")
 
     example_image <- system.file("extdata", "otolith.jpg", package = "aforoR")
     if (example_image == "") example_image <- file.path("../../inst/extdata", "otolith.jpg")
@@ -409,7 +408,6 @@ test_that("create_result_structure handles vector wavelets safely", {
 
 test_that("process_images runs GPA procrustes alignment without unbound variable errors", {
     skip_if_not_installed("EBImage")
-    skip_if_not_installed("Momocs")
 
     example_image <- system.file("extdata", "otolith.jpg", package = "aforoR")
     if (example_image == "") example_image <- file.path("../../inst/extdata", "otolith.jpg")
@@ -427,8 +425,8 @@ test_that("process_images runs GPA procrustes alignment without unbound variable
     file.copy(example_image, file.path(tmp_dir, "otolith_2.jpg"))
 
     # Direct test of .apply_gpa_alignment with instantiated Out object
-    c1 <- Momocs::coo_interpolate(cnt, 128)
-    c2 <- Momocs::coo_rotate(c1, 0.05)
+    c1 <- aforoR:::.coo_interpolate(cnt, 128)
+    th <- 0.05; c2 <- c1 %*% matrix(c(cos(th), -sin(th), sin(th), cos(th)), 2, 2)
     aligned_res <- aforoR:::.apply_gpa_alignment(list(c1, c2), 1:2, procrustes = TRUE, n_points = 128)
     expect_length(aligned_res, 2)
     expect_true(is.matrix(aligned_res[[1]]))

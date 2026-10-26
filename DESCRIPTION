@@ -35,7 +35,6 @@ Description: Provides tools for quantitative contour and shape analysis of
 VignetteBuilder: knitr
 License: MIT + file LICENSE
 Imports: 
-    Momocs,
     EBImage,
     utils,
     stats,
@@ -68,5 +67,3 @@ URL: https://oterium.github.io/aforoR
 BugReports: https://github.com/oterium/aforoR/issues
 RoxygenNote: 7.3.3
 Additional_repositories: https://bioconductor.org/packages/release/bioc
-Remotes: 
-    MomX/Momocs

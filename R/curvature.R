@@ -80,21 +80,7 @@ calculate_css <- function(contour, n_points = 200, sigma_max = 10, sigma_step = 
 
     # 1. Resample contour for uniform arc length (Modern Improvement)
     # Ensure we have enough points for resampling
-    if (requireNamespace("Momocs", quietly = TRUE)) {
-        if (nrow(coo) < n_points) {
-            coo <- Momocs::coo_interpolate(coo, n_points)
-        } else {
-            coo <- Momocs::coo_sample(coo, n_points)
-        }
-    } else {
-        # Simple linear interpolation for resampling
-        dists <- c(0, cumsum(sqrt(rowSums(diff(rbind(coo, coo[1, ]))^2))))
-        total_len <- dists[length(dists)]
-        target_dists <- seq(0, total_len, length.out = n_points + 1)[1:n_points]
-        coo_x <- approx(dists, c(coo[, 1], coo[1, 1]), xout = target_dists)$y
-        coo_y <- approx(dists, c(coo[, 2], coo[1, 2]), xout = target_dists)$y
-        coo <- cbind(coo_x, coo_y)
-    }
+    coo <- .coo_interpolate(coo, n_points)
 
     # Prepare for smoothing
     N <- nrow(coo)

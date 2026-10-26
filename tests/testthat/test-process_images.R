@@ -1,7 +1,6 @@
 test_that("process_images works with example image", {
     # Skip if dependencies are not installed
     skip_if_not_installed("EBImage")
-    skip_if_not_installed("Momocs")
 
     # Create a temporary directory for the test
     temp_dir <- file.path(tempdir(), "test_images")
@@ -21,7 +20,7 @@ test_that("process_images works with example image", {
     file.copy(example_image, file.path(temp_dir, "otolith.jpg"))
 
     # Run process_images
-    # We suppress warnings because Momocs might produce some warnings about contours
+    # We suppress warnings because Contour extraction might produce some warnings about contours
     suppressWarnings(process_images(temp_dir, wavelets = TRUE, ef = TRUE, save = TRUE, testing = FALSE))
 
     # Check if results were created
@@ -73,7 +72,6 @@ test_that("preprocess_image handles missing files and validates blur params", {
 
 test_that("save_visualization renders lightweight JPEG files over real image and blank canvas", {
     skip_if_not_installed("EBImage")
-    skip_if_not_installed("Momocs")
 
     example_image <- system.file("extdata", "otolith.jpg", package = "aforoR")
     if (example_image == "") example_image <- file.path("../../inst/extdata", "otolith.jpg")
@@ -138,7 +136,6 @@ test_that("preprocess_image downsample_threshold and extract_contour robustness"
 
 test_that("process_images works with testing=TRUE, subfolder=TRUE, and parallel cores", {
     skip_if_not_installed("EBImage")
-    skip_if_not_installed("Momocs")
 
     example_image <- system.file("extdata", "otolith.jpg", package = "aforoR")
     if (example_image == "") example_image <- file.path("../../inst/extdata", "otolith.jpg")

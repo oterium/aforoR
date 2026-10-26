@@ -3,7 +3,6 @@ library(aforoR)
 
 test_that("examples from documentation work as expected", {
     skip_if_not_installed("EBImage")
-    skip_if_not_installed("Momocs")
 
     # 1. Preprocess Image Example
     image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
