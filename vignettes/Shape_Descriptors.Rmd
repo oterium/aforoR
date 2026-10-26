@@ -128,7 +128,7 @@ Within `aforoR`, you can apply this automatically using the `process_images()` o
 
 ```r
 # Example of batch processing with GPA alignment
-# Download the dataset from Zenodo: https://zenodo.org/api/records/18443318/draft/files/images.zip/content
+# Download the dataset from Zenodo: https://doi.org/10.5281/zenodo.18449478
 # Extract it and set the path below to your local folder.
 
 folder_path <- "path/to/your/images/folder" # Replace with your actual path

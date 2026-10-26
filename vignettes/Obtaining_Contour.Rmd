@@ -49,7 +49,7 @@ Automatic contour detection is highly sensitive to illumination conditions. To m
 The package works by processing all supported image files (`.jpg`, `.jpeg`, `.png`, `.tif`, `.tiff`) within a specified folder. While we use sample images for this tutorial, full datasets of *Aphanopus carbo* and *A. intermedius* (as used in other vignettes) can be downloaded from Zenodo:
 
 > [!NOTE]
-> **Zenodo Dataset**: [Aphanopus Otolith Images](https://zenodo.org/api/records/18443318/draft/files/images.zip/content)
+> **Zenodo Dataset**: [Aphanopus Otolith Images](https://doi.org/10.5281/zenodo.18449478)
 
 ### 2.1 Folder Organization Best Practices
 

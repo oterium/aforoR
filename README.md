@@ -8,7 +8,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.2.1-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR)
 [![License:
-MIT](https://img.shields.io/badge/license-MIT-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR/blob/main/LICENSE)
+MIT](https://img.shields.io/badge/license-MIT-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR/blob/master/LICENSE)
 [![R
 Version](https://img.shields.io/badge/R-%E2%89%A5%204.0.0-6b94ff.svg?style=flat-square)](https://cran.r-project.org/)
 [![Documentation](https://img.shields.io/badge/docs-vignettes-6b94ff.svg?style=flat-square)](https://oterium.github.io/aforoR)
@@ -52,9 +52,12 @@ leaves, statoliths, beaks, and shells.
 ### Installation
 
 ``` r
-# Install development version from GitHub
-if (!require("devtools")) install.packages("devtools")
-devtools::install_github("oterium/aforoR")
+# Install released version from CRAN:
+install.packages("aforoR")
+
+# Or development version from GitHub:
+# if (!require("devtools")) install.packages("devtools")
+# devtools::install_github("oterium/aforoR")
 
 # Load the package
 library(aforoR)
@@ -123,13 +126,13 @@ If you use **aforoR** in your research, please cite it as:
 
 Otero-Ferrer, J.L., Tuset, V.M., Manjabacas, A., Lombarte, A. (2026).
 *aforoR*: Anàlisi de FORmes d’Otòlits / Shape Analysis of Fish Otoliths.
-R package version 0.2.0. <https://github.com/oterium/aforoR>
+R package version 0.2.1. <https://github.com/oterium/aforoR>
 
 ### Acknowledgments
 
-Developed by **JLOF, VMT, AM, and AL**. Based on the
-[AFORO](https://aforo.cmima.csic.es/) methodology for marine science and
-morphological research.
+Developed by **JLOF, VMT, AM, and AL**. Based on the AFORO methodology
+(Parisi-Baradad et al., 2005) for marine science and morphological
+research.
 
 <div data-align="center">
 

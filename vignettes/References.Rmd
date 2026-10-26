@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 
 ## References
 
-* Cruz, A., & Lombarte, A. (2004). Otolith size and their relationship with colour pattern and sound production. Journal of Fish Biology, 65, 1512-1525. https://doi:10.1111/j.0022-1112.2004.00558.x.
+* Cruz, A., & Lombarte, A. (2004). Otolith size and their relationship with colour pattern and sound production. Journal of Fish Biology, 65, 1512-1525. https://doi.org/10.1111/j.0022-1112.2004.00558.x
 * Lombarte, A., & Cruz, A. (2007). Otolith size trends in marine fish communities from different depth strata. Journal of Fish Biology, 71(1), 53–76. https://doi.org/10.1111/j.1095-8649.2007.01465.x.
 * Parisi-Baradad, V., Lombarte, A., García-Ladona, E., Cabestany, J., Piera, J., & Chic, O. (2005). Otolith shape contour analysis using affine transformation invariant wavelet transforms and curvature scale space representation. Marine and Freshwater Research, 56, 795–804. https://doi.org/10.1071/MF04162.
 * Parisi-Baradad V, Manjabacas A, Lombarte A, Olivella R,Chic Ò, Piera J, García-Ladona E (2010) Automated taxon identification of teleost fishes using an otolith online dataset aforo. Fisheries Research, 105(1):13–20. https://doi.org/10.1016/j.fishres.2010.02.005.
