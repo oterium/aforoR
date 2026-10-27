@@ -23,4 +23,5 @@
 ^tests/benchmark.*$
 ^tests/test_adversarial.*$
 ^tests/test_e2e_runner\.R$
+^\.licenses$
 
