@@ -266,3 +266,148 @@
   }
   aligned
 }
+
+#' Validate Contour Matrix and Resolve Rostrum Starting Point
+#'
+#' Validates that a contour has at least 3 finite, non-NA, non-degenerate numeric
+#' points and reorders the contour vertices so row 1 corresponds to the resolved
+#' starting point (\code{"auto"}, \code{"manual"}, index, or \code{c(x, y)}).
+#'
+#' @param contour A matrix or data.frame with X and Y columns.
+#' @param start_point Starting point mode or coordinates (\code{"auto"}, \code{"manual"}, index, or \code{c(x, y)}).
+#' @param remove_duplicate_end Logical; if TRUE, drops a duplicated closing vertex when row 1 equals row N.
+#' @return A list with \code{coords} (reordered N x 2 numeric matrix with colnames X, Y),
+#'         \code{start_idx} (integer index in original contour), and
+#'         \code{start_point_coords} (named numeric vector \code{c(X, Y)}).
+#' @keywords internal
+#' @noRd
+.resolve_contour_and_start <- function(contour, start_point = "auto", remove_duplicate_end = FALSE) {
+  if (is.null(contour)) stop("contour cannot be NULL")
+
+  if (is.data.frame(contour)) {
+    if (all(c("X", "Y") %in% colnames(contour))) {
+      coo <- as.matrix(contour[, c("X", "Y")])
+    } else if (all(c("x", "y") %in% colnames(contour))) {
+      coo <- as.matrix(contour[, c("x", "y")])
+      colnames(coo) <- c("X", "Y")
+    } else if (ncol(contour) >= 2) {
+      coo <- as.matrix(contour[, 1:2])
+      colnames(coo) <- c("X", "Y")
+    } else {
+      stop("contour must have at least 2 columns")
+    }
+  } else if (is.matrix(contour)) {
+    if (ncol(contour) >= 2) {
+      coo <- contour[, 1:2, drop = FALSE]
+      colnames(coo) <- c("X", "Y")
+    } else {
+      stop("contour must have at least 2 columns")
+    }
+  } else {
+    stop("contour must be a data.frame or matrix with X and Y columns")
+  }
+
+  if (nrow(coo) < 3) {
+    stop("contour must contain at least 3 points")
+  }
+
+  if (!is.numeric(coo)) {
+    stop("contour coordinates must be numeric")
+  }
+
+  if (any(is.na(coo))) {
+    stop("contour coordinates cannot contain NA values")
+  }
+
+  if (any(is.infinite(coo))) {
+    stop("contour coordinates cannot contain infinite values")
+  }
+
+  n_orig <- nrow(coo)
+  had_dup_end <- FALSE
+  if (remove_duplicate_end && nrow(coo) > 1 && isTRUE(all(coo[1, ] == coo[nrow(coo), ]))) {
+    coo <- coo[-nrow(coo), , drop = FALSE]
+    had_dup_end <- TRUE
+  }
+
+  if (nrow(coo) < 3) {
+    stop("contour must contain at least 3 points")
+  }
+
+  if (all(coo[, 1] == coo[1, 1]) && all(coo[, 2] == coo[1, 2])) {
+    stop("contour is degenerate with identical coordinates")
+  }
+
+  n_raw <- nrow(coo)
+  if (is.matrix(start_point) || is.data.frame(start_point)) {
+    if (nrow(start_point) != 1L || ncol(start_point) < 1L) {
+      stop("start_point matrix or data.frame must have exactly 1 row and 1 or 2 columns")
+    }
+    start_point <- as.numeric(start_point[1, ])
+  }
+
+  if (is.null(start_point) || isTRUE(start_point) ||
+      (is.character(start_point) && length(start_point) == 1 && tolower(start_point) == "auto")) {
+    x_max_idx <- which.max(coo[, 1])
+    x_max <- coo[x_max_idx, 1]
+    x_mean <- mean(coo[, 1])
+    rightmost_candidates <- which(coo[, 1] == x_max & coo[, 1] > x_mean)
+    start_idx <- if (length(rightmost_candidates) == 0) x_max_idx else rightmost_candidates[1]
+  } else if (is.character(start_point) && length(start_point) == 1 && tolower(start_point) %in% c("manual", "interactive")) {
+    auto_idx <- which.max(coo[, 1])
+    if (!interactive() && is.null(getOption("aforoR.SimLocator"))) {
+      message("Non-interactive session: using automatic rightmost point.")
+      start_idx <- auto_idx
+    } else {
+      graphics::plot(coo[, 1], coo[, 2], type = "l", col = "#00E5FF", lwd = 2, asp = 1,
+                     xlab = "X", ylab = "Y", main = "Select Starting Point (Rostrum)")
+      graphics::points(coo[auto_idx, 1], coo[auto_idx, 2], pch = 1, col = "#FFEA00", lwd = 2.5, cex = 1.8)
+      graphics::legend("topleft",
+                       legend = c("Click on Rostrum (starting point)", "Right-click / Esc = Keep Auto (o)"),
+                       col = c("red", "#FFEA00"), pch = c(16, 1),
+                       bg = grDevices::rgb(0, 0, 0, 0.7), text.col = "white", cex = 0.85, inset = c(0.02, 0.02))
+      sim_loc <- getOption("aforoR.SimLocator")
+      pt <- tryCatch(if (is.function(sim_loc)) sim_loc(n = 1) else graphics::locator(n = 1), error = function(e) NULL)
+      if (is.null(pt) || length(pt$x) == 0) {
+        start_idx <- auto_idx
+      } else {
+        d_sq <- (coo[, 1] - pt$x[1])^2 + (coo[, 2] - pt$y[1])^2
+        start_idx <- which.min(d_sq)
+        graphics::points(coo[start_idx, 1], coo[start_idx, 2], pch = 16, col = "red", cex = 1.6)
+      }
+    }
+  } else {
+    if (!is.numeric(start_point) || any(is.na(start_point)) || any(is.infinite(start_point))) {
+      stop("start_point must be 'auto', 'manual', or a valid numeric index or coordinate pair c(x, y) without NA/Inf")
+    }
+    if (length(start_point) == 1) {
+      if (start_point != as.integer(start_point)) {
+        stop(paste("start_point index must be an integer between 1 and", n_raw))
+      }
+      start_idx <- as.integer(start_point)
+      if (had_dup_end && start_idx == n_orig) {
+        start_idx <- 1L
+      }
+      if (start_idx < 1L || start_idx > n_raw) {
+        stop(paste("start_point index must be between 1 and", n_raw))
+      }
+    } else if (length(start_point) == 2) {
+      dists_sq <- (coo[, 1] - start_point[1])^2 + (coo[, 2] - start_point[2])^2
+      start_idx <- which.min(dists_sq)
+    } else {
+      stop("start_point must be an index (length 1) or coordinates c(x, y) (length 2)")
+    }
+  }
+
+  if (start_idx > 1L) {
+    indices <- c(start_idx:n_raw, 1:(start_idx - 1L))
+    coo <- coo[indices, , drop = FALSE]
+  }
+  start_pt_coords <- c(X = unname(coo[1, 1]), Y = unname(coo[1, 2]))
+
+  list(
+    coords = coo,
+    start_idx = start_idx,
+    start_point_coords = start_pt_coords
+  )
+}

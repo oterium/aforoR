@@ -4,10 +4,14 @@
 \alias{plot.css}
 \title{Plot Curvature Scale Space Image}
 \usage{
-\method{plot}{css}(x, ...)
+\method{plot}{css}(x, show_zones = TRUE, ...)
 }
 \arguments{
 \item{x}{An object of class `css`.}
+
+\item{show_zones}{Logical; if TRUE (default), colors points by the 4 AFORO
+contour zones (unless \code{col} is explicitly supplied in \code{...})
+and draws vertical zone boundary guides at 0.25, 0.50, and 0.75.}
 
 \item{...}{Additional arguments passed to plot.}
 }
@@ -16,10 +20,14 @@ An invisible NULL, called for its plotting side effect.
 }
 \description{
 Visualizes the CSS image, showing inflection points across different scales.
+By default (\code{show_zones = TRUE}), points are colored according to the 4
+AFORO contour sectors starting from the rostrum (\code{0.0}): Zone 1 (0-0.25),
+Zone 2 (0.25-0.50), Zone 3 (0.50-0.75), and Zone 4 (0.75-1.0).
 }
 \examples{
 \dontrun{
 css_res <- calculate_css(contour)
 plot(css_res)
+plot(css_res, main = "Custom Title", col = "blue")
 }
 }

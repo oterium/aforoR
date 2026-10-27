@@ -11,8 +11,8 @@ test_that("calculate_distances handles degenerate contours and boundary cases", 
 
     # Invalid start_point
     cnt <- data.frame(X = c(0, 5, 5, 0), Y = c(0, 0, 5, 5))
-    expect_error(calculate_distances(cnt, start_point = c(NA, 1)), "start_point must be a valid numeric")
-    expect_error(calculate_distances(cnt, start_point = c(Inf, 0)), "start_point must be a valid numeric")
+    expect_error(calculate_distances(cnt, start_point = c(NA, 1)), "start_point must be 'auto', 'manual', or a valid numeric")
+    expect_error(calculate_distances(cnt, start_point = c(Inf, 0)), "start_point must be 'auto', 'manual', or a valid numeric")
     expect_error(calculate_distances(cnt, start_point = 0), "start_point index must be between 1 and")
     expect_error(calculate_distances(cnt, start_point = 10), "start_point index must be between 1 and")
 
@@ -95,7 +95,8 @@ test_that("fatrous1d validates filter length", {
 test_that("extract_contour validates min_points and min_area", {
     dummy_img <- matrix(0, 10, 10)
     expect_error(extract_contour(dummy_img, min_points = 1), "min_points must be an integer >= 3")
-    expect_error(extract_contour(dummy_img, min_area = -5), "min_area must be a numeric value >= 0")
+    expect_error(extract_contour(dummy_img, min_area = -5), "min_area must be 'auto', NULL, or a numeric value >= 0")
+    expect_error(extract_contour(dummy_img, min_area = "invalid"), "min_area must be 'auto', NULL, or a numeric value >= 0")
 })
 
 test_that("calculate_adaptive_threshold works on numeric vectors and handles extreme values", {
@@ -516,3 +517,214 @@ test_that("create_result_structure handles missing coord/coords cleanly", {
 
 
 
+test_that("process_images enforces subfolder = FALSE and matching row count for custom start_points matrix", {
+    expect_error(
+        process_images(tempdir(), subfolder = TRUE, start_points = matrix(1:4, nrow = 2, ncol = 2)),
+        "subfolder = TRUE is not allowed when providing a custom start_points matrix"
+    )
+    expect_error(
+        process_images(tempdir(), subfolder = FALSE, start_points = matrix(1:2, nrow = 2, ncol = 1)),
+        "at least 2 columns"
+    )
+
+    example_image <- system.file("extdata", "otolith.jpg", package = "aforoR")
+    if (example_image == "") example_image <- file.path("../../inst/extdata", "otolith.jpg")
+    skip_if_not(file.exists(example_image), "Example image not found")
+
+    tmp_sp <- file.path(tempdir(), "test_sp_matrix")
+    if (dir.exists(tmp_sp)) unlink(tmp_sp, recursive = TRUE)
+    dir.create(tmp_sp)
+    on.exit(unlink(tmp_sp, recursive = TRUE), add = TRUE)
+
+    file.copy(example_image, file.path(tmp_sp, "oto1.jpg"))
+    file.copy(example_image, file.path(tmp_sp, "oto2.jpg"))
+
+    # Mismatched row count (3 rows for 2 images) should error
+    expect_error(
+        process_images(tmp_sp, subfolder = FALSE, start_points = matrix(1:6, nrow = 3, ncol = 2),
+                       wavelets = FALSE, ef = FALSE, testing = FALSE, save = FALSE),
+        "must equal the total number of images in the folder"
+    )
+})
+
+test_that("select_scale_bar and detect_scale modes validate inputs and handle non-interactive sessions", {
+    expect_error(select_scale_bar("nonexistent.jpg", scale_mm = 0), "scale_mm must be a positive numeric value")
+    expect_error(select_scale_bar("nonexistent.jpg", scale_mm = -1), "scale_mm must be a positive numeric value")
+    expect_error(select_scale_bar("nonexistent.jpg", scale_mm = 1), "image must be an Image object or a valid file path")
+    expect_error(process_images(tempdir(), detect_scale = "invalid_mode"), "detect_scale must be 'none', 'auto', or 'manual'")
+
+    example_image <- system.file("extdata", "otolith.jpg", package = "aforoR")
+    if (example_image == "") example_image <- file.path("../../inst/extdata", "otolith.jpg")
+    skip_if_not(file.exists(example_image), "Example image not found")
+
+    # In non-interactive session, select_scale_bar returns NULL cleanly
+    expect_null(select_scale_bar(example_image, scale_mm = 1))
+})
+
+test_that("fwaveletspl_3 and calculate_wavelets_analysis return detail when det/detail = TRUE (default) and approximation when FALSE", {
+    theta <- seq(0, 2 * pi, length.out = 64)
+    sig <- 10 + cos(theta) + 0.3 * sin(4 * theta)
+
+    w_def <- fwaveletspl_3(sig, sjm = 4)
+    w_det <- fwaveletspl_3(sig, sjm = 4, det = TRUE)
+    w_app <- fwaveletspl_3(sig, sjm = 4, det = FALSE)
+
+    expect_equal(w_def, w_det)
+    # Detail coefficients are centered around 0; approximation retains signal mean (~10)
+    expect_lt(abs(mean(w_det[1, ])), 1e-6)
+    expect_equal(mean(w_app[1, ]), 10, tolerance = 0.2)
+    # Reconstruction check: sig = w_app[4, ] + colSums(w_det[1:4, ])
+    expect_equal(as.numeric(w_app[4, ] + colSums(w_det[1:4, ])), sig, tolerance = 1e-10)
+})
+
+test_that("select_starting_point and select_scale_bar work end-to-end with simulated mouse clicks in manual mode", {
+    example_image <- system.file("extdata", "otolith.jpg", package = "aforoR")
+    if (example_image == "") example_image <- file.path("../../inst/extdata", "otolith.jpg")
+    skip_if_not(file.exists(example_image), "Example image not found")
+
+    pdf(NULL)
+    on.exit({
+        options(aforoR.SimLocator = NULL)
+        try(dev.off(), silent = TRUE)
+    }, add = TRUE)
+
+    # 1. Test select_starting_point clicking near the leftmost tip (x = 50, y = 300)
+    options(aforoR.SimLocator = function(n = 1) list(x = 50, y = 300))
+    pt_snapped <- select_starting_point(example_image)
+    expect_true(is.numeric(pt_snapped))
+    expect_length(pt_snapped, 2)
+    expect_named(pt_snapped, c("x", "y"))
+    # Snapped point must be on the left half of the otolith, not at x = 50
+    expect_gt(pt_snapped["x"], 50)
+
+    # 2. Test select_scale_bar clicking 2 points 200 px apart (no snapping)
+    options(aforoR.SimLocator = function(n = 2) list(x = c(100, 300), y = c(500, 500)))
+    px_mm <- select_scale_bar(example_image, scale_mm = 2)
+    expect_equal(as.numeric(px_mm), 100, tolerance = 1e-6)
+    sc_info <- attr(px_mm, "scale_info")
+    expect_equal(sc_info$bar_length_px, 200, tolerance = 1e-6)
+    expect_equal(sc_info$x1, 100L)
+    expect_equal(sc_info$x2, 300L)
+
+    # 3. Test process_images with detect_scale = "manual" and start_points = "manual"
+    tmp_man <- file.path(tempdir(), "test_manual_pipeline")
+    if (dir.exists(tmp_man)) unlink(tmp_man, recursive = TRUE)
+    dir.create(tmp_man)
+    on.exit(unlink(tmp_man, recursive = TRUE), add = TRUE)
+    file.copy(example_image, file.path(tmp_man, "oto_manual.jpg"))
+
+    options(aforoR.SimLocator = function(n = 1) {
+        if (n == 2) list(x = c(100, 250), y = c(550, 550)) else list(x = 80, y = 300)
+    })
+    suppressMessages(
+        process_images(tmp_man, detect_scale = "manual", scale_mm = 1.5,
+                       start_points = "manual", wavelets = TRUE, ef = FALSE,
+                       testing = TRUE, save = TRUE)
+    )
+    morpho_df <- read.table(file.path(tmp_man, "Polar", "MorphometricsEN.csv"), header = TRUE, sep = ";")
+    expect_equal(morpho_df$Units[1], "mm")
+    expect_true(file.exists(file.path(tmp_man, "Polar", "zonal_oto_manual.jpg")))
+    options(aforoR.SimLocator = NULL)
+})
+
+test_that("refactored internal helpers (.resolve_contour_and_start, .render_zonal_and_wavelet_plots, .run_batch_tasks) handle edge cases", {
+    # 1. .resolve_contour_and_start with remove_duplicate_end = TRUE vs FALSE
+    closed_cnt <- rbind(
+        c(0, 0),
+        c(10, 0),
+        c(5, 5),
+        c(0, 0)
+    )
+    res_keep <- aforoR:::.resolve_contour_and_start(closed_cnt, start_point = "auto", remove_duplicate_end = FALSE)
+    res_drop <- aforoR:::.resolve_contour_and_start(closed_cnt, start_point = "auto", remove_duplicate_end = TRUE)
+    expect_equal(nrow(res_keep$coords), 4L)
+    expect_equal(nrow(res_drop$coords), 3L)
+    expect_equal(unname(res_drop$start_point_coords), c(10, 0))
+
+    # Closing vertex index (nrow(closed_cnt) == 4) maps cleanly to vertex 1 when remove_duplicate_end = TRUE
+    res_end_idx <- aforoR:::.resolve_contour_and_start(closed_cnt, start_point = 4L, remove_duplicate_end = TRUE)
+    expect_equal(res_end_idx$start_idx, 1L)
+    expect_equal(unname(res_end_idx$start_point_coords), c(0, 0))
+
+    # Non-numeric 3-row closed data.frame reports numeric validation error even when remove_duplicate_end = TRUE
+    char_df <- data.frame(X = c("a", "b", "a"), Y = c("c", "d", "c"), stringsAsFactors = FALSE)
+    expect_error(
+        aforoR:::.resolve_contour_and_start(char_df, remove_duplicate_end = TRUE),
+        "contour coordinates must be numeric"
+    )
+
+    # Reject invalid start_point length, empty matrix, 3-col matrix, and non-integer index
+    expect_error(
+        aforoR:::.resolve_contour_and_start(closed_cnt, start_point = c(1, 2, 3)),
+        "start_point must be an index \\(length 1\\) or coordinates"
+    )
+    expect_error(
+        aforoR:::.resolve_contour_and_start(closed_cnt, start_point = matrix(numeric(0), 0, 2)),
+        "start_point matrix or data.frame must have exactly 1 row"
+    )
+    expect_error(
+        aforoR:::.resolve_contour_and_start(closed_cnt, start_point = matrix(1:3, 1, 3)),
+        "start_point must be an index \\(length 1\\) or coordinates"
+    )
+    expect_error(
+        aforoR:::.resolve_contour_and_start(closed_cnt, start_point = 2.5),
+        "start_point index must be an integer"
+    )
+
+    # 2. save_visualization / save_visualization_perimeter with file path string + scale_info
+    example_image <- system.file("extdata", "otolith.jpg", package = "aforoR")
+    if (example_image == "") example_image <- file.path("../../inst/extdata", "otolith.jpg")
+    if (file.exists(example_image)) {
+        theta <- seq(0, 2 * pi, length.out = 65)[-65]
+        cnt <- cbind(X = 300 + 100 * cos(theta), Y = 300 + 60 * sin(theta))
+        dists <- calculate_distances(cnt, n_points = 64)
+        wavs <- calculate_wavelets_analysis(dists, n_scales = 5)
+        sc_info <- list(
+            min_x = 50, max_x = 150, min_y = 50, max_y = 55,
+            x1 = 50L, y1 = 52L, x2 = 150L, y2 = 52L,
+            endpoints = list(x1 = 50L, y1 = 52L, x2 = 150L, y2 = 52L),
+            bar_length_px = 100, scale_mm = 1, px_per_mm = 100
+        )
+        tmp_vis <- file.path(tempdir(), "test_vis_filepath_scale")
+        on.exit(unlink(tmp_vis, recursive = TRUE), add = TRUE)
+        expect_silent(
+            save_visualization(
+                image = example_image, distances = dists, wavelets = wavs,
+                image_name = "oto_path.jpg", output_dir = tmp_vis, scale_info = sc_info
+            )
+        )
+        expect_true(file.exists(file.path(tmp_vis, "zonal_oto_path.jpg")))
+        expect_silent(
+            save_visualization_perimeter(
+                image = example_image, distances = dists, wavelets = wavs,
+                image_name = "oto_perim_path.jpg", output_dir = tmp_vis, scale_info = sc_info
+            )
+        )
+        expect_true(file.exists(file.path(tmp_vis, "zonal_oto_perim_path.jpg")))
+        expect_error(
+            save_visualization(
+                image = NULL, distances = dists, wavelets = wavs,
+                image_name = "oto_inf.jpg", output_dir = tmp_vis, wavelet_scale = Inf
+            ),
+            "wavelet_scale must be a positive integer"
+        )
+    }
+
+    # 3. process_images rejects NA logical flags and Inf threshold_factor
+    expect_error(
+        process_images(tempdir(), wavelets = NA),
+        "must be logical values"
+    )
+    expect_error(
+        process_images(tempdir(), threshold_factor = Inf),
+        "threshold_factor must be a positive number"
+    )
+
+    # 4. .run_batch_tasks sequential and parallel execution
+    items <- list(list(x = 2), list(x = 5))
+    seq_res <- aforoR:::.run_batch_tasks(items, function(it) it$x * 10, use_parallel = FALSE)
+    expect_equal(seq_res, list(20, 50))
+
+    par_res <- aforoR:::.run_batch_tasks(items, function(it) it$x * 10, use_parallel = TRUE, actual_cores = 2L)
+    expect_equal(par_res, list(20, 50))
+})

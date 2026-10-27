@@ -42,6 +42,43 @@ The package determine automatically the initial contour point, which represents 
 
 ![](images/Standarization3.png){style="display:block; margin-left:auto; margin-right:auto;" width="25.9cm"}
 
+### 1.1 Selecting the Contour Starting Point (`start_points`)
+
+In `process_images()`, the `start_points` argument controls how the initial contour point (`0.0`, typically the rostrum) is selected across the folder without requiring extra parameters:
+
+1. **Automatic (`start_points = "auto"`, default)**: Automatically selects the rightmost contour vertex ($\max(X)$) on every image. Compatible with both single-folder (`subfolder = FALSE`) and recursive (`subfolder = TRUE`) batch processing.
+2. **Interactive Mouse Selection (`start_points = "manual"`)**: Sequentially displays each image with its extracted contour in cyan and the automatic candidate highlighted in yellow (`o`). Left-clicking with the mouse snaps the starting point to the nearest contour vertex (marked in red), while right-clicking or pressing `Esc` keeps the automatic candidate for that specimen.
+3. **Custom Coordinate Matrix (`start_points = matrix_or_df`)**: Accepts a 2-column numeric `matrix` (or `data.frame`) of `(X, Y)` coordinates where `nrow(start_points)` must equal the total number of images in the folder. When using a custom matrix, folders must be processed individually (`subfolder = FALSE`).
+
+```r
+# Option A: Default automatic rostrum detection
+process_images(folder = "path/to/images", start_points = "auto")
+
+# Option B: Interactive mouse click on each otolith
+process_images(folder = "path/to/images", start_points = "manual")
+
+# Option C: Pre-defined N x 2 matrix of starting points (one row per image, subfolder = FALSE)
+rostrum_coords <- matrix(c(1850, 920,
+                           1790, 880), ncol = 2, byrow = TRUE,
+                         dimnames = list(NULL, c("X", "Y")))
+process_images(folder = "path/to/2_images", subfolder = FALSE, start_points = rostrum_coords)
+```
+
+### 1.2 Scale Calibration Modes (`detect_scale`)
+
+The `detect_scale` argument provides three flexible ways to calibrate pixel-to-millimeter ratios:
+
+1. **`detect_scale = "none"` (default)**: Uses the user-supplied `pixels_per_mm` numeric value (or outputs raw pixel units if omitted).
+2. **`detect_scale = "auto"`**: Automatically segments the calibration scale bar from the background, computes its orientation and Euclidean pixel length, and marks its endpoints with red `x` marks in the diagnostic zonal visualization.
+3. **`detect_scale = "manual"`**: Interactive calibration. Displays the image and prompts the user to click the two endpoints of the scale bar with the mouse. The exact Euclidean distance between the clicks is computed without snapping, calculating `pixels_per_mm` based on the specified physical length.
+
+### 1.3 Adaptive Size Filtering (`min_area`)
+
+The `min_area` argument controls the minimum object area required to be recognized as an otolith, filtering out dust, specks, and segmentation artifacts:
+
+- **Adaptive Dynamic Scaling (`min_area = "auto"`, default)**: Calculates the threshold as 0.5% of the total image pixel area (min(5000, max(500, total_pixels * 0.005))). This dynamically adapts to both low-resolution photos (preventing false rejection of small specimens) and ultra-high-resolution macro photographs.
+- **Fixed Area Threshold (`min_area = numeric`)**: Allows setting an explicit minimum area in square pixels (e.g. `min_area = 5000`).
+
 Automatic contour detection is highly sensitive to illumination conditions. To minimize variability and ensure reliable results, we recommend acquiring all images under consistent lighting and background conditions (preferably uniform black color).
 
 ## 2. Setting up images
@@ -109,13 +146,20 @@ You can specify the scale of your images using the `pixels_per_mm` argument to g
 
 ```{r process}
 # Run the processing pipeline
-# We set pixels_per_mm = 100 as an example scale (100 pixels = 1 mm)
+# By default, threshold_method = "adaptive" (3-class Otsu), detect_scale = "none", and start_points = "auto" are used.
+# Scale calibration options via detect_scale:
+#   - detect_scale = "none" (default): uses fixed pixels_per_mm (or outputs in px)
+#   - detect_scale = "auto": automatically detects the scale bar and marks its endpoints (x)
+#   - detect_scale = "manual": prompts you to click the start & end points of the scale bar with the mouse
 process_images(
+  min_area = "auto",
   folder = work_dir,
-  threshold = NULL, # Automatic thresholding (Otsu)
-  wavelets = TRUE, # Calculate wavelets
-  ef = TRUE, # Calculate Elliptic Fourier Descriptors
-  pixels_per_mm = 100 # define scale
+  threshold_method = "adaptive",
+  wavelets = TRUE,
+  ef = TRUE,
+  pixels_per_mm = 100,
+  detect_scale = "none",
+  start_points = "auto"
 )
 ```
 
@@ -164,7 +208,7 @@ if (file.exists(wavelet_file)) {
 The package automatically generates diagnostic images to verify the contour extraction and analysis zones.
 
 #### Zonal Analysis
-This image shows the original binary otolith with the centroid (black dot), the starting point of the contour (red dot), and the angular sectors used for analysis (colored lines).
+This diagnostic image overlays the extracted contour directly onto the original photograph, displaying the centroid (red `+`), the starting point/rostrum (red circle `o`), the four AFORO contour zones (`Zone 1` to `Zone 4`), and—when `detect_scale = "auto"` or `"manual"`—the calibration scale bar (green) with its exact physical endpoints (`x` in red).
 
 ![Zonal Analysis showing contour and sectors](images/zonal_otolith.jpg){width="80%"}
 

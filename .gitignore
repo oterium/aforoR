@@ -72,3 +72,6 @@ Cartesian/
 skills-lock.json
 Rplots.pdf
 tests/testthat/Rplots.pdf
+
+vignettes/figure/
+

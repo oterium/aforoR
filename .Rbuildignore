@@ -16,3 +16,11 @@
 ^\.zenodo\.json$
 ^README\.html$
 ^cran-comments\.md$
+^vignettes/figure$
+^TEST_INFRA\.md$
+^TEST_READY\.md$
+^tests/adversarial.*$
+^tests/benchmark.*$
+^tests/test_adversarial.*$
+^tests/test_e2e_runner\.R$
+

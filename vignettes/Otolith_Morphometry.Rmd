@@ -119,10 +119,22 @@ deviance_results <- fit_allometric_Species %>%
 
 Otolith measurements can be used to compute relative otolith indices, which are related to life-history strategies in fishes (Cruz and Lombarte, 2004; Lombarte and Cruz, 2007; Tuset et al., 2026). There are two indices:
 
--   Relative otolith length (**ROL**) = otolith length * 100 / fish length,
--   Relative otolith surface / size (**ROS**) = otolith area * 1000 / (fish length^3^).
+-   Relative otolith length (**ROL**) = otolith length * 100 / fish length (`calculate_rol()`),
+-   Relative otolith surface / size (**ROS**) = otolith area * 1000 / (fish length^3^) (`calculate_ros()`).
 
-Example illustrating how to asses growth rate variation between otolith and fish.
+Both indices can be computed directly using the helper functions `calculate_rol()`, `calculate_ros()`, or together via `calculate_relative_indices()`:
+
+``` r
+# Calculate ROL and ROS using built-in aforoR functions
+rel_indices <- calculate_relative_indices(
+  otolith_length = Aphanopus$OL,
+  otolith_area   = Aphanopus$Area,
+  fish_length    = Aphanopus$SL
+)
+head(rel_indices)
+```
+
+Example illustrating how to assess growth rate variation between otolith and fish:
 
 ``` r
 library(ggplot2)

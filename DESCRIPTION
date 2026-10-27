@@ -1,28 +1,28 @@
 Package: aforoR
 Title: Shape Analysis of Fish Otoliths and Biological Contours
-Version: 0.2.1
+Version: 0.2.2
 Depends:
     R (>= 3.5.0),
 Authors@R: c(
     person(given   = "Jose Luis",
            family  = "Otero Ferrer",
-           email   = "joseluis.oteroferrer@gmail.com",
-           role    = c("aut", "cph"),
+           email   = "jose.otero@biostatech.com",
+           role    = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0003-1078-4008")),
     person(given   = "Victor Manuel",
            family  = "Tuset",
            email   = "vtuset@icloud.com",
-           role    = c("aut","cre"),
+           role    = c("aut", "cph"),
            comment = c(ORCID = "0000-0001-9032-2844")),
     person(given   = "Amalia",
            family  = "Manjabacas",
            email   = "manjabacas@icm.csic.es",
-           role    = "aut",
+           role    = c("aut", "cph"),
            comment = c(ORCID = "0000-0001-8685-8697")),
     person(given   = "Antoni",
            family  = "Lombarte",
            email   = "toni@icm.csic.es",
-           role    = "aut",
+           role    = c("aut", "cph"),
            comment = c(ORCID = "0000-0001-5215-4587")))
 Description: Provides tools for quantitative contour and shape analysis of
     fish otoliths and other biological structures (such as limpets, leaves,

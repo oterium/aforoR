@@ -1,3 +1,16 @@
+# aforoR 0.2.2
+
+## ?? Modular Refactoring & Enhanced Workflows
+
+* **Modular Architecture Refactoring**: Split monolithic image processing routines into specialized, high-cohesion modules (`R/preprocess.R`, `R/scale_and_interactive.R`, `R/visualization.R`, `R/distances.R`, `R/wavelets.R`, and `R/shape_tools.R`), reducing code duplication and improving maintainability.
+* **Interactive Manual Scale Bar Calibration**: Added `detect_scale = "manual"` via `select_scale_bar()`, allowing users to click physical scale bar endpoints with Euclidean distance calculation.
+* **Interactive Contour Starting Point Selection**: Added `start_points = "manual"` via `select_starting_point()`, snapping interactive mouse clicks to the nearest contour vertex while supporting automatic fallback.
+* **Adaptive Specimen Size Threshold**: Upgraded `min_area` to `"auto"` by default, dynamically calculating 0.5% of total image area to prevent false rejection of small specimens (e.g. *Ostium*) while retaining explicit numeric overrides.
+* **Wavelet Signal Detail Correction**: Clarified and corrected `det = TRUE` (default) to return the detail/wavelet coefficients signal ($w_j = a_{j-1} - a_j$, centered around 0) and `det = FALSE` to return the approximation signal ($a_j$).
+* **Harmonized Homologous Starting Point**: Standardized `start_point = "auto" | "manual" | c(x, y)` across `calculate_css()` and `calculate_distances()`, removing non-homologous `"none"`.
+* **Updated Authorship & Copyright**: Designate Jose Luis Otero Ferrer as author, creator, and copyright holder (`aut`, `cre`, `cph`) and all co-authors as copyright holders (`cph`).
+* **Comprehensive Test Suite & Documentation**: 587/587 unit and integration tests passing (`FAIL 0 | WARN 0`), fully refreshed documentation and vignettes.
+
 # aforoR 0.2.1
 
 ## 🚀 Autonomous & CRAN-Ready Architecture
@@ -21,7 +34,7 @@
   * **Feret_Min** (Minimum Feret/Caliper Diameter): Calculated via an angular sweep (360 degrees) of parallel tangents, providing a highly robust and standard measure of otolith width.
   * **PCA_Angle**: Computes the main orientation angle of the major axis of inertia (in degrees, scale-invariant, and normalized to $[0, 180)$) using Singular Value Decomposition (SVD).
 * **Optimal Point Selection (Hall & Bathia)**: Fully integrated the advanced **Hall & Bathia sequential point selection** machine learning algorithm for optimized shape feature classification and contour point selection.
-* **Curvature Descriptors**: Integrated **Centroid Distance Fourier (CDF)** and **Curvature Scale Space (CSS)** shape descriptors alongside standard EFD and Wavelet methods.
+* **Curvature Descriptors**: Integrated **Curvature Scale Space (CSS)** shape descriptors alongside standard Wavelet and EFD methods.
 * **Packaged Aphanopus Datasets**: Bundled real-world biological datasets for *Aphanopus carbo* and *Aphanopus intermedius* (`Aphanopus`, `Aphanopus_EF`, `Aphanopus_W5` datasets) to support reproducible examples and scientific workflows.
 
 ## 🎨 Design, Styling & Vignette Upgrades

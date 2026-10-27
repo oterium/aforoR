@@ -164,3 +164,168 @@ test_that("process_images works with testing=TRUE, subfolder=TRUE, and parallel 
     unlink(temp_root, recursive = TRUE)
 })
 
+test_that("preprocess_image strictly clamps FFT filter2 overshoot to [0, 1]", {
+    skip_if_not_installed("EBImage")
+
+    # Synthetic sharp step-edge that produces FFT ringing
+    m <- matrix(0, nrow = 120, ncol = 120)
+    m[30:90, 30:90] <- 1.0
+
+    # Test raw filter2 produces ringing
+    brush <- EBImage::makeBrush(size = 15, shape = "gaussian", sigma = 3)
+    raw_filtered <- EBImage::filter2(m, brush)
+    # FFT ringing produces overshoot > 1 or undershoot < 0
+    expect_true(max(raw_filtered) > 1.0 || min(raw_filtered) < 0.0)
+
+    # preprocess_image clamps post-filter2
+    bin_img <- preprocess_image(EBImage::Image(m))
+    expect_s4_class(bin_img, "Image")
+    expect_true(all(bin_img %in% c(0, 1, TRUE, FALSE)))
+})
+
+test_that("calculate_adaptive_threshold guards / 255 rescaling and clamps inputs", {
+    skip_if_not_installed("EBImage")
+
+    # 1. Microscopic float overshoot (1.0001) must NOT trigger / 255
+    mat_overshoot <- matrix(runif(10000, min = 0.1, max = 0.9), nrow = 100, ncol = 100)
+    mat_overshoot[1, 1] <- 1.0001
+    th1 <- aforoR:::calculate_adaptive_threshold(mat_overshoot)
+    expect_true(th1 > 0.05, info = "Float overshoot must not collapse threshold to < 0.05")
+
+    # 2. Intermediate value near 1.0 (1.04) must NOT trigger / 255
+    mat_inter <- matrix(runif(10000, min = 0.1, max = 0.8), nrow = 100, ncol = 100)
+    mat_inter[1, 1] <- 1.04
+    th2 <- aforoR:::calculate_adaptive_threshold(mat_inter)
+    expect_true(th2 > 0.05, info = "Value 1.04 must not trigger / 255")
+
+    # 3. 8-bit integer image (e.g. max = 220) MUST trigger / 255
+    mat_int <- matrix(round(runif(10000, min = 20, max = 220)), nrow = 100, ncol = 100)
+    th_int <- aforoR:::calculate_adaptive_threshold(mat_int)
+    expect_true(th_int >= 0.05 && th_int <= 0.95)
+
+    # 4. Otsu input clamping prevents crash on out-of-range breaks
+    mat_out <- matrix(seq(-0.1, 1.1, length.out = 10000), nrow = 100, ncol = 100)
+    expect_silent(th_out <- aforoR:::calculate_adaptive_threshold(mat_out))
+    expect_true(th_out >= 0 && th_out <= 1)
+})
+
+test_that("calculate_adaptive_threshold applies safeguard on textured grey backgrounds", {
+    skip_if_not_installed("EBImage")
+
+    # Simulate textured grey background (mean ~ 0.18, stdev ~ 0.05) and specimen (mean ~ 0.8)
+    set.seed(42)
+    bg <- matrix(rnorm(10000, mean = 0.18, sd = 0.04), nrow = 100, ncol = 100)
+    bg[bg < 0] <- 0
+    # Specimen core
+    bg[30:70, 30:70] <- rnorm(1681, mean = 0.85, sd = 0.05)
+    bg[bg > 1] <- 1
+
+    th <- aforoR:::calculate_adaptive_threshold(bg)
+    th_otsu <- EBImage::otsu(bg)
+
+    # Adaptive threshold must not fall into background noise (< 0.65 * Otsu)
+    expect_gte(th, 0.65 * th_otsu)
+    expect_gt(th, 0.22) # comfortably above the 0.18 background
+})
+
+test_that("read_and_process_image and preprocess_image strip alpha from 2-channel TIFFs", {
+    skip_if_not_installed("EBImage")
+
+    # Create synthetic 2-channel Image (Ch1: grayscale otolith, Ch2: alpha 1.0)
+    arr <- array(0.02, dim = c(120, 100, 2))
+    # Otolith in channel 1
+    arr[30:90, 20:80, 1] <- 0.85
+    # Alpha mask in channel 2
+    arr[, , 2] <- 1.0
+    img2ch <- EBImage::Image(arr, colormode = "Color")
+
+    # 1. read_and_process_image strips channel 2 and sets Grayscale
+    stripped <- read_and_process_image(img2ch)
+    expect_equal(length(dim(stripped)), 2)
+    expect_equal(EBImage::colorMode(stripped), 0L)
+    # Background in corner remains 0.02, not shifted to 0.34
+    expect_equal(as.numeric(stripped[1, 1]), 0.02, tolerance = 1e-5)
+
+    # 2. preprocess_image handles 2-channel Image cleanly
+    bin <- preprocess_image(img2ch)
+    expect_s4_class(bin, "Image")
+    expect_equal(length(dim(bin)), 2)
+    # Corner background is FALSE, otolith center is TRUE
+    expect_false(as.logical(bin[1, 1]))
+    expect_true(as.logical(bin[50, 50]))
+})
+
+test_that("extract_contour rejects outer frame border (area >= 85%)", {
+    skip_if_not_installed("EBImage")
+
+    total_px <- 600 * 800 # 480,000
+    m <- matrix(0, nrow = 600, ncol = 800)
+
+    # 1. Outer border frame: area ~95% of total image
+    m[5:595, 5:795] <- 1
+    m[25:575, 25:775] <- 0
+
+    # Internal biological specimen: area ~30,000 px
+    xx <- col(m) - 400
+    yy <- row(m) - 300
+    m[(xx^2 / 120^2 + yy^2 / 60^2) <= 1] <- 1
+
+    # Extract contour: must discard the 95% outer frame and pick the internal specimen
+    cnt <- extract_contour(m, min_points = 150, min_area = 5000)
+    expect_false(is.null(cnt))
+    specimen_area <- aforoR:::.coo_area(cnt)
+    expect_lt(specimen_area, 0.85 * total_px)
+    expect_gt(specimen_area, 5000)
+
+    # 2. Image containing ONLY an outer frame border returns NULL with warning
+    border_only <- matrix(0, nrow = 400, ncol = 400)
+    border_only[2:398, 2:398] <- 1
+    border_only[20:380, 20:380] <- 0
+
+    expect_warning(res_border <- extract_contour(border_only, min_points = 100, min_area = 1000))
+    expect_null(res_border)
+})
+
+test_that("extract_contour supports small images with min_area = 1000", {
+    skip_if_not_installed("EBImage")
+
+    # Small 480x480 image with specimen area ~3,500 px
+    m <- matrix(0, nrow = 480, ncol = 480)
+    xx <- col(m) - 240
+    yy <- row(m) - 240
+    rx <- 55
+    ry <- 20 # pi * 55 * 20 ~ 3456 px
+    m[(xx^2 / rx^2 + yy^2 / ry^2) <= 1] <- 1
+
+    # Fails default min_area = 5000
+    expect_warning(res_fail <- extract_contour(m, min_points = 200, min_area = 5000))
+    expect_null(res_fail)
+
+    # Succeeds with min_area = 1000
+    res_ok <- extract_contour(m, min_points = 200, min_area = 1000)
+    expect_false(is.null(res_ok))
+    area_ok <- aforoR:::.coo_area(res_ok)
+    expect_gte(area_ok, 1000)
+    expect_lt(area_ok, 5000)
+    expect_true(all(res_ok[, 1] >= 1 & res_ok[, 1] <= 480))
+    expect_true(all(res_ok[, 2] >= 1 & res_ok[, 2] <= 480))
+})
+
+test_that("preprocess_image defensively validates threshold_factor", {
+    skip_if_not_installed("EBImage")
+
+    img <- EBImage::Image(matrix(0.5, 50, 50))
+    expect_error(preprocess_image(img, threshold_factor = -1), "threshold_factor must be a positive numeric value")
+    expect_error(preprocess_image(img, threshold_factor = 0), "threshold_factor must be a positive numeric value")
+    expect_error(preprocess_image(img, threshold_factor = "invalid"), "threshold_factor must be a positive numeric value")
+    expect_error(preprocess_image(img, threshold_factor = NA), "threshold_factor must be a positive numeric value")
+    expect_error(preprocess_image(img, threshold_factor = NULL), "threshold_factor must be a positive numeric value")
+    expect_error(preprocess_image(img, threshold_factor = c(1, 2)), "threshold_factor must be a positive numeric value")
+
+    # Positive numeric threshold_factor works
+    expect_silent(res <- preprocess_image(img, threshold_factor = 1.2))
+    expect_true(inherits(res, "Image"))
+})
+
+
+

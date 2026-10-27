@@ -107,6 +107,7 @@ reference:
     contents:
       - select_points_hall
       - select_starting_point
+      - select_scale_bar
 
   - title: "Visualization & Export"
     desc: "Functions for saving results and images"

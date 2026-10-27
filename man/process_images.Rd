@@ -14,11 +14,11 @@ process_images(
   coordinates = c("both", "polar", "cartesian"),
   save = TRUE,
   pixels_per_mm = NULL,
-  detect_scale = FALSE,
+  detect_scale = "none",
   blur_size = "auto",
   blur_sigma = "auto",
   min_points = 200,
-  min_area = 5000,
+  min_area = "auto",
   n_harmonics = 32,
   n_points = 512,
   scale_mm = 1,
@@ -30,8 +30,7 @@ process_images(
   downsample_threshold = FALSE,
   threshold_method = c("adaptive", "otsu", "fixed"),
   threshold_factor = 1,
-  interactive_rostrum = FALSE,
-  start_points = NULL
+  start_points = "auto"
 )
 }
 \arguments{
@@ -54,7 +53,18 @@ process_images(
 
 \item{pixels_per_mm}{A numeric value specifying the scale (pixels per mm). Default is NULL.}
 
-\item{detect_scale}{A logical value indicating whether to automatically detect the scale bar in the image. Default is FALSE.}
+\item{detect_scale}{Strategy for calibrating the scale bar in each image. Accepts one of three options:
+\itemize{
+  \item \code{"none"} (default): Scale bar detection is disabled (uses
+        \code{pixels_per_mm} if provided, or outputs measurements in pixels).
+  \item \code{"auto"}: Automatically detects the calibration scale bar
+        in each image and measures its exact physical pixel span via \code{find_scale_bar_length()}.
+  \item \code{"manual"}: Interactive mouse calibration mode. Sequentially displays each image
+        so the user can click the start and end points of the calibration scale bar with the mouse
+        via \code{\link{select_scale_bar}} (without snapping). Useful as a fallback when automatic
+        detection fails on non-standard or low-contrast rulers.
+}
+(Logical \code{FALSE} and \code{TRUE} are also accepted as aliases for \code{"none"} and \code{"auto"}.)}
 
 \item{blur_size}{Size of the Gaussian brush for smoothing in pixels. Can be an odd integer,
 or \code{"auto"} (default) to dynamically calculate \eqn{\min(\text{width},\text{height}) \times 0.01}.}
@@ -64,7 +74,9 @@ or \code{"auto"} (default) to calculate \eqn{\text{blur\_size} / 3.5}.}
 
 \item{min_points}{Minimum number of points required for a valid contour (default: 200).}
 
-\item{min_area}{Minimum area required for a valid contour (default: 5000).}
+\item{min_area}{Minimum area required for a valid contour. Can be \code{"auto"} (default)
+to dynamically adapt the threshold to 0.5% of total image area
+(bounded between 500 and 5000 \eqn{\text{px}^2}), or a positive numeric value in pixels.}
 
 \item{n_harmonics}{Number of elliptic Fourier harmonics to calculate (default: 32).}
 
@@ -88,9 +100,24 @@ or \code{"auto"} (default) to calculate \eqn{\text{blur\_size} / 3.5}.}
 
 \item{threshold_factor}{Multiplier applied to the calculated threshold (default: 1.0).}
 
-\item{interactive_rostrum}{Logical; if TRUE, sequentially prompts the user to click the rostrum on each image before dispatching the analysis (default: FALSE).}
-
-\item{start_points}{Optional named list or data.frame with custom starting point coordinates \code{c(x, y)} or index for specific images.}
+\item{start_points}{Strategy or coordinates for selecting the contour starting point (rostrum)
+on each image. Accepts one of three options:
+\itemize{
+  \item \code{"auto"} (default): Automatically selects the rightmost contour
+        point (\eqn{\max(X)}) as the anatomical rostrum on every image.
+  \item \code{"manual"}: Interactive mouse selection mode. Sequentially displays
+        each image with its extracted contour and the automatic rostrum candidate (\code{o})
+        overlaid, allowing the user to click the desired starting point with the mouse via
+        \code{\link{select_starting_point}} (or right-click / press \code{Esc} to keep \code{"auto"}).
+  \item A 2-column numeric \code{matrix} (or \code{data.frame}) of \code{(X, Y)} starting point
+        coordinates:
+        \itemize{
+          \item Must contain one row per image in \code{folder} (\code{nrow(start_points)} must
+                equal the total number of images in the folder).
+          \item Cannot be combined with \code{subfolder = TRUE}; folders with custom starting point
+                matrices must be processed individually (\code{subfolder = FALSE}).
+        }
+}}
 }
 \value{
 Invisible NULL. The function is used for its side effects (creating files).
@@ -100,12 +127,66 @@ This function processes images in a specified folder, applying various transform
 Supports multi-core parallel processing, recursive subfolder processing, manual/interactive
 rostrum selection, and lightweight diagnostic visualization overlaid on real photographs.
 }
+\details{
+\subsection{Scale Bar Calibration (\code{detect_scale})}{
+Physical calibration (converting pixels to millimeters) is controlled via \code{detect_scale}
+and \code{scale_mm}:
+\enumerate{
+  \item \strong{Disabled (\code{detect_scale = "none"}, default)}:
+        Uses the fixed \code{pixels_per_mm} argument if supplied, or reports morphometrics in \code{px}.
+  \item \strong{Automatic detection (\code{detect_scale = "auto"})}:
+        Automatically segments the calibration bar (supporting white, dark-on-plaque, and pure red
+        bars in horizontal or vertical orientation) and measures its exact tip-to-tip pixel span,
+        marking both physical endpoints (\code{x}) on the diagnostic \code{zonal_*.jpg} image.
+  \item \strong{Interactive manual selection (\code{detect_scale = "manual"})}:
+        Opens each image sequentially and prompts the user to click the two endpoints (start and end)
+        of the scale bar with the mouse via \code{\link{select_scale_bar}} (no contour snapping).
+        Computes the exact Euclidean pixel distance between the two clicks and overlays the selected
+        endpoints on the diagnostic plot.
+}
+}
+\subsection{Starting Point (Rostrum) Selection (\code{start_points})}{
+Contour descriptors (Wavelets, Polar/Perimeter distances, and CSS) require a consistent
+anatomical starting point (\code{0.0}), which in the AFORO standard corresponds to the
+\strong{rostrum}. The \code{start_points} argument controls how this starting point is
+determined across the folder:
+\enumerate{
+  \item \strong{Automatic mode (\code{start_points = "auto"}, default)}:
+        Automatically locates the rightmost contour vertex (\eqn{\max(X)}) on each image.
+        Compatible with both single-folder (\code{subfolder = FALSE}) and recursive
+        multi-folder (\code{subfolder = TRUE}) batch processing.
+  \item \strong{Interactive mouse mode (\code{start_points = "manual"})}:
+        Before running the batch analysis, sequentially opens each image in the R graphics
+        device showing the extracted contour and the automatic rostrum candidate (\code{o}).
+        Left-clicking sets and snaps the starting point to the nearest contour vertex;
+        right-clicking or pressing \code{Esc} retains the automatic candidate for that image.
+  \item \strong{Custom coordinate matrix (\code{start_points = matrix_or_df})}:
+        Accepts a 2-column numeric \code{matrix} or \code{data.frame} of \code{(X, Y)} coordinates
+        (or a \code{data.frame} with columns \code{Image}, \code{X}, \code{Y}). For each image,
+        the contour vertex closest to the supplied \code{(X, Y)} coordinate is selected as
+        the starting point. To prevent ambiguity across directories, \code{nrow(start_points)}
+        must strictly equal the total number of images in \code{folder}, and recursive processing
+        (\code{subfolder = TRUE}) is disabled when a custom matrix is supplied (process one
+        folder at a time with \code{subfolder = FALSE}).
+}
+}
+}
 \examples{
 \dontrun{
-# Process all images in the "images" folder
-process_images(folder = "path/to/images", pixels_per_mm = 100)
+# 1. Default automatic rostrum detection and automatic scale bar calibration
+process_images(folder = "path/to/images", detect_scale = "auto", start_points = "auto")
 
-# Process in parallel across 4 cores with polar coordinates only
+# 2. Interactive mouse selection of the scale bar and/or rostrum on each image
+process_images(folder = "path/to/images", detect_scale = "manual", start_points = "manual")
+
+# 3. Custom N x 2 matrix of starting points (one row per image, subfolder = FALSE)
+rostrum_mat <- matrix(c(1850, 920,
+                        1790, 880,
+                        1910, 950), ncol = 2, byrow = TRUE)
+colnames(rostrum_mat) <- c("X", "Y")
+process_images(folder = "path/to/3_images", subfolder = FALSE, start_points = rostrum_mat)
+
+# 4. Process in parallel across 4 cores with polar coordinates only
 process_images(folder = "path/to/images", cores = 4, coordinates = "polar")
 }
 }

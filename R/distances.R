@@ -157,3 +157,69 @@ dper <- function(x, y, n) {
 
   return(list(dist = distances, coords = coo_sampled))
 }
+
+#' Calculate Distance Measures from Contour
+#'
+#' Computes two types of distance measures from an otolith contour: polar
+#' distances (radial distances from the centroid) and perimeter-based distances.
+#' These measures are crucial for subsequent wavelet analysis.
+#'
+#' @param contour A matrix of coordinates from \code{extract_contour()}.
+#' @param n_points Target number of points for resampling (default: 512).
+#' @param start_point Strategy or coordinates for selecting the contour starting point (rostrum):
+#'   \itemize{
+#'     \item \code{"auto"} (default, or \code{NULL}): Automatically selects the rightmost point (\eqn{\max(X)}).
+#'     \item \code{"manual"}: Interactive mouse selection mode. Plots the contour with the automatic
+#'           rostrum candidate (\code{o}) and prompts the user to click on the desired starting point
+#'           with the mouse (snapping to the nearest contour vertex).
+#'     \item Numeric coordinate pair \code{c(x, y)} (or 1x2 matrix) or integer index \code{1..nrow(contour)}:
+#'           Starts at the contour point closest to \code{(x, y)} or at the specified row index.
+#'   }
+#' @return A list containing:
+#'   \itemize{
+#'     \item \code{polar}: Radii, coordinates, and normalized radii.
+#'     \item \code{perimeter}: Distances, coordinates, and normalized distances.
+#'     \item \code{reordered_coords}: The contour coordinates reordered from the
+#'           starting point.
+#'   }
+#' @export
+#' @examples
+#' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+#' binary_img <- preprocess_image(image_path)
+#' contour <- extract_contour(binary_img)
+#' dists <- calculate_distances(contour, n_points = 512)
+#' plot(dists$polar$normalized, type = "l")
+calculate_distances <- function(contour, n_points = 512, start_point = "auto") {
+  if (!is.numeric(n_points) || length(n_points) != 1 || is.na(n_points) ||
+      is.infinite(n_points) || n_points < 2 || n_points != as.integer(n_points)) {
+    stop("n_points must be an integer >= 2")
+  }
+
+  resolved <- .resolve_contour_and_start(contour, start_point = start_point, remove_duplicate_end = FALSE)
+  x <- unname(resolved$coords[, 1])
+  y <- unname(resolved$coords[, 2])
+
+  tryCatch(
+    {
+      dist <- regularradius(x, y, n = n_points)
+      dist2 <- dper(x, y, n_points)
+      max_r1 <- max(dist$radii)
+      max_r2 <- max(dist2$dist)
+      dist.norm <- if (max_r1 > 0) dist$radii / max_r1 else rep(0, length(dist$radii))
+      dist.norm2 <- if (max_r2 > 0) dist2$dist / max_r2 else rep(0, length(dist2$dist))
+
+      return(list(
+        polar = list(
+          radii = dist$radii, coord = dist$coord, normalized = dist.norm
+        ),
+        perimeter = list(
+          dist = dist2$dist, coords = dist2$coords, normalized = dist.norm2
+        ),
+        reordered_coords = list(x = x, y = y)
+      ))
+    },
+    error = function(e) {
+      stop(paste("Error in distance calculation:", e$message))
+    }
+  )
+}

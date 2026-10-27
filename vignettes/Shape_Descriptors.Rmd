@@ -107,15 +107,24 @@ The dynamic metric associated with the object boundaries, the **instantaneous cu
 
 $$\kappa(u, \sigma) = \frac{X_u(u, \sigma) Y_{uu}(u, \sigma) - X_{uu}(u, \sigma) Y_u(u, \sigma)}{\left(X_u(u, \sigma)^2 + Y_u(u, \sigma)^2\right)^{3/2}}$$
 
-### Topological CSS Image Generation
-Tracking the continuous $\kappa=0$ points analytically plotted against the standard parametric smoothing width $\sigma$ generates the uniquely definitive layout known as the **CSS Image tree**. 
+### Topological CSS Image Generation & AFORO Zone Alignment
+Tracking the continuous $\kappa=0$ points analytically plotted against the standard parametric smoothing width $\sigma$ generates the uniquely definitive layout known as the **CSS Image tree**.
 
-High-arcing vertical peaks persisting across the mathematical CSS map visibly and explicitly denote the deepest, most resilient, and biologically robust indentations (e.g. surviving the excisura major indentation bounds or profound sub-rostral lobes). When directly predicting generic taxa differentiation, these specific structural apexes mathematically yield fully invariant morphological fingerprinting (Mokhtarian & Mackworth, 1986).
+In `aforoR`, `calculate_css()` integrates directly with the AFORO anatomical convention:
 
-```{r css_example, eval=FALSE}
-# CSS topological mapping execution directly embedded inside aforoR methodologies
-css_contours_analysis <- calculate_css(contour)
-plot(css_contours_analysis)
+- **Standardized Resampling (`n_points = 512`)**: By default, contours are resampled to `512` uniform arc-length points (matching the Wavelet transform standard) so that Gaussian smoothing scales ($\sigma$) are directly comparable across photographs of different pixel resolutions. Passing `n_points = "max"` (or `NULL`) preserves the full native pixel resolution of the extracted contour.
+- **Rostrum Alignment (`start_point = "auto"`)**: Automatically reorders the contour so that normalized arc length `0.0` begins at the anatomical **rostrum** (rightmost vertex, $\max(X)$), or at a custom coordinate/index (`start_point = c(x, y)`), and classifies every zero-crossing into the **4 AFORO zones** (`Zone 1`: `0.00–0.25`, `Zone 2`: `0.25–0.50`, `Zone 3`: `0.50–0.75`, `Zone 4`: `0.75–1.00`) in `$css_matrix$zone`.
+- **Zone-Colored Visualization (`show_zones = TRUE`)**: `plot(css_res)` automatically colors the inflection arches by their AFORO contour sector and draws vertical zone boundaries at `0.25`, `0.50`, and `0.75`.
+
+High-arcing vertical peaks persisting across the mathematical CSS map visibly and explicitly denote the deepest, most resilient, and biologically robust indentations (e.g. surviving the excisura major indentation bounds in `Zone 1` or profound sub-rostral lobes). When directly predicting generic taxa differentiation, these specific structural apexes mathematically yield fully invariant morphological fingerprinting (Mokhtarian & Mackworth, 1986).
+
+```{r css_example, fig.height=5}
+# Compute CSS aligned to the Rostrum (0.0) with 512 uniform arc-length points
+css_contours_analysis <- calculate_css(contour, n_points = 512, sigma_max = 12, start_point = "auto")
+head(css_contours_analysis$css_matrix)
+
+# Plot CSS colored by the 4 AFORO anatomical zones
+plot(css_contours_analysis, main = "Curvature Scale Space (Aligned to Rostrum by AFORO Zones)")
 ```
 
 ## 5. Pre-processing: Generalized Procrustes Analysis (GPA)

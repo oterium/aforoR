@@ -4,29 +4,52 @@
 \alias{calculate_css}
 \title{Calculate Curvature Scale Space (CSS) Descriptor}
 \usage{
-calculate_css(contour, n_points = 200, sigma_max = 10, sigma_step = 0.5)
+calculate_css(
+  contour,
+  n_points = 512,
+  sigma_max = 10,
+  sigma_step = 0.5,
+  start_point = "auto"
+)
 }
 \arguments{
 \item{contour}{A matrix or data.frame with 'X' and 'Y' columns representing the contour.}
 
-\item{n_points}{Integer. Number of points to resample the contour to (for uniform arc length).}
+\item{n_points}{Integer, NULL, or \code{"max"}. Number of points to resample the contour to
+for uniform arc length (default: 512, matching the AFORO standard).
+If \code{NULL} or \code{"max"}, uses the full native resolution of the
+extracted contour (\code{nrow(contour)} points).}
 
 \item{sigma_max}{Numeric. Maximum smoothing scale (standard deviation of Gaussian).}
 
 \item{sigma_step}{Numeric. Increment for the smoothing scale.}
+
+\item{start_point}{Strategy or coordinates for selecting the contour starting point (\code{arc_length = 0.0}):
+\itemize{
+  \item \code{"auto"} (default, or \code{NULL}): Automatically selects the rightmost point (\eqn{\max(X)}) as the rostrum.
+  \item \code{"manual"}: Interactive mouse selection mode. Plots the contour with the automatic
+        rostrum candidate (\code{o}) and prompts the user to click on the desired starting point
+        with the mouse (snapping to the nearest contour vertex).
+  \item Numeric coordinate pair \code{c(x, y)} (e.g. returned by \code{\link{select_starting_point}}),
+        a 1x2 matrix, or an integer contour index (\code{1..nrow(contour)}).
+}}
 }
 \value{
 A list of class `css` containing:
   \itemize{
-    \item \code{css_matrix}: A data.frame with columns `arc_length` and `sigma` for each zero-crossing.
+    \item \code{css_matrix}: A data.frame with columns `arc_length`, `sigma`, and `zone` for each zero-crossing.
     \item \code{n_points}: Number of points used in resampling.
-    \item \code{contour_original}: The original contour.
+    \item \code{contour_original}: The resampled contour (starting at the rostrum if aligned).
+    \item \code{start_point_coords}: Numeric vector \code{c(X, Y)} of the starting point (\code{arc_length = 0}).
   }
 }
 \description{
 Computes the Curvature Scale Space representation of a 2D closed contour.
 This involves progressively smoothing the contour with Gaussian kernels and
 identifying curvature zero-crossings (inflection points) at each scale.
+By default (\code{start_point = "auto"}), the contour is reordered so that
+normalized arc length \code{0.0} starts at the anatomical rostrum (rightmost point),
+matching the 4 AFORO zones used in \code{\link{calculate_distances}}.
 }
 \examples{
 # Example with a simple shape
