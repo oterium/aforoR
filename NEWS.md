@@ -1,4 +1,4 @@
-# aforoR 0.2.2
+# aforoR 0.3.0
 
 ## ?? Modular Refactoring & Enhanced Workflows
 
