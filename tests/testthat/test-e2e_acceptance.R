@@ -557,7 +557,7 @@ test_that("T1.6.4: Clamping does not alter uncorrupted values strictly inside (0
 test_that("T1.6.5: End-to-end preprocess_image on synthetic image produces bounded matrix", {
   m <- create_synthetic_otolith(nrow = 200, ncol = 200, cx = 100, cy = 100, rx = 50, ry = 30)
   bin <- aforoR::preprocess_image(EBImage::Image(m))
-  expect_true(is.logical(bin) || all(bin %in% c(0, 1, TRUE, FALSE)))
+  expect_true(is.logical(bin) || all(as.vector(bin) %in% c(0, 1, TRUE, FALSE)))
 })
 
 # ------------------------------------------------------------------------------

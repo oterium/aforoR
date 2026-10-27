@@ -180,7 +180,7 @@ test_that("preprocess_image strictly clamps FFT filter2 overshoot to [0, 1]", {
     # preprocess_image clamps post-filter2
     bin_img <- preprocess_image(EBImage::Image(m))
     expect_s4_class(bin_img, "Image")
-    expect_true(all(bin_img %in% c(0, 1, TRUE, FALSE)))
+    expect_true(is.logical(bin_img) || all(as.vector(bin_img) %in% c(0, 1, TRUE, FALSE)))
 })
 
 test_that("calculate_adaptive_threshold guards / 255 rescaling and clamps inputs", {

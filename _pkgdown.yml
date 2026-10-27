@@ -87,6 +87,7 @@ reference:
     desc: "Functions for image manipulation and contour extraction"
     contents:
       - preprocess_image
+      - read_and_process_image
       - extract_contour
 
   - title: "Shape Analysis"
