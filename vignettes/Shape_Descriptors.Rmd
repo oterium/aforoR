@@ -139,8 +139,8 @@ Within `aforoR`, you can apply this automatically using the `process_images()` o
 # Example of batch processing with GPA alignment
 # Download the dataset from Zenodo: https://doi.org/10.5281/zenodo.18449478
 # Extract it and set the path below to your local folder.
-
-folder_path <- "path/to/your/images/folder" # Replace with your actual path
+# You can use your own directory or test with the bundled sample images:
+folder_path <- system.file("extdata", package = "aforoR")
 
 process_images(
   folder = folder_path,
@@ -148,7 +148,7 @@ process_images(
   wavelets = TRUE,
   ef = TRUE,
   testing = TRUE,       # Saves visual diagnostic plots 
-  save = TRUE           # Exports aligned CSVs
+  save = FALSE          # Set TRUE to export CSV files to disk
 )
 ```
 

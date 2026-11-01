@@ -69,22 +69,29 @@ The easiest way to use **aforoR** is the `process_images` function,
 which automates the entire analysis pipeline for a folder containing
 supported image files (`.jpg`, `.jpeg`, `.png`, `.tif`, `.tiff`).
 
+You can test it immediately using the sample otolith images bundled with
+the package:
+
 ``` r
 library(aforoR)
 
-# 1. Define your working directory with images
-my_images <- "path/to/your/images"
+# 1. Path to bundled sample images (or replace with your own folder)
+image_folder <- system.file("extdata", package = "aforoR")
 
 # 2. Run the automated pipeline
-# This will perform: Preprocessing -> Scale Detection -> Contour -> Wavelets -> Morphometrics
+# Preprocessing -> Scale Detection -> Contour -> Wavelets -> Morphometrics
 process_images(
-  folder = my_images,
-  detect_scale = TRUE,   # Automatically find 1mm scale bars
-  wavelets = TRUE,       # Compute wavelet coefficients
-  ef = TRUE,             # Compute Elliptic Fourier Descriptors
-  save = TRUE,           # Export results as CSV files
-  testing = TRUE         # Generate diagnostic visualizations
+  folder = image_folder,
+  detect_scale = "auto",   # Automatically detect 1mm scale bars
+  start_points = "auto",   # Automatically detect anatomical rostrum
+  wavelets = TRUE,         # Compute wavelet coefficients
+  ef = TRUE,               # Compute Elliptic Fourier Descriptors
+  save = FALSE,            # In-memory evaluation (set TRUE to export CSVs)
+  testing = TRUE           # Generate diagnostic visualizations
 )
+
+# 3. Interactive mode: manually click the scale bar and/or rostrum on each image:
+# process_images(folder = image_folder, detect_scale = "auto", start_points = "manual")
 ```
 
 ------------------------------------------------------------------------

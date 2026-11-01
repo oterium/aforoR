@@ -172,21 +172,34 @@ determined across the folder:
 }
 }
 \examples{
-\dontrun{
-# 1. Default automatic rostrum detection and automatic scale bar calibration
-process_images(folder = "path/to/images", detect_scale = "auto", start_points = "auto")
+# 1. Example using sample otolith images bundled with aforoR:
+extdata_dir <- system.file("extdata", package = "aforoR")
 
-# 2. Interactive mouse selection of the scale bar and/or rostrum on each image
-process_images(folder = "path/to/images", detect_scale = "manual", start_points = "manual")
+# Create a temporary working copy so we do not write inside the R library:
+temp_demo <- file.path(tempdir(), "aforoR_demo")
+dir.create(temp_demo, showWarnings = FALSE)
+file.copy(list.files(extdata_dir, full.names = TRUE), temp_demo)
 
-# 3. Custom N x 2 matrix of starting points (one row per image, subfolder = FALSE)
-rostrum_mat <- matrix(c(1850, 920,
-                        1790, 880,
-                        1910, 950), ncol = 2, byrow = TRUE)
-colnames(rostrum_mat) <- c("X", "Y")
-process_images(folder = "path/to/3_images", subfolder = FALSE, start_points = rostrum_mat)
-
-# 4. Process in parallel across 4 cores with polar coordinates only
-process_images(folder = "path/to/images", cores = 4, coordinates = "polar")
+\donttest{
+# Run the complete automated pipeline (scale detection, contour, wavelets, EFD):
+process_images(
+  folder = temp_demo,
+  detect_scale = "auto",
+  start_points = "auto",
+  save = TRUE,
+  testing = FALSE
+)
 }
+
+\dontrun{
+# 2. Interactive mode: manually click scale bar endpoints and/or rostrum:
+process_images(
+  folder = temp_demo,
+  detect_scale = "auto",
+  start_points = "manual"
+)
+}
+
+# Clean up demo directory:
+unlink(temp_demo, recursive = TRUE)
 }
