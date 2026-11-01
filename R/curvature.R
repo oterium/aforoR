@@ -192,11 +192,11 @@ calculate_css <- function(contour, n_points = 512, sigma_max = 10, sigma_step = 
 #' @importFrom graphics plot abline text mtext
 #' @export
 #' @examples
-#' \dontrun{
-#' css_res <- calculate_css(contour)
+#' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+#' cnt <- extract_contour(preprocess_image(image_path))
+#' css_res <- calculate_css(cnt)
 #' plot(css_res)
-#' plot(css_res, main = "Custom Title", col = "blue")
-#' }
+#' plot(css_res, main = "Otolith CSS (AFORO Zones)", col = "blue")
 plot.css <- function(x, show_zones = TRUE, ...) {
     if (!inherits(x, "css") || !is.list(x)) {
         stop("x must be an object of class 'css'")

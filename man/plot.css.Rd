@@ -25,9 +25,9 @@ AFORO contour sectors starting from the rostrum (\code{0.0}): Zone 1 (0-0.25),
 Zone 2 (0.25-0.50), Zone 3 (0.50-0.75), and Zone 4 (0.75-1.0).
 }
 \examples{
-\dontrun{
-css_res <- calculate_css(contour)
+image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+cnt <- extract_contour(preprocess_image(image_path))
+css_res <- calculate_css(cnt)
 plot(css_res)
-plot(css_res, main = "Custom Title", col = "blue")
-}
+plot(css_res, main = "Otolith CSS (AFORO Zones)", col = "blue")
 }

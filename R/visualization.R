@@ -267,9 +267,15 @@
 #' @importFrom graphics lines points polygon legend
 #' @export
 #' @examples
-#' \dontrun{
-#' # Assuming image, distances, and wavelets are already computed:
-#' save_visualization(image, distances, wavelets, "sample_image", tempdir())
+#' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+#' img <- read_and_process_image(image_path)
+#' cnt <- extract_contour(preprocess_image(img))
+#' dists <- calculate_distances(cnt, n_points = 512)
+#' wavs <- calculate_wavelets_analysis(dists, n_scales = 5)
+#'
+#' \donttest{
+#' # Render and save diagnostic plots to a temporary directory:
+#' save_visualization(img, dists, wavs, "otolith_demo", tempdir())
 #' }
 save_visualization <- function(image = NULL, distances, wavelets, image_name,
                                output_dir, wavelet_scale = 5,
@@ -308,8 +314,15 @@ save_visualization <- function(image = NULL, distances, wavelets, image_name,
 #' @importFrom graphics lines points polygon legend
 #' @export
 #' @examples
-#' \dontrun{
-#' save_visualization_perimeter(image, distances, wavelets, "sample_image", tempdir())
+#' image_path <- system.file("extdata", "otolith.jpg", package = "aforoR")
+#' img <- read_and_process_image(image_path)
+#' cnt <- extract_contour(preprocess_image(img))
+#' dists <- calculate_distances(cnt, n_points = 512)
+#' wavs <- calculate_wavelets_analysis(dists, n_scales = 5)
+#'
+#' \donttest{
+#' # Render and save perimeter diagnostic plots to a temporary directory:
+#' save_visualization_perimeter(img, dists, wavs, "otolith_demo", tempdir())
 #' }
 save_visualization_perimeter <- function(image = NULL, distances, wavelets,
                                          image_name, output_dir,
