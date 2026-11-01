@@ -11,7 +11,7 @@
 MIT](https://img.shields.io/badge/license-MIT-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR/blob/master/LICENSE)
 [![R
 Version](https://img.shields.io/badge/R-%E2%89%A5%204.0.0-6b94ff.svg?style=flat-square)](https://cran.r-project.org/)
-[![Documentation](https://img.shields.io/badge/docs-vignettes-6b94ff.svg?style=flat-square)](https://oterium.github.io/aforoR)
+[![Documentation](https://img.shields.io/badge/docs-vignettes-6b94ff.svg?style=flat-square)](https://oterium.github.io/aforoR/)
 [![R-CMD-check](https://github.com/oterium/aforoR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/oterium/aforoR/actions/workflows/R-CMD-check.yaml)
 [![DOI](https://zenodo.org/badge/856873008.svg)](https://doi.org/10.5281/zenodo.18449478)
 

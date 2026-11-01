@@ -29,7 +29,7 @@
 * **Intelligent Scale Detection & Visual Overlay**: Enhanced `find_scale_bar_length()` with dynamic area scaling to reliably detect physical scale bars (e.g., 2mm bars) in high-resolution and 4K photographs. Added automated visual bounding boxes, technical metric annotations, and scale bar entries to diagnostic validation plots (`save_visualization` and `save_visualization_perimeter`) for quality control.
 * **Intelligent Adaptive Tri-Class Threshold**: Implemented `calculate_adaptive_threshold()` utilizing a 3-class Otsu variance maximization to accurately delineate translucent edges and shaded margins in otolith photographs without clipping.
 * **Generalized Procrustes Analysis (GPA)**: Added native support for GPA alignment (`procrustes = TRUE` in `process_images()`). It mathematically registers and scales a collection of otolith contours to a global "consensus shape," minimizing non-biological shape variance before extracting descriptors.
-* **Advanced Morphometric Metrics**: Upgraded [calculate_morphometrics()](file:///c:/aforoR/R/morphometrics.R) to extract cutting-edge geometric shape descriptors:
+* **Advanced Morphometric Metrics**: Upgraded `calculate_morphometrics()` to extract cutting-edge geometric shape descriptors:
   * **Feret_Max** (Maximum Feret/Caliper Diameter): The maximum distance between any two contour points, serving as a highly robust measure of maximum otolith length.
   * **Feret_Min** (Minimum Feret/Caliper Diameter): Calculated via an angular sweep (360 degrees) of parallel tangents, providing a highly robust and standard measure of otolith width.
   * **PCA_Angle**: Computes the main orientation angle of the major axis of inertia (in degrees, scale-invariant, and normalized to $[0, 180)$) using Singular Value Decomposition (SVD).
@@ -46,7 +46,7 @@
 
 ## 🛠️ Code Refactoring, Bug Fixes & Compliance
 
-* **CRAN Namespace Compliance**: Qualified all calls to `var()` as `stats::var()` inside [R/morphometrics.R](file:///c:/aforoR/R/morphometrics.R#L83), resolving strict R CMD check undefined global function notes.
+* **CRAN Namespace Compliance**: Qualified all calls to `var()` as `stats::var()` inside `R/morphometrics.R`, resolving strict R CMD check undefined global function notes.
 * **Translation & Professionalization**: Translated the entire package interface, console logs, error messages, helper scripts, and 9 vignettes into publication-grade English.
 * **Robust Code Quality**:
   * Refactored the monolithic `process_images` function into highly modular, testable, and reusable functions.
