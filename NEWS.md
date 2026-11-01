@@ -1,6 +1,6 @@
 # aforoR 0.3.0
 
-## ?? Modular Refactoring & Enhanced Workflows
+## 🚀 Modular Refactoring & Enhanced Workflows
 
 * **Modular Architecture Refactoring**: Split monolithic image processing routines into specialized, high-cohesion modules (`R/preprocess.R`, `R/scale_and_interactive.R`, `R/visualization.R`, `R/distances.R`, `R/wavelets.R`, and `R/shape_tools.R`), reducing code duplication and improving maintainability.
 * **Interactive Manual Scale Bar Calibration**: Added `detect_scale = "manual"` via `select_scale_bar()`, allowing users to click physical scale bar endpoints with Euclidean distance calculation.
