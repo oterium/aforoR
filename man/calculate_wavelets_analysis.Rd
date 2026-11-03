@@ -34,5 +34,5 @@ wavelets <- calculate_wavelets_analysis(distances, n_scales = 5)
 str(wavelets)
 }
 \seealso{
-\code{\link{fwaveletspl_3}}
+\code{\link{wavelet_spline_transform}}
 }

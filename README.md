@@ -1,17 +1,12 @@
 
-# aforoR <img src="man/figures/logo.png" align="right" height="139" />
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 
-**Shape Analysis of Fish Otoliths**\
-*Anàlisi de FORmes d’Otòlits in R*
+# aforoR <img src="man/figures/logo.png" align="right" height="139" alt="aforoR logo" />
 
-<br clear="right"/>
+<!-- badges: start -->
 
-[![Version](https://img.shields.io/badge/version-0.3.0-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR)
-[![License:
-MIT](https://img.shields.io/badge/license-MIT-6b94ff.svg?style=flat-square)](https://github.com/oterium/aforoR/blob/master/LICENSE)
-[![R
-Version](https://img.shields.io/badge/R-%E2%89%A5%204.0.0-6b94ff.svg?style=flat-square)](https://cran.r-project.org/)
-[![Documentation](https://img.shields.io/badge/docs-vignettes-6b94ff.svg?style=flat-square)](https://oterium.github.io/aforoR/)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/aforoR)](https://CRAN.R-project.org/package=aforoR)
 [![R-CMD-check](https://github.com/oterium/aforoR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/oterium/aforoR/actions/workflows/R-CMD-check.yaml)
 [![DOI](https://zenodo.org/badge/856873008.svg)](https://doi.org/10.5281/zenodo.18449478)
 
@@ -21,8 +16,9 @@ Version](https://img.shields.io/badge/R-%E2%89%A5%204.0.0-6b94ff.svg?style=flat-
 
 **aforoR** is an R package designed for high-precision **Shape Analysis
 of Fish Otoliths**. It implements the methodology established by the
-*AFORO* team (Parisi-Baradad et al., 2005), providing a complete
-workflow from image preprocessing.
+*AFORO* team (Parisi-Baradad et al., 2005; Lombarte et al., 2006;
+Manjabacas et al., 2025), providing a complete workflow from image
+preprocessing.
 
 While specifically optimized for otoliths, the package is equally
 powerful for analyzing other closed biological structures such as
@@ -80,7 +76,7 @@ image_folder <- system.file("extdata", package = "aforoR")
 
 # 2. Run the automated pipeline
 # Preprocessing -> Scale Detection -> Contour -> Wavelets -> Morphometrics
-process_images(
+results <- process_images(
   folder = image_folder,
   detect_scale = "auto",   # Automatically detect 1mm scale bars
   start_points = "auto",   # Automatically detect anatomical rostrum
@@ -90,7 +86,17 @@ process_images(
   testing = TRUE           # Generate diagnostic visualizations
 )
 
-# 3. Interactive mode: manually click the scale bar and/or rostrum on each image:
+# 3. View extracted Basic Morphometrics (Area, Perimeter, Length, Width, Form Factor, etc.)
+head(results$morphometrics)
+
+# Or compute basic morphometrics directly on a single bundled sample image:
+sample_image <- system.file("extdata", "otolith.jpg", package = "aforoR")
+binary_image <- preprocess_image(sample_image)
+contour <- extract_contour(binary_image)
+morpho_metrics <- calculate_morphometrics(contour, pixels_per_mm = 100)
+print(morpho_metrics)
+
+# 4. Interactive mode: manually click the scale bar and/or rostrum on each image:
 # process_images(folder = image_folder, detect_scale = "auto", start_points = "manual")
 ```
 
@@ -138,8 +144,8 @@ R package version 0.3.0. <https://github.com/oterium/aforoR>
 ### Acknowledgments
 
 Developed by **JLOF, VMT, AM, and AL**. Based on the AFORO methodology
-(Parisi-Baradad et al., 2005) for marine science and morphological
-research.
+(Parisi-Baradad et al., 2005; Lombarte et al., 2006; Manjabacas et al.,
+2025) for marine science and morphological research.
 
 <div data-align="center">
 

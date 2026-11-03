@@ -7,7 +7,7 @@
 calculate_adaptive_threshold(img)
 }
 \arguments{
-\item{img}{An \code{Image} object or numeric matrix/vector of intensities in [0, 1].}
+\item{img}{An \code{Image} object or numeric matrix/vector of intensities in the range 0 to 1.}
 }
 \value{
 A numeric scalar threshold value.

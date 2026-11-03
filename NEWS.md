@@ -1,15 +1,20 @@
 # aforoR 0.3.0
 
-## 🚀 Modular Refactoring & Enhanced Workflows
+## 🚀 AFORO Harmonization & Enhanced Workflows
 
+* **AFORO Canonical References**: Integrated foundational and latest AFORO direct references across package documentation, Overview, and bibliography (Lombarte et al., 2006 and Manjabacas et al., 2025).
+* **Clockwise Contour Decomposition**: Standardized contour extraction and multi-scale decomposition to follow the AFORO clockwise convention (Rostrum -> Ventral -> Posterior -> Dorsal -> Rostrum) via `.coo_ensure_clockwise()` in `extract_contour()` and `.resolve_contour_and_start()`, providing 100% phase and coefficient parity with AFORO web and MATLAB databases.
+* **Modernized Wavelet Architecture**: Refactored stationary wavelet convolution into `wavelet_atrous_1d()` and multi-scale spline decomposition into `wavelet_spline_transform()`, eliminating legacy function names and variable structures while guaranteeing exact zero-difference numerical identity.
+* **Piera et al. (2005) Coordinate Reference**: Added citation to Piera et al. (2005) in coordinate system documentation (*Knowing Wavelets* tutorial) as the pioneering work defining Cartesian vs. Polar representations for otolith shapes.
+* **Quick Start Basic Morphometrics**: Enhanced README Quick Start with immediate inspection of `head(results$morphometrics)` and a self-contained demonstration using bundled sample otolith imagery.
 * **Modular Architecture Refactoring**: Split monolithic image processing routines into specialized, high-cohesion modules (`R/preprocess.R`, `R/scale_and_interactive.R`, `R/visualization.R`, `R/distances.R`, `R/wavelets.R`, and `R/shape_tools.R`), reducing code duplication and improving maintainability.
 * **Interactive Manual Scale Bar Calibration**: Added `detect_scale = "manual"` via `select_scale_bar()`, allowing users to click physical scale bar endpoints with Euclidean distance calculation.
 * **Interactive Contour Starting Point Selection**: Added `start_points = "manual"` via `select_starting_point()`, snapping interactive mouse clicks to the nearest contour vertex while supporting automatic fallback.
 * **Adaptive Specimen Size Threshold**: Upgraded `min_area` to `"auto"` by default, dynamically calculating 0.5% of total image area to prevent false rejection of small specimens (e.g. *Ostium*) while retaining explicit numeric overrides.
-* **Wavelet Signal Detail Correction**: Clarified and corrected `det = TRUE` (default) to return the detail/wavelet coefficients signal ($w_j = a_{j-1} - a_j$, centered around 0) and `det = FALSE` to return the approximation signal ($a_j$).
+* **Wavelet Signal Detail Correction**: Clarified and corrected `detail = TRUE` (default) to return the detail/wavelet coefficients signal ($w_j = a_{j-1} - a_j$, centered around 0) and `detail = FALSE` to return the approximation signal ($a_j$).
 * **Harmonized Homologous Starting Point**: Standardized `start_point = "auto" | "manual" | c(x, y)` across `calculate_css()` and `calculate_distances()`, removing non-homologous `"none"`.
 * **Updated Authorship & Copyright**: Designate Jose Luis Otero Ferrer as author, creator, and copyright holder (`aut`, `cre`, `cph`) and all co-authors as copyright holders (`cph`).
-* **Comprehensive Test Suite & Documentation**: 587/587 unit and integration tests passing (`FAIL 0 | WARN 0`), fully refreshed documentation and vignettes.
+* **Comprehensive Test Suite & Documentation**: 598 unit and integration tests passing (`FAIL 0 | WARN 0`), fully refreshed documentation and vignettes.
 
 # aforoR 0.2.1
 
@@ -48,7 +53,3 @@
 
 * **CRAN Namespace Compliance**: Qualified all calls to `var()` as `stats::var()` inside `R/morphometrics.R`, resolving strict R CMD check undefined global function notes.
 * **Translation & Professionalization**: Translated the entire package interface, console logs, error messages, helper scripts, and 9 vignettes into publication-grade English.
-* **Robust Code Quality**:
-  * Refactored the monolithic `process_images` function into highly modular, testable, and reusable functions.
-  * Reorganized and cleaned up output folder generations, splitting outputs into dedicated `Polar/` and `Cartesian/` directories.
-* **Continuous Integration (CI/CD)**: Established a robust automated GitHub Actions pipeline with `R-CMD-check` workflows across operating systems and automated `pkgdown` website building and deployment to GitHub Pages.

@@ -26,22 +26,22 @@ extracted contour (\code{nrow(contour)} points).}
 
 \item{start_point}{Strategy or coordinates for selecting the contour starting point (\code{arc_length = 0.0}):
 \itemize{
-  \item \code{"auto"} (default, or \code{NULL}): Automatically selects the rightmost point (\eqn{\max(X)}) as the rostrum.
-  \item \code{"manual"}: Interactive mouse selection mode. Plots the contour with the automatic
-        rostrum candidate (\code{o}) and prompts the user to click on the desired starting point
-        with the mouse (snapping to the nearest contour vertex).
-  \item Numeric coordinate pair \code{c(x, y)} (e.g. returned by \code{\link{select_starting_point}}),
-        a 1x2 matrix, or an integer contour index (\code{1..nrow(contour)}).
+\item \code{"auto"} (default, or \code{NULL}): Automatically selects the rightmost point (\eqn{\max(X)}) as the rostrum.
+\item \code{"manual"}: Interactive mouse selection mode. Plots the contour with the automatic
+rostrum candidate (\code{o}) and prompts the user to click on the desired starting point
+with the mouse (snapping to the nearest contour vertex).
+\item Numeric coordinate pair \code{c(x, y)} (e.g. returned by \code{\link{select_starting_point}}),
+a 1x2 matrix, or an integer contour index (\code{1..nrow(contour)}).
 }}
 }
 \value{
-A list of class `css` containing:
-  \itemize{
-    \item \code{css_matrix}: A data.frame with columns `arc_length`, `sigma`, and `zone` for each zero-crossing.
-    \item \code{n_points}: Number of points used in resampling.
-    \item \code{contour_original}: The resampled contour (starting at the rostrum if aligned).
-    \item \code{start_point_coords}: Numeric vector \code{c(X, Y)} of the starting point (\code{arc_length = 0}).
-  }
+A list of class \code{css} containing:
+\itemize{
+\item \code{css_matrix}: A data.frame with columns \code{arc_length}, \code{sigma}, and \code{zone} for each zero-crossing.
+\item \code{n_points}: Number of points used in resampling.
+\item \code{contour_original}: The resampled contour (starting at the rostrum if aligned).
+\item \code{start_point_coords}: Numeric vector \code{c(X, Y)} of the starting point (\code{arc_length = 0}).
+}
 }
 \description{
 Computes the Curvature Scale Space representation of a 2D closed contour.

@@ -1,22 +1,20 @@
 ---
 title: "Wavelet Theory & Fundamentals"
 author: "Victor M. Tuset & Antoni Lombarte"
-date: 2025-11-27
-output: rmarkdown::html_document
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Wavelet Theory & Fundamentals}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-<style>
-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  margin: 1.5em auto;
-}
-</style>
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
 
 ## About this tutorial
 
@@ -24,7 +22,7 @@ This tutorial describes the basic concepts underlying the morphological interpre
 
 ## Choosing coordinates
 
-The package extracts the contour in both Cartesian and polar coordinates. The selection of the coordinate system depends on the degree of contour irregularity: the greater the irregularity, the higher the probability of misrepresentation (‘shadowing’) when using polar coordinates.
+The package extracts the contour in both Cartesian and polar coordinates, implementing the foundational framework established by Piera et al. (2005) for otolith contour analysis. The selection of the coordinate system depends on the degree of contour irregularity: the greater the irregularity, the higher the probability of misrepresentation (‘shadowing’) when using polar coordinates.
 
 | Coordinates | Advantages | Disadvantages |
 |:-----------------:|:---------------------------:|:-----------------------:|
@@ -35,7 +33,7 @@ The package extracts the contour in both Cartesian and polar coordinates. The se
 
 ## Towards wavelet representation
 
-The package extracts 512 equidistant coordinates from each orthogonal projection of the otolith. These coordinates enable the calculation of the normalized distance from the centroid to the chosen initial point, from which the wavelet transform is computed at multiple scales. Lower scales (1^st^) capture finest contour irregularities, whereas higher scales (9^th^) smooth the outline (Parisi-Baradad et al., 2015; Vasconcelos et al., 2025).
+The package extracts 512 equidistant coordinates from each orthogonal projection of the otolith. These coordinates enable the calculation of the normalized distance from the centroid to the chosen initial point, from which the wavelet transform is computed at multiple scales. Lower scales (1^st^) capture finest contour irregularities, whereas higher scales (9^th^) smooth the outline (Parisi-Baradad et al., 2005; Vasconcelos et al., 2025).
 
 ![](images/checking.png)
 
@@ -48,12 +46,17 @@ Visualizing coordinates and distances allows for the reconstruction of contours 
 
 ## Morphological interpretation of wavelets
 
-The wavelet function is obtained in a counter-clockwise direction. The package provides two types of graphics in the output R:
+The wavelet function is obtained in a clockwise direction, following the standard AFORO methodology (Parisi-Baradad et al., 2005; Lombarte et al., 2006; Manjabacas et al., 2025). Decomposition starts at the rostrum (rightmost point) and traverses along the ventral margin, posterior margin, and dorsal margin back to the rostrum. The package provides two types of graphics in the output R:
 
 -   **Image type 1:** Wavelet signal.
 -   **Image type 2:** Contour points and reconstructed outline.
 
-Check these graphics for possible issues with images or backgrounds. Images are divided into four colour-coded sections (1–128, 129–256, 257–374, 375–512) to aid morphological interpretation.
+Check these graphics for possible issues with images or backgrounds. Images are divided into four colour-coded sections (1–128, 129–256, 257–384, 385–512) to aid morphological interpretation:
+
+*   **Zone 1 (1–128, Cyan):** Rostrum to ventral margin.
+*   **Zone 2 (129–256, Yellow):** Ventral margin to posterior margin.
+*   **Zone 3 (257–384, Magenta):** Posterior margin to dorsal margin.
+*   **Zone 4 (385–512, Green):** Dorsal margin returning to the rostrum.
 
 ![](images/Interpretation.png)
 

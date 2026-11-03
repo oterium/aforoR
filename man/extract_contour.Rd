@@ -13,12 +13,12 @@ extract_contour(binary_image, min_points = 200, min_area = "auto")
 (default: 200).}
 
 \item{min_area}{Minimum area required for a valid contour. Can be \code{"auto"} (default)
-to dynamically adapt the threshold to 0.5% of total image area
+to dynamically adapt the threshold to 0.5\% of total image area
 (bounded between 500 and 5000 \eqn{\text{px}^2}), or a positive numeric value in pixels.}
 }
 \value{
 A matrix of (X, Y) coordinates of the main contour, or NULL if no
-        suitable contour is found.
+suitable contour is found.
 }
 \description{
 Detects all contours in a binary image and identifies the largest one that

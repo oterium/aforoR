@@ -34,7 +34,7 @@ process_images(
 )
 }
 \arguments{
-\item{folder}{A string specifying the path to the folder containing images. Supported formats include `.jpg`, `.jpeg`, `.png`, `.tif`, and `.tiff`.}
+\item{folder}{A string specifying the path to the folder containing images. Supported formats include \code{.jpg}, \code{.jpeg}, \code{.png}, \code{.tif}, and \code{.tiff}.}
 
 \item{subfolder}{A logical value indicating whether to recursively process subfolders. Default is FALSE.}
 
@@ -55,14 +55,14 @@ process_images(
 
 \item{detect_scale}{Strategy for calibrating the scale bar in each image. Accepts one of three options:
 \itemize{
-  \item \code{"none"} (default): Scale bar detection is disabled (uses
-        \code{pixels_per_mm} if provided, or outputs measurements in pixels).
-  \item \code{"auto"}: Automatically detects the calibration scale bar
-        in each image and measures its exact physical pixel span via \code{find_scale_bar_length()}.
-  \item \code{"manual"}: Interactive mouse calibration mode. Sequentially displays each image
-        so the user can click the start and end points of the calibration scale bar with the mouse
-        via \code{\link{select_scale_bar}} (without snapping). Useful as a fallback when automatic
-        detection fails on non-standard or low-contrast rulers.
+\item \code{"none"} (default): Scale bar detection is disabled (uses
+\code{pixels_per_mm} if provided, or outputs measurements in pixels).
+\item \code{"auto"}: Automatically detects the calibration scale bar
+in each image and measures its exact physical pixel span via \code{find_scale_bar_length()}.
+\item \code{"manual"}: Interactive mouse calibration mode. Sequentially displays each image
+so the user can click the start and end points of the calibration scale bar with the mouse
+via \code{\link{select_scale_bar}} (without snapping). Useful as a fallback when automatic
+detection fails on non-standard or low-contrast rulers.
 }
 (Logical \code{FALSE} and \code{TRUE} are also accepted as aliases for \code{"none"} and \code{"auto"}.)}
 
@@ -75,7 +75,7 @@ or \code{"auto"} (default) to calculate \eqn{\text{blur\_size} / 3.5}.}
 \item{min_points}{Minimum number of points required for a valid contour (default: 200).}
 
 \item{min_area}{Minimum area required for a valid contour. Can be \code{"auto"} (default)
-to dynamically adapt the threshold to 0.5% of total image area
+to dynamically adapt the threshold to 0.5\% of total image area
 (bounded between 500 and 5000 \eqn{\text{px}^2}), or a positive numeric value in pixels.}
 
 \item{n_harmonics}{Number of elliptic Fourier harmonics to calculate (default: 32).}
@@ -103,20 +103,20 @@ to dynamically adapt the threshold to 0.5% of total image area
 \item{start_points}{Strategy or coordinates for selecting the contour starting point (rostrum)
 on each image. Accepts one of three options:
 \itemize{
-  \item \code{"auto"} (default): Automatically selects the rightmost contour
-        point (\eqn{\max(X)}) as the anatomical rostrum on every image.
-  \item \code{"manual"}: Interactive mouse selection mode. Sequentially displays
-        each image with its extracted contour and the automatic rostrum candidate (\code{o})
-        overlaid, allowing the user to click the desired starting point with the mouse via
-        \code{\link{select_starting_point}} (or right-click / press \code{Esc} to keep \code{"auto"}).
-  \item A 2-column numeric \code{matrix} (or \code{data.frame}) of \code{(X, Y)} starting point
-        coordinates:
-        \itemize{
-          \item Must contain one row per image in \code{folder} (\code{nrow(start_points)} must
-                equal the total number of images in the folder).
-          \item Cannot be combined with \code{subfolder = TRUE}; folders with custom starting point
-                matrices must be processed individually (\code{subfolder = FALSE}).
-        }
+\item \code{"auto"} (default): Automatically selects the rightmost contour
+point (\eqn{\max(X)}) as the anatomical rostrum on every image.
+\item \code{"manual"}: Interactive mouse selection mode. Sequentially displays
+each image with its extracted contour and the automatic rostrum candidate (\code{o})
+overlaid, allowing the user to click the desired starting point with the mouse via
+\code{\link{select_starting_point}} (or right-click / press \code{Esc} to keep \code{"auto"}).
+\item A 2-column numeric \code{matrix} (or \code{data.frame}) of \code{(X, Y)} starting point
+coordinates:
+\itemize{
+\item Must contain one row per image in \code{folder} (\code{nrow(start_points)} must
+equal the total number of images in the folder).
+\item Cannot be combined with \code{subfolder = TRUE}; folders with custom starting point
+matrices must be processed individually (\code{subfolder = FALSE}).
+}
 }}
 }
 \value{
@@ -132,17 +132,17 @@ rostrum selection, and lightweight diagnostic visualization overlaid on real pho
 Physical calibration (converting pixels to millimeters) is controlled via \code{detect_scale}
 and \code{scale_mm}:
 \enumerate{
-  \item \strong{Disabled (\code{detect_scale = "none"}, default)}:
-        Uses the fixed \code{pixels_per_mm} argument if supplied, or reports morphometrics in \code{px}.
-  \item \strong{Automatic detection (\code{detect_scale = "auto"})}:
-        Automatically segments the calibration bar (supporting white, dark-on-plaque, and pure red
-        bars in horizontal or vertical orientation) and measures its exact tip-to-tip pixel span,
-        marking both physical endpoints (\code{x}) on the diagnostic \code{zonal_*.jpg} image.
-  \item \strong{Interactive manual selection (\code{detect_scale = "manual"})}:
-        Opens each image sequentially and prompts the user to click the two endpoints (start and end)
-        of the scale bar with the mouse via \code{\link{select_scale_bar}} (no contour snapping).
-        Computes the exact Euclidean pixel distance between the two clicks and overlays the selected
-        endpoints on the diagnostic plot.
+\item \strong{Disabled (\code{detect_scale = "none"}, default)}:
+Uses the fixed \code{pixels_per_mm} argument if supplied, or reports morphometrics in \code{px}.
+\item \strong{Automatic detection (\code{detect_scale = "auto"})}:
+Automatically segments the calibration bar (supporting white, dark-on-plaque, and pure red
+bars in horizontal or vertical orientation) and measures its exact tip-to-tip pixel span,
+marking both physical endpoints (\code{x}) on the diagnostic \code{zonal_*.jpg} image.
+\item \strong{Interactive manual selection (\code{detect_scale = "manual"})}:
+Opens each image sequentially and prompts the user to click the two endpoints (start and end)
+of the scale bar with the mouse via \code{\link{select_scale_bar}} (no contour snapping).
+Computes the exact Euclidean pixel distance between the two clicks and overlays the selected
+endpoints on the diagnostic plot.
 }
 }
 \subsection{Starting Point (Rostrum) Selection (\code{start_points})}{
@@ -151,23 +151,23 @@ anatomical starting point (\code{0.0}), which in the AFORO standard corresponds 
 \strong{rostrum}. The \code{start_points} argument controls how this starting point is
 determined across the folder:
 \enumerate{
-  \item \strong{Automatic mode (\code{start_points = "auto"}, default)}:
-        Automatically locates the rightmost contour vertex (\eqn{\max(X)}) on each image.
-        Compatible with both single-folder (\code{subfolder = FALSE}) and recursive
-        multi-folder (\code{subfolder = TRUE}) batch processing.
-  \item \strong{Interactive mouse mode (\code{start_points = "manual"})}:
-        Before running the batch analysis, sequentially opens each image in the R graphics
-        device showing the extracted contour and the automatic rostrum candidate (\code{o}).
-        Left-clicking sets and snaps the starting point to the nearest contour vertex;
-        right-clicking or pressing \code{Esc} retains the automatic candidate for that image.
-  \item \strong{Custom coordinate matrix (\code{start_points = matrix_or_df})}:
-        Accepts a 2-column numeric \code{matrix} or \code{data.frame} of \code{(X, Y)} coordinates
-        (or a \code{data.frame} with columns \code{Image}, \code{X}, \code{Y}). For each image,
-        the contour vertex closest to the supplied \code{(X, Y)} coordinate is selected as
-        the starting point. To prevent ambiguity across directories, \code{nrow(start_points)}
-        must strictly equal the total number of images in \code{folder}, and recursive processing
-        (\code{subfolder = TRUE}) is disabled when a custom matrix is supplied (process one
-        folder at a time with \code{subfolder = FALSE}).
+\item \strong{Automatic mode (\code{start_points = "auto"}, default)}:
+Automatically locates the rightmost contour vertex (\eqn{\max(X)}) on each image.
+Compatible with both single-folder (\code{subfolder = FALSE}) and recursive
+multi-folder (\code{subfolder = TRUE}) batch processing.
+\item \strong{Interactive mouse mode (\code{start_points = "manual"})}:
+Before running the batch analysis, sequentially opens each image in the R graphics
+device showing the extracted contour and the automatic rostrum candidate (\code{o}).
+Left-clicking sets and snaps the starting point to the nearest contour vertex;
+right-clicking or pressing \code{Esc} retains the automatic candidate for that image.
+\item \strong{Custom coordinate matrix (\code{start_points = matrix_or_df})}:
+Accepts a 2-column numeric \code{matrix} or \code{data.frame} of \code{(X, Y)} coordinates
+(or a \code{data.frame} with columns \code{Image}, \code{X}, \code{Y}). For each image,
+the contour vertex closest to the supplied \code{(X, Y)} coordinate is selected as
+the starting point. To prevent ambiguity across directories, \code{nrow(start_points)}
+must strictly equal the total number of images in \code{folder}, and recursive processing
+(\code{subfolder = TRUE}) is disabled when a custom matrix is supplied (process one
+folder at a time with \code{subfolder = FALSE}).
 }
 }
 }

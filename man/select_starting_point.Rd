@@ -13,7 +13,7 @@ select_starting_point(image, contour = NULL)
 }
 \value{
 A numeric vector of length 2 \code{c(x, y)} representing the clicked point coordinates,
-        or NULL if cancelled.
+or NULL if cancelled.
 }
 \description{
 Displays an otolith image with its extracted contour overlaid in cyan and the

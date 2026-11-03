@@ -7,20 +7,20 @@
 \format{
 A data frame with 14 variables:
 \describe{
-  \item{Species}{Species name (Acar or Aint)}
-  \item{ID}{Unique identifier for the otolith (from image filename)}
-  \item{SL}{Standard Length of the fish (mm)}
-  \item{OA}{Otolith area (pixels)}
-  \item{OP}{Otolith perimeter (pixels)}
-  \item{OL}{Otolith maximum length (pixels)}
-  \item{OW}{Otolith maximum width (pixels)}
-  \item{Roundness}{Shape index: (4 * Area) / (pi * Length^2)}
-  \item{FormFactor}{Shape index: (4 * pi * Area) / Perimeter^2}
-  \item{Circularity}{Shape index: Perimeter^2 / Area}
-  \item{Rectangularity}{Shape index: Area / (Length * Width)}
-  \item{Ellipticity}{Shape index: (Length - Width) / (Length + Width)}
-  \item{AspectRatio}{Shape index: Length / Width}
-  \item{Units}{Measurement units (px)}
+\item{Species}{Species name (Acar or Aint)}
+\item{ID}{Unique identifier for the otolith (from image filename)}
+\item{SL}{Standard Length of the fish (mm)}
+\item{OA}{Otolith area (pixels)}
+\item{OP}{Otolith perimeter (pixels)}
+\item{OL}{Otolith maximum length (pixels)}
+\item{OW}{Otolith maximum width (pixels)}
+\item{Roundness}{Shape index: (4 * Area) / (pi * Length^2)}
+\item{FormFactor}{Shape index: (4 * pi * Area) / Perimeter^2}
+\item{Circularity}{Shape index: Perimeter^2 / Area}
+\item{Rectangularity}{Shape index: Area / (Length * Width)}
+\item{Ellipticity}{Shape index: (Length - Width) / (Length + Width)}
+\item{AspectRatio}{Shape index: Length / Width}
+\item{Units}{Measurement units (px)}
 }
 }
 \usage{

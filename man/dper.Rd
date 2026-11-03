@@ -15,10 +15,10 @@ dper(x, y, n)
 }
 \value{
 A list containing:
-  \itemize{
-    \item \code{dist}: Radial distances from the centroid to the sampled points.
-    \item \code{coords}: Coordinates of the sampled points.
-  }
+\itemize{
+\item \code{dist}: Radial distances from the centroid to the sampled points.
+\item \code{coords}: Coordinates of the sampled points.
+}
 }
 \description{
 Calculates distances from the centroid to points sampled at regular intervals

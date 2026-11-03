@@ -38,11 +38,11 @@ select_points_hall(
 }
 \value{
 A list containing:
-  \itemize{
-    \item \code{selected_indices}: Indices of the selected points.
-    \item \code{error_path}: Vector of error rates at each iteration.
-    \item \code{confusion_matrix}: Final confusion matrix using cross-validation.
-  }
+\itemize{
+\item \code{selected_indices}: Indices of the selected points.
+\item \code{error_path}: Vector of error rates at each iteration.
+\item \code{confusion_matrix}: Final confusion matrix using cross-validation.
+}
 }
 \description{
 Implements the Hall & Bathia (2012) algorithm for selecting a subset of points

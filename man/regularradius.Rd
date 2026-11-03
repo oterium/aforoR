@@ -15,11 +15,11 @@ regularradius(Rx, Ry, n)
 }
 \value{
 A list containing:
-  \itemize{
-    \item \code{pixindices}: Indices of the sampled points in the original contour.
-    \item \code{radii}: Distances from the centroid to each sampled point.
-    \item \code{coord}: Coordinates of the sampled points relative to the centroid.
-  }
+\itemize{
+\item \code{pixindices}: Indices of the sampled points in the original contour.
+\item \code{radii}: Distances from the centroid to each sampled point.
+\item \code{coord}: Coordinates of the sampled points relative to the centroid.
+}
 }
 \description{
 Calculates radial distances from the centroid to a specified number of points

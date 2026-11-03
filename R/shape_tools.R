@@ -33,6 +33,61 @@
   sum(sqrt(dx^2 + dy^2))
 }
 
+#' Check if Closed Polygon is Clockwise (in Image Coordinates)
+#'
+#' Evaluates the signed area using Gauss's formula (Shoelace formula). In image
+#' coordinates (where Y increases downwards), a positive signed area corresponds
+#' to clockwise orientation.
+#'
+#' @param coo Matrix or data.frame with X and Y columns.
+#' @return Logical; TRUE if contour is clockwise, FALSE otherwise.
+#' @keywords internal
+#' @noRd
+.coo_is_clockwise <- function(coo) {
+  coo <- as.matrix(coo)
+  n <- nrow(coo)
+  if (n < 3) return(TRUE)
+  if (n > 3 && isTRUE(all(coo[1, ] == coo[n, ]))) {
+    coo <- coo[-n, , drop = FALSE]
+    n <- nrow(coo)
+  }
+  x <- coo[, 1]
+  y <- coo[, 2]
+  j <- c(2:n, 1)
+  signed_area <- 0.5 * sum(x * y[j] - y * x[j])
+  return(signed_area >= 0)
+}
+
+#' Ensure Polygon Contour is in Clockwise Orientation
+#'
+#' Checks whether a contour is clockwise in image coordinates, and reverses
+#' vertex order if it is counter-clockwise (AFORO convention).
+#'
+#' @param coo Matrix or data.frame with X and Y columns.
+#' @return Matrix of coordinates in clockwise order.
+#' @keywords internal
+#' @noRd
+.coo_ensure_clockwise <- function(coo) {
+  coo <- as.matrix(coo)
+  n <- nrow(coo)
+  if (n < 3) return(coo)
+  has_dup_end <- isTRUE(all(coo[1, ] == coo[n, ]))
+  if (has_dup_end) {
+    coo_open <- coo[-n, , drop = FALSE]
+  } else {
+    coo_open <- coo
+  }
+  if (!.coo_is_clockwise(coo_open)) {
+    coo_open <- coo_open[nrow(coo_open):1, , drop = FALSE]
+  }
+  if (has_dup_end) {
+    coo <- rbind(coo_open, coo_open[1, , drop = FALSE])
+  } else {
+    coo <- coo_open
+  }
+  return(coo)
+}
+
 #' Align Contour along Principal Axes using SVD
 #'
 #' Centers the contour and rotates it to align with its principal components.
@@ -337,6 +392,8 @@
   if (all(coo[, 1] == coo[1, 1]) && all(coo[, 2] == coo[1, 2])) {
     stop("contour is degenerate with identical coordinates")
   }
+  # Ensure contour vertices follow clockwise orientation (AFORO standard)
+  coo <- .coo_ensure_clockwise(coo)
 
   n_raw <- nrow(coo)
   if (is.matrix(start_point) || is.data.frame(start_point)) {

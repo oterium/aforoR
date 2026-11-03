@@ -3,7 +3,7 @@
 #' Computes an adaptive threshold using a three-class Otsu variance maximization,
 #' separating background noise from the translucent/shaded margins of the otolith.
 #'
-#' @param img An \code{Image} object or numeric matrix/vector of intensities in [0, 1].
+#' @param img An \code{Image} object or numeric matrix/vector of intensities in the range 0 to 1.
 #' @return A numeric scalar threshold value.
 #' @keywords internal
 calculate_adaptive_threshold <- function(img) {
@@ -369,6 +369,9 @@ extract_contour <- function(binary_image, min_points = 200, min_area = "auto") {
         ))
       }
 
+      if (!is.null(contorno)) {
+        contorno <- .coo_ensure_clockwise(contorno)
+      }
       return(contorno)
     },
     error = function(e) {

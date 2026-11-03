@@ -13,22 +13,22 @@ calculate_distances(contour, n_points = 512, start_point = "auto")
 
 \item{start_point}{Strategy or coordinates for selecting the contour starting point (rostrum):
 \itemize{
-  \item \code{"auto"} (default, or \code{NULL}): Automatically selects the rightmost point (\eqn{\max(X)}).
-  \item \code{"manual"}: Interactive mouse selection mode. Plots the contour with the automatic
-        rostrum candidate (\code{o}) and prompts the user to click on the desired starting point
-        with the mouse (snapping to the nearest contour vertex).
-  \item Numeric coordinate pair \code{c(x, y)} (or 1x2 matrix) or integer index \code{1..nrow(contour)}:
-        Starts at the contour point closest to \code{(x, y)} or at the specified row index.
+\item \code{"auto"} (default, or \code{NULL}): Automatically selects the rightmost point (\eqn{\max(X)}).
+\item \code{"manual"}: Interactive mouse selection mode. Plots the contour with the automatic
+rostrum candidate (\code{o}) and prompts the user to click on the desired starting point
+with the mouse (snapping to the nearest contour vertex).
+\item Numeric coordinate pair \code{c(x, y)} (or 1x2 matrix) or integer index \code{1..nrow(contour)}:
+Starts at the contour point closest to \code{(x, y)} or at the specified row index.
 }}
 }
 \value{
 A list containing:
-  \itemize{
-    \item \code{polar}: Radii, coordinates, and normalized radii.
-    \item \code{perimeter}: Distances, coordinates, and normalized distances.
-    \item \code{reordered_coords}: The contour coordinates reordered from the
-          starting point.
-  }
+\itemize{
+\item \code{polar}: Radii, coordinates, and normalized radii.
+\item \code{perimeter}: Distances, coordinates, and normalized distances.
+\item \code{reordered_coords}: The contour coordinates reordered from the
+starting point.
+}
 }
 \description{
 Computes two types of distance measures from an otolith contour: polar

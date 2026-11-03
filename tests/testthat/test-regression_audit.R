@@ -82,12 +82,12 @@ test_that("calculate_css handles boundary conditions", {
     expect_error(calculate_css(data.frame(X = 1:5, Y = 1:5), n_points = 2), "integer >= 3")
 })
 
-test_that("fatrous1d validates filter length", {
-    # rh length must match snmax - snmin + 1 (here 2 - (-2) + 1 = 5)
-    expect_error(fatrous1d(1:10, c(0.1, 0.2), -2, 2, 1), "rh must have length equal to snmax", fixed = FALSE)
+test_that("wavelet_atrous_1d validates filter length", {
+    # filter_weights length must match scale_max - scale_min + 1 (here 2 - (-2) + 1 = 5)
+    expect_error(wavelet_atrous_1d(1:10, c(0.1, 0.2), -2, 2, 1), "filter_weights must have length equal to scale_max", fixed = FALSE)
     # Correct length succeeds
     flt <- c(0.0625, 0.25, 0.375, 0.25, 0.0625)
-    res <- fatrous1d(1:16, flt, -2, 2, 1)
+    res <- wavelet_atrous_1d(1:16, flt, -2, 2, 1)
     expect_true(is.matrix(res))
     expect_equal(ncol(res), 16)
 })
@@ -213,16 +213,16 @@ test_that("calculate_adaptive_threshold handles 3D arrays, 0..255 scale, and NUL
     expect_true(th_255 > 0 && th_255 <= 1)
 })
 
-test_that("fatrous1d validates scale index sj >= 1 and rejects invalid/NA inputs", {
+test_that("wavelet_atrous_1d validates scale index scale_j >= 1 and rejects invalid/NA inputs", {
     flt <- c(0.0625, 0.25, 0.375, 0.25, 0.0625)
-    expect_error(fatrous1d(1:10, flt, -2, 2, sj = 0), "sj must be an integer >= 1")
-    expect_error(fatrous1d(1:10, flt, -2, 2, sj = -1), "sj must be an integer >= 1")
-    expect_error(fatrous1d(1:10, flt, -2, 2, sj = NA), "must be numeric values")
-    expect_error(fatrous1d(1:10, flt, -2, 2, sj = NA_real_), "must be finite values")
-    expect_error(fatrous1d(1:10, flt, -2, 2, sj = Inf), "must be finite values")
-    expect_error(fatrous1d(c(1, NA, 3), flt, -2, 2, sj = 1), "rx and rh cannot contain NA values")
-    expect_error(fatrous1d(1:10, c(flt[1:4], NA), -2, 2, sj = 1), "rx and rh cannot contain NA values")
-    expect_error(fatrous1d(c(1, Inf, 3), flt, -2, 2, sj = 1), "rx and rh cannot contain infinite values")
+    expect_error(wavelet_atrous_1d(1:10, flt, -2, 2, scale_j = 0), "scale_j must be an integer >= 1")
+    expect_error(wavelet_atrous_1d(1:10, flt, -2, 2, scale_j = -1), "scale_j must be an integer >= 1")
+    expect_error(wavelet_atrous_1d(1:10, flt, -2, 2, scale_j = NA), "must be numeric values")
+    expect_error(wavelet_atrous_1d(1:10, flt, -2, 2, scale_j = NA_real_), "must be finite values")
+    expect_error(wavelet_atrous_1d(1:10, flt, -2, 2, scale_j = Inf), "must be finite values")
+    expect_error(wavelet_atrous_1d(c(1, NA, 3), flt, -2, 2, scale_j = 1), "signal and filter_weights cannot contain NA values")
+    expect_error(wavelet_atrous_1d(1:10, c(flt[1:4], NA), -2, 2, scale_j = 1), "signal and filter_weights cannot contain NA values")
+    expect_error(wavelet_atrous_1d(c(1, Inf, 3), flt, -2, 2, scale_j = 1), "signal and filter_weights cannot contain infinite values")
 })
 
 test_that("calculate_css handles 2-column non-standard data.frames and validates sigma arguments", {
@@ -285,26 +285,26 @@ test_that("circ_conv handles n_pad >= N without negative indexing errors", {
     expect_null(plot_ret)
 })
 
-test_that("fwaveletspl_3 validates NA, infinite, non-integer, and small signals", {
-    # sjm validation
-    expect_error(fwaveletspl_3(1:8, sjm = NA_real_), "sjm must be a positive integer")
-    expect_error(fwaveletspl_3(1:8, sjm = Inf), "sjm must be a positive integer")
-    expect_error(fwaveletspl_3(1:8, sjm = 2.5), "sjm must be a positive integer")
-    expect_error(fwaveletspl_3(1:8, sjm = -1), "sjm must be a positive integer")
+test_that("wavelet_spline_transform validates NA, infinite, non-integer, and small signals", {
+    # n_scales validation
+    expect_error(wavelet_spline_transform(1:8, n_scales = NA_real_), "n_scales must be a positive integer")
+    expect_error(wavelet_spline_transform(1:8, n_scales = Inf), "n_scales must be a positive integer")
+    expect_error(wavelet_spline_transform(1:8, n_scales = 2.5), "n_scales must be a positive integer")
+    expect_error(wavelet_spline_transform(1:8, n_scales = -1), "n_scales must be a positive integer")
 
-    # det validation
-    expect_error(fwaveletspl_3(1:8, sjm = 2, det = NA), "det must be a logical value")
+    # detail validation
+    expect_error(wavelet_spline_transform(1:8, n_scales = 2, detail = NA), "detail must be a logical value")
 
-    # ra0 validation
-    expect_error(fwaveletspl_3(c(1, Inf, 3, 4), sjm = 2), "ra0 cannot contain infinite values")
-    expect_error(fwaveletspl_3(1, sjm = 1), "ra0 must contain at least 2 points")
+    # signal validation
+    expect_error(wavelet_spline_transform(c(1, Inf, 3, 4), n_scales = 2), "signal cannot contain infinite values")
+    expect_error(wavelet_spline_transform(1, n_scales = 1), "signal must contain at least 2 points")
 })
 
-test_that("fatrous1d strictly rejects non-integer filter scale parameters", {
+test_that("wavelet_atrous_1d strictly rejects non-integer filter scale parameters", {
     flt <- c(0.0625, 0.25, 0.375, 0.25, 0.0625)
-    expect_error(fatrous1d(1:10, flt, -2.5, 2.5, 1), "snmin and snmax must be integers")
-    expect_error(fatrous1d(1:10, flt, -2, 2.5, 1), "snmin and snmax must be integers")
-    expect_error(fatrous1d(1:10, flt, -2, 2, sj = 1.5), "sj must be an integer >= 1")
+    expect_error(wavelet_atrous_1d(1:10, flt, -2.5, 2.5, 1), "scale_min and scale_max must be integers")
+    expect_error(wavelet_atrous_1d(1:10, flt, -2, 2.5, 1), "scale_min and scale_max must be integers")
+    expect_error(wavelet_atrous_1d(1:10, flt, -2, 2, scale_j = 1.5), "scale_j must be an integer >= 1")
 })
 
 test_that("calculate_distances supports 2-column lowercase frames and validates coordinates", {
@@ -561,13 +561,13 @@ test_that("select_scale_bar and detect_scale modes validate inputs and handle no
     expect_null(select_scale_bar(example_image, scale_mm = 1))
 })
 
-test_that("fwaveletspl_3 and calculate_wavelets_analysis return detail when det/detail = TRUE (default) and approximation when FALSE", {
+test_that("wavelet_spline_transform and calculate_wavelets_analysis return detail when detail = TRUE (default) and approximation when FALSE", {
     theta <- seq(0, 2 * pi, length.out = 64)
     sig <- 10 + cos(theta) + 0.3 * sin(4 * theta)
 
-    w_def <- fwaveletspl_3(sig, sjm = 4)
-    w_det <- fwaveletspl_3(sig, sjm = 4, det = TRUE)
-    w_app <- fwaveletspl_3(sig, sjm = 4, det = FALSE)
+    w_def <- wavelet_spline_transform(sig, n_scales = 4)
+    w_det <- wavelet_spline_transform(sig, n_scales = 4, detail = TRUE)
+    w_app <- wavelet_spline_transform(sig, n_scales = 4, detail = FALSE)
 
     expect_equal(w_def, w_det)
     # Detail coefficients are centered around 0; approximation retains signal mean (~10)
@@ -727,4 +727,40 @@ test_that("refactored internal helpers (.resolve_contour_and_start, .render_zona
 
     par_res <- aforoR:::.run_batch_tasks(items, function(it) it$x * 10, use_parallel = TRUE, actual_cores = 2L)
     expect_equal(par_res, list(20, 50))
+})
+
+test_that(".coo_is_clockwise and .coo_ensure_clockwise enforce clockwise orientation", {
+    # In image coordinates (Y increases downwards):
+    # CW square: (0,0) -> (1,0) -> (1,1) -> (0,1)
+    cw_poly <- matrix(c(0, 1, 1, 0, 0, 0, 1, 1), ncol = 2)
+    expect_true(aforoR:::.coo_is_clockwise(cw_poly))
+    expect_equal(aforoR:::.coo_ensure_clockwise(cw_poly), cw_poly)
+
+    # CCW square: (0,0) -> (0,1) -> (1,1) -> (1,0)
+    ccw_poly <- matrix(c(0, 0, 1, 1, 0, 1, 1, 0), ncol = 2)
+    expect_false(aforoR:::.coo_is_clockwise(ccw_poly))
+    ensured_cw <- aforoR:::.coo_ensure_clockwise(ccw_poly)
+    expect_true(aforoR:::.coo_is_clockwise(ensured_cw))
+
+    # Closed polygon with duplicate endpoint
+    ccw_closed <- rbind(ccw_poly, ccw_poly[1, , drop = FALSE])
+    expect_false(aforoR:::.coo_is_clockwise(ccw_closed))
+    ensured_closed <- aforoR:::.coo_ensure_clockwise(ccw_closed)
+    expect_true(aforoR:::.coo_is_clockwise(ensured_closed))
+    expect_equal(ensured_closed[1, ], ensured_closed[nrow(ensured_closed), ])
+
+    # Edge cases: < 3 points
+    expect_true(aforoR:::.coo_is_clockwise(matrix(c(1, 2, 3, 4), ncol = 2)))
+    expect_equal(aforoR:::.coo_ensure_clockwise(matrix(c(1, 2, 3, 4), ncol = 2)), matrix(c(1, 2, 3, 4), ncol = 2))
+
+    # Bundled sample otolith contour extraction is guaranteed clockwise
+    sample_img <- system.file("extdata", "otolith.jpg", package = "aforoR")
+    if (nzchar(sample_img)) {
+        bin <- preprocess_image(sample_img)
+        cnt <- extract_contour(bin)
+        expect_true(aforoR:::.coo_is_clockwise(cnt))
+        # Calculate distances starts at rostrum and traverses clockwise (Y increases into ventral region)
+        dists <- calculate_distances(cnt, n_points = 64)
+        expect_true(dists$perimeter$coords[2, 2] >= dists$perimeter$coords[1, 2] - 5)
+    }
 })

@@ -14,21 +14,21 @@ If NULL (default), measurements are returned in pixels.}
 }
 \value{
 A named list containing:
-  \itemize{
-    \item \code{Area}: Surface area of the otolith.
-    \item \code{Perimeter}: Length of the otolith boundary.
-    \item \code{Length}: Maximum dimension (major axis) of the PCA-aligned bounding box.
-    \item \code{Width}: Minimum dimension (minor axis) of the PCA-aligned bounding box.
-    \item \code{Feret_Max}: Maximum Feret diameter (longest distance between any two boundary points).
-    \item \code{Feret_Min}: Minimum Feret diameter (minimum distance between parallel tangency lines).
-    \item \code{PCA_Angle}: Orientation angle of the major axis of inertia in degrees (normalized to [0, 180)).
-    \item \code{Units}: Measurement units ("px" or "mm").
-  }
+\itemize{
+\item \code{Area}: Surface area of the otolith.
+\item \code{Perimeter}: Length of the otolith boundary.
+\item \code{Length}: Maximum dimension (major axis) of the PCA-aligned bounding box.
+\item \code{Width}: Minimum dimension (minor axis) of the PCA-aligned bounding box.
+\item \code{Feret_Max}: Maximum Feret diameter (longest distance between any two boundary points).
+\item \code{Feret_Min}: Minimum Feret diameter (minimum distance between parallel tangency lines).
+\item \code{PCA_Angle}: Orientation angle of the major axis of inertia in degrees (normalized to [0, 180)).
+\item \code{Units}: Measurement units ("px" or "mm").
+}
 }
 \description{
 Computes standard otolith morphometric measurements (Area, Perimeter, Length, Width)
 along with advanced shape descriptors (Feret_Max, Feret_Min, PCA_Angle).
-The function supports scale conversion from pixels to millimeters if a `pixels_per_mm`
+The function supports scale conversion from pixels to millimeters if a \code{pixels_per_mm}
 value is provided.
 }
 \examples{

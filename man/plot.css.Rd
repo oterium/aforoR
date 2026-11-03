@@ -7,7 +7,7 @@
 \method{plot}{css}(x, show_zones = TRUE, ...)
 }
 \arguments{
-\item{x}{An object of class `css`.}
+\item{x}{An object of class \code{css}.}
 
 \item{show_zones}{Logical; if TRUE (default), colors points by the 4 AFORO
 contour zones (unless \code{col} is explicitly supplied in \code{...})

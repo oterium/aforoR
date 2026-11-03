@@ -1,177 +1,161 @@
-#' Discrete Wavelet Transform (a trous algorithm)
+#' 1D Discrete Wavelet Convolution (A Trous Algorithm)
 #'
-#' Computes the 1D discrete wavelet transform using the a trous (with holes)
-#' algorithm. This is a non-decimated transform, meaning the signal length
-#' remains constant across scales.
+#' Computes the 1D stationary (non-decimated) wavelet convolution using the
+#' à trous ("with holes") algorithm across dyadic scales.
 #'
-#' @param rx A numeric vector representing the input signal (e.g., radial distances).
-#' @param rh A numeric vector representing the filter coefficients.
-#' @param snmin The minimum scale index for the filter.
-#' @param snmax The maximum scale index for the filter.
-#' @param sj The current scale index (j >= 1).
-#' @return A numeric matrix (1 x length(rx)) representing the convolution result.
+#' @param signal A numeric vector representing the 1D input signal (e.g., radial distances).
+#' @param filter_weights A numeric vector representing the convolution filter coefficients.
+#' @param scale_min Integer; the minimum index for the filter window.
+#' @param scale_max Integer; the maximum index for the filter window.
+#' @param scale_j Integer >= 1; the current decomposition scale index.
+#' @return A numeric matrix of dimensions (1 x length(signal)) containing the convolution result.
 #' @export
 #' @examples
-#' # Internal use example:
 #' sig <- rnorm(512)
-#' filter <- c(0.0625, 0.25, 0.375, 0.25, 0.0625)
-#' res <- fatrous1d(sig, filter, -2, 2, 1)
-fatrous1d <- function(rx, rh, snmin, snmax, sj) {
+#' bspline_filter <- c(0.0625, 0.25, 0.375, 0.25, 0.0625)
+#' res <- wavelet_atrous_1d(sig, bspline_filter, -2, 2, 1)
+wavelet_atrous_1d <- function(signal, filter_weights, scale_min, scale_max, scale_j) {
   # Input validation
-  if (!is.numeric(rx) || !is.numeric(rh)) {
-    stop("rx and rh must be numeric vectors")
+  if (!is.numeric(signal) || !is.numeric(filter_weights)) {
+    stop("signal and filter_weights must be numeric vectors")
   }
 
-  if (length(rx) == 0 || length(rh) == 0) {
-    stop("rx and rh cannot be empty")
+  if (length(signal) == 0 || length(filter_weights) == 0) {
+    stop("signal and filter_weights cannot be empty")
   }
 
-  if (any(is.na(rx)) || any(is.na(rh))) {
-    stop("rx and rh cannot contain NA values")
+  if (any(is.na(signal)) || any(is.na(filter_weights))) {
+    stop("signal and filter_weights cannot contain NA values")
   }
 
-  if (any(is.infinite(rx)) || any(is.infinite(rh))) {
-    stop("rx and rh cannot contain infinite values")
+  if (any(is.infinite(signal)) || any(is.infinite(filter_weights))) {
+    stop("signal and filter_weights cannot contain infinite values")
   }
 
-  if (!is.numeric(snmin) || !is.numeric(snmax) || !is.numeric(sj)) {
-    stop("snmin, snmax, and sj must be numeric values")
+  if (!is.numeric(scale_min) || !is.numeric(scale_max) || !is.numeric(scale_j)) {
+    stop("scale_min, scale_max, and scale_j must be numeric values")
   }
 
-  if (length(snmin) != 1 || length(snmax) != 1 || length(sj) != 1) {
-    stop("snmin, snmax, and sj must be single values")
+  if (length(scale_min) != 1 || length(scale_max) != 1 || length(scale_j) != 1) {
+    stop("scale_min, scale_max, and scale_j must be single values")
   }
 
-  if (is.na(snmin) || is.na(snmax) || is.na(sj) ||
-      is.infinite(snmin) || is.infinite(snmax) || is.infinite(sj)) {
-    stop("snmin, snmax, and sj must be finite values")
+  if (is.na(scale_min) || is.na(scale_max) || is.na(scale_j) ||
+      is.infinite(scale_min) || is.infinite(scale_max) || is.infinite(scale_j)) {
+    stop("scale_min, scale_max, and scale_j must be finite values")
   }
 
-  if (snmin != as.integer(snmin) || snmax != as.integer(snmax)) {
-    stop("snmin and snmax must be integers")
+  if (scale_min != as.integer(scale_min) || scale_max != as.integer(scale_max)) {
+    stop("scale_min and scale_max must be integers")
   }
-  snmin <- as.integer(snmin)
-  snmax <- as.integer(snmax)
+  scale_min <- as.integer(scale_min)
+  scale_max <- as.integer(scale_max)
 
-  if (sj < 1 || sj != as.integer(sj)) {
-    stop("sj must be an integer >= 1")
+  if (scale_j < 1 || scale_j != as.integer(scale_j)) {
+    stop("scale_j must be an integer >= 1")
   }
-  sj <- as.integer(sj)
+  scale_j <- as.integer(scale_j)
 
-  if (snmax < snmin) {
-    stop("snmax must be greater than or equal to snmin")
-  }
-
-  if (length(rh) != (snmax - snmin + 1)) {
-    stop("rh must have length equal to snmax - snmin + 1")
+  if (scale_max < scale_min) {
+    stop("scale_max must be greater than or equal to scale_min")
   }
 
-  sj <- sj - 1
-  rg <- rh[seq(snmax - snmin + 1, 1, -1)]
-  smmin <- -snmax
-  smmax <- -snmin
-  slrx <- length(rx)
-  ry <- matrix(0, nrow = 1, ncol = slrx)
+  if (length(filter_weights) != (scale_max - scale_min + 1)) {
+    stop("filter_weights must have length equal to scale_max - scale_min + 1")
+  }
 
-  sn_indices <- 0:(slrx - 1)
-  sm_values <- smmin:smmax
+  dilation_power <- scale_j - 1L
+  step_size <- 2L^dilation_power
+  rev_weights <- rev(filter_weights)
+  shift_range <- (-scale_max):(-scale_min)
+  n_pts <- length(signal)
 
-  # Outer matrix of 1-based indices (dimensions: length(sm) x slrx)
-  idx_matrix <- outer(sm_values, sn_indices, function(sm, sn) {
-    1 + (sn + sm * (2^sj)) %% slrx
+  sample_indices <- 0L:(n_pts - 1L)
+  index_grid <- outer(shift_range, sample_indices, function(m, n) {
+    1L + (n + m * step_size) %% n_pts
   })
 
-  # Map values from rx and multiply by weights in rg
-  rx_mapped <- matrix(rx[idx_matrix], nrow = length(sm_values))
-  ry[1, ] <- colSums(rg * rx_mapped)
+  mapped_samples <- matrix(signal[index_grid], nrow = length(shift_range))
+  smoothed_output <- matrix(colSums(rev_weights * mapped_samples), nrow = 1L, ncol = n_pts)
 
-  return(ry)
+  return(smoothed_output)
 }
 
-#' B-Spline Wavelet Transform
+#' Multi-Scale Spline Wavelet Transform
 #'
-#' Computes the stationary wavelet transform of a signal using B-spline filters.
-#' This specific implementation is optimized for 1D signals like otolith radial
-#' distances.
+#' Computes the multi-scale stationary wavelet decomposition of a 1D closed signal
+#' using cubic B-spline scaling filters.
 #'
-#' @param ra0 A numeric vector representing the input signal (must be a power of
-#'            2 length for some applications, though here it uses the signal
-#'            length).
-#' @param sjm A positive integer specifying the number of decomposition scales (e.g., 9).
-#' @param det A logical value. If TRUE (default), it returns the wavelet
-#'            detail coefficients (high-to-medium frequency differences between
-#'            consecutive scales, centered around zero, capturing localized
-#'            features such as lobation). If FALSE, it returns the smoothed
-#'            approximation coefficients (low-frequency smoothed outline).
-#' @return A matrix of dimensions (sjm x length(ra0)) containing the
+#' @param signal A numeric vector representing the input signal (e.g., radial distances).
+#' @param n_scales A positive integer specifying the number of decomposition scales (e.g., 9).
+#' @param detail A logical value. If TRUE (default), it returns the wavelet
+#'               detail coefficients (high-to-medium frequency differences between
+#'               consecutive scales, centered around zero, capturing localized
+#'               features such as lobation). If FALSE, it returns the smoothed
+#'               approximation coefficients (low-frequency smoothed outline).
+#' @return A matrix of dimensions (n_scales x length(signal)) containing the
 #'         coefficients for each scale.
 #' @export
 #' @examples
 #' # Decompose a signal into 9 scales
 #' sig <- rnorm(512)
-#' sjm <- 9
-#' wavelets <- fwaveletspl_3(sig, sjm)
+#' n_scales <- 9
+#' wavelets <- wavelet_spline_transform(sig, n_scales)
 #' dim(wavelets)
-fwaveletspl_3 <- function(ra0, sjm, det = TRUE) {
+wavelet_spline_transform <- function(signal, n_scales, detail = TRUE) {
   # Input validation
-  if (!is.numeric(ra0)) {
-    stop("ra0 must be a numeric vector")
+  if (!is.numeric(signal)) {
+    stop("signal must be a numeric vector")
   }
 
-  if (length(ra0) < 2) {
-    stop("ra0 must contain at least 2 points")
+  if (length(signal) < 2) {
+    stop("signal must contain at least 2 points")
   }
 
-  if (any(is.na(ra0))) {
-    stop("ra0 cannot contain NA values")
+  if (any(is.na(signal))) {
+    stop("signal cannot contain NA values")
   }
 
-  if (any(is.infinite(ra0))) {
-    stop("ra0 cannot contain infinite values")
+  if (any(is.infinite(signal))) {
+    stop("signal cannot contain infinite values")
   }
 
-  if (!is.numeric(sjm) || length(sjm) != 1 || is.na(sjm) || is.infinite(sjm) || sjm <= 0 || sjm != as.integer(sjm)) {
-    stop("sjm must be a positive integer")
+  if (!is.numeric(n_scales) || length(n_scales) != 1 || is.na(n_scales) || is.infinite(n_scales) || n_scales <= 0 || n_scales != as.integer(n_scales)) {
+    stop("n_scales must be a positive integer")
   }
-  sjm <- as.integer(sjm)
+  n_scales <- as.integer(n_scales)
 
-  if (!is.logical(det) || length(det) != 1 || is.na(det)) {
-    stop("det must be a logical value (TRUE or FALSE)")
+  if (!is.logical(detail) || length(detail) != 1 || is.na(detail)) {
+    stop("detail must be a logical value (TRUE or FALSE)")
   }
 
-  # Filters
-  rh_ <- c(0.0625, 0.25, 0.375, 0.25, 0.0625)
-  snh_min <- -2
-  snh_max <- 2
+  # Cubic B-spline filter kernel
+  spline_kernel <- c(0.0625, 0.25, 0.375, 0.25, 0.0625)
+  n_pts <- length(signal)
+  max_allowable_scales <- ceiling(log2(n_pts))
 
-  # Number of samples
-  s_n <- length(ra0)
-
-  # Number of scales
-  # This is used for safety, recalculates sjm based on ra_0.
-  sj_max <- ceiling(log(s_n, 2))
-
-  if (sjm > sj_max) {
+  if (n_scales > max_allowable_scales) {
     stop(paste(
-      "sjm cannot exceed the max scales for this signal length:",
-      sj_max
+      "n_scales cannot exceed the max scales for this signal length:",
+      max_allowable_scales
     ))
   }
 
-  raj_1_anterior <- ra0
+  current_approx <- signal
+  coeffs_matrix <- matrix(numeric(n_scales * n_pts), nrow = n_scales, ncol = n_pts)
 
-  wave <- matrix(nrow = sjm, ncol = s_n)
-  for (sj in 1:sjm) {
-    raj_1 <- fatrous1d(raj_1_anterior, rh_, snh_min, snh_max, sj)
-    rd_j <- raj_1_anterior - raj_1 # Detail (wavelet plane: difference between consecutive approximations)
-    raj_1_anterior <- raj_1
-    if (det) {
-      wave[sj, ] <- rd_j
+  for (s_idx in 1:n_scales) {
+    next_approx <- as.vector(wavelet_atrous_1d(current_approx, spline_kernel, -2, 2, s_idx))
+    diff_detail <- current_approx - next_approx
+    current_approx <- next_approx
+    if (detail) {
+      coeffs_matrix[s_idx, ] <- diff_detail
     } else {
-      wave[sj, ] <- raj_1
+      coeffs_matrix[s_idx, ] <- next_approx
     }
   }
-  return(wave)
+
+  return(coeffs_matrix)
 }
 
 #' Calculate Wavelet Analysis for Distance Data
@@ -196,7 +180,7 @@ fwaveletspl_3 <- function(ra0, sjm, det = TRUE) {
 #' distances <- calculate_distances(contour)
 #' wavelets <- calculate_wavelets_analysis(distances, n_scales = 5)
 #' str(wavelets)
-#' @seealso \code{\link{fwaveletspl_3}}
+#' @seealso \code{\link{wavelet_spline_transform}}
 calculate_wavelets_analysis <- function(distances, n_scales = 9,
                                         detail = TRUE) {
   if (!is.list(distances)) {
@@ -222,13 +206,13 @@ calculate_wavelets_analysis <- function(distances, n_scales = 9,
 
   tryCatch(
     {
-      wavelets_polar <- fwaveletspl_3(
+      wavelets_polar <- wavelet_spline_transform(
         distances$polar$normalized, n_scales,
-        det = detail
+        detail = detail
       )
-      wavelets_perimeter <- fwaveletspl_3(
+      wavelets_perimeter <- wavelet_spline_transform(
         distances$perimeter$normalized, n_scales,
-        det = detail
+        detail = detail
       )
 
       return(list(

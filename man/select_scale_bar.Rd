@@ -13,7 +13,7 @@ select_scale_bar(image, scale_mm = 1)
 }
 \value{
 A numeric scalar representing \code{pixels_per_mm} with attribute \code{scale_info},
-        or NULL if cancelled or in a non-interactive session.
+or NULL if cancelled or in a non-interactive session.
 }
 \description{
 Displays an otolith image and prompts the user to click two points with the mouse

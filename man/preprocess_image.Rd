@@ -23,7 +23,7 @@ is automatically applied.}
 
 \item{blur_size}{Size of the Gaussian brush for smoothing in pixels. Can be an
 odd integer (e.g., 15, 31), or \code{"auto"} / \code{NULL} (default)
-to dynamically adapt the kernel size to ~1% of the image's minimum
+to dynamically adapt the kernel size to ~1\% of the image's minimum
 dimension (\eqn{\min(\text{width}, \text{height}) \times 0.01}).
 This preserves fine crenulations in small images while effectively
 suppressing noise in high-resolution or 4K images.}

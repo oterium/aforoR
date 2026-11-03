@@ -100,7 +100,7 @@ reference:
       - calculate_relative_indices
       - calculate_wavelets_analysis
       - calculate_css
-      - fwaveletspl_3
+      - wavelet_spline_transform
       - plot.css
 
   - title: "Analysis & Selection"
@@ -129,7 +129,7 @@ reference:
     desc: "Low-level functions used by the main analysis pipeline"
     contents:
       - ild
-      - fatrous1d
+      - wavelet_atrous_1d
       - regularradius
       - dper
 
