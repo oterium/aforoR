@@ -23,7 +23,7 @@ This tutorial is dedicated to provide examples that illustrate alternative appro
 
 ## 1. Fish-otolith length relationship
 
-**Linear models must not be used**. Only power models **Y=*a*X^*b*^** has **biologically meaningful** (Lleonart et al., 1993). Parameter estimation can be performed using log-linear or non-linear regression (NLS). Example with NLS (Giménez et al., 2016; Tuset et al., 2026).
+**Linear models must not be used**. Only power models **Y=*a*X^*b*^** are **biologically meaningful** (Lombarte and Lleonart, 1993). Parameter estimation can be performed using log-linear or non-linear regression (NLS). Example with NLS (Giménez et al., 2016; Tuset et al., 2026).
 
 ``` r
 # Using the built-in Aphanopus dataset

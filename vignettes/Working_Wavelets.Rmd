@@ -375,7 +375,7 @@ There are many options (supervised and not-supervised) methods and packages. See
 
 Important:
 
--   For the limited genetic **sample size** (\<150 individuals per species), we recommend a Leave-One-Out Cross-Validation (LOOCV) approach, repeating 1,000 times per analysis to ensure robust classification accuracy and model evaluation (Martí-Puig et al., 2019). Training and testing options only when the sample is bigger.
+-   For the limited genetic **sample size** (\<150 individuals per species), we recommend a Leave-One-Out Cross-Validation (LOOCV) approach, repeating 1,000 times per analysis to ensure robust classification accuracy and model evaluation (Martí-Puig et al., 2020). Training and testing options only when the sample is bigger.
 
 -   to check in detail **tunegrid** function.
 
