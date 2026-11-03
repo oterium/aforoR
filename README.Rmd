@@ -35,7 +35,7 @@ While specifically optimized for otoliths, the package is equally powerful for a
 *   **Multi-scale Wavelet Analysis**: Decomposition of contours using discrete wavelet transforms for detailed frequency-based shape characterization.
 *   **Elliptic Fourier Descriptors (EFDs)**: Standard Fourier-based shape analysis.
 *   **Curvature Scale Space (CSS)**: Geometric approach for detecting inflection points at multiple smoothing scales.
-*   **Optimal Point Selection**: Implementation of the Delaigle, Hall & Bathia (2012) sequential selection algorithm for identifying the most discriminative points in functional data.
+*   **Optimal Point Selection**: Implementation of the Hall & Bathia (2012) algorithm for identifying the most discriminative points in functional data.
 *   **Batch Processing**: Efficiently process entire directories of images with automated output generation.
 
 ---

@@ -30,7 +30,7 @@ library(dplyr)
 
 ## About this tutorial
 
-In shape analysis, we often end up with high-dimensional functional data, such as wavelet coefficients or radial distances. Identifying which points on these curves are most discriminative for classification is a common challenge. This tutorial illustrates how to use the **Hall & Bathia algorithm** (Delaigle, Hall & Bathia, 2012) to sequentially select the best points to maximize classification accuracy.
+In shape analysis, we often end up with high-dimensional functional data, such as wavelet coefficients or radial distances. Identifying which points on these curves are most discriminative for classification is a common challenge. This tutorial illustrates how to use the **Hall & Bathia (2012)** algorithm to sequentially select the best points to maximize classification accuracy.
 
 ## 1. Scientific Rationale
 

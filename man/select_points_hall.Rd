@@ -45,9 +45,9 @@ A list containing:
 }
 }
 \description{
-Implements the sequential point selection algorithm of Delaigle, Hall & Bathia (2012)
-for selecting a subset of points from functional data (e.g., wavelet coefficients
-or contours) that optimize classification accuracy.
+Implements the Hall & Bathia (2012) algorithm for selecting a subset of points
+from functional data (e.g., wavelet coefficients or contours) that optimize
+classification accuracy.
 }
 \examples{
 \dontrun{
@@ -56,8 +56,4 @@ library(fda.usc)
 data(phoneme)
 res <- select_points_hall(phoneme$data[1:100, ], phoneme$class[1:100], method = "lda")
 }
-}
-\references{
-Delaigle, A., Hall, P., & Bathia, N. (2012). Componentwise classification and clustering of functional data.
-\emph{Biometrika}, 99(2), 299-313. \doi{10.1093/biomet/ass003}.
 }
