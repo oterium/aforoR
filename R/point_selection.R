@@ -21,6 +21,9 @@
 #'     \item \code{error_path}: Vector of error rates at each iteration.
 #'     \item \code{confusion_matrix}: Final confusion matrix using cross-validation.
 #'   }
+#' @references
+#' Delaigle, A., Hall, P., & Bathia, N. (2012). Componentwise classification and clustering of functional data.
+#' \emph{Biometrika}, 99(2), 299-313. \doi{10.1093/biomet/ass003}.
 #' @export
 #' @importFrom stats predict na.omit
 #' @examples

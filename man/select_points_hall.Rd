@@ -57,3 +57,7 @@ data(phoneme)
 res <- select_points_hall(phoneme$data[1:100, ], phoneme$class[1:100], method = "lda")
 }
 }
+\references{
+Delaigle, A., Hall, P., & Bathia, N. (2012). Componentwise classification and clustering of functional data.
+\emph{Biometrika}, 99(2), 299-313. \doi{10.1093/biomet/ass003}.
+}
