@@ -35,6 +35,7 @@ Description: Provides tools for quantitative contour and shape analysis of
     multicore pipelines and visual diagnostic overlays on real photographs.
 VignetteBuilder: knitr
 License: MIT + file LICENSE
+LazyData: true
 Imports: 
     EBImage,
     utils,
@@ -45,7 +46,17 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0),
     knitr,
-    rmarkdown
+    rmarkdown,
+    dplyr,
+    ggplot2,
+    pracma,
+    tidyr,
+    MASS,
+    class,
+    e1071,
+    klaR,
+    nnet,
+    fda.usc
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3

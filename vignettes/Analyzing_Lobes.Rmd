@@ -45,6 +45,10 @@ To estimate the 2^nd^ scale of wavelet function and modify it following premises
 
 ```{r setup_data, message=FALSE, warning=FALSE}
 library(aforoR)
+if (!requireNamespace("dplyr", quietly = TRUE) || !requireNamespace("pracma", quietly = TRUE)) {
+  message("Suggested packages 'dplyr' or 'pracma' not available; skipping code evaluation.")
+  knitr::knit_exit()
+}
 library(dplyr)
 library(pracma)
 

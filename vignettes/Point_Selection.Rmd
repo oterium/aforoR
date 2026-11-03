@@ -23,6 +23,10 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(aforoR)
+if (!requireNamespace("dplyr", quietly = TRUE) || !requireNamespace("ggplot2", quietly = TRUE) || !requireNamespace("tidyr", quietly = TRUE)) {
+  message("Suggested packages not available; skipping code evaluation.")
+  knitr::knit_exit()
+}
 library(ggplot2)
 library(tidyr)
 library(dplyr)
