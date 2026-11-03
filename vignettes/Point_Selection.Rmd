@@ -30,7 +30,7 @@ library(dplyr)
 
 ## About this tutorial
 
-In shape analysis, we often end up with high-dimensional functional data, such as wavelet coefficients or radial distances. Identifying which points on these curves are most discriminative for classification is a common challenge. This tutorial illustrates how to use the **Hall & Bathia (2012)** algorithm to sequentially select the best points to maximize classification accuracy.
+In shape analysis, we often end up with high-dimensional functional data, such as wavelet coefficients or radial distances. Identifying which points on these curves are most discriminative for classification is a common challenge. This tutorial illustrates how to use the **Hall & Bathia algorithm** (Delaigle, Hall & Bathia, 2012) to sequentially select the best points to maximize classification accuracy.
 
 ## 1. Scientific Rationale
 
@@ -128,7 +128,7 @@ ggplot(wavelet_long, aes(x = Index, y = Value, group = id, color = Species)) +
 
 ## References
 
-- Hall, P., & Bathia, N. (2012). Componentwise classification and clustering of functional data. *Biometrika*, 99(2), 297-313.
-- Parisi-Baradad, V., et al. (2005). Otolith shape contour analysis using mathematical descriptors. *Computers in Biology and Medicine*.
-- Tuset, V. M., et al. (2003). Morphometric similarity of the otoliths of any species of the Serranus. *Journal of Fish Biology*.
+- Delaigle, A., Hall, P., & Bathia, N. (2012). Componentwise classification and clustering of functional data. *Biometrika*, 99(2), 299–313. https://doi.org/10.1093/biomet/ass003
+- Parisi-Baradad, V., Lombarte, A., García-Ladona, E., Cabestany, J., Piera, J., & Chic, O. (2005). Otolith shape contour analysis using affine transformation invariant wavelet transforms and curvature scale space representation. *Marine and Freshwater Research*, 56(5), 795–804. https://doi.org/10.1071/MF04162
+- Tuset, V. M., Lombarte, A., González, J. A., Pertusa, J. F., & Lorente, M. J. (2003). Comparative morphology of the sagittal otolith in *Serranus* spp. *Journal of Fish Biology*, 63(6), 1491–1504. https://doi.org/10.1111/j.1095-8649.2003.00262.x
 

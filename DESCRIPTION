@@ -28,8 +28,8 @@ Description: Provides tools for quantitative contour and shape analysis of
     fish otoliths and other biological structures (such as limpets, leaves,
     statoliths, and cephalopod beaks). Implements the discrete wavelet transform
     methodology developed by the AFORO team (Parisi-Baradad et al., 2005
-    <doi:10.1109/ICIP.2005.1530182>; Lombarte et al., 2006
-    <doi:10.1016/j.scienta.2006.01.037>; Manjabacas et al., 2025
+    <doi:10.1071/MF04162>; Lombarte et al., 2006
+    <doi:10.3989/scimar.2006.70n1147>; Manjabacas et al., 2025
     <doi:10.1016/j.fishres.2024.107242>), along with Curvature Scale Space (CSS),
     elliptic Fourier analysis, and relative allometric indices. Includes lightweight
     multicore pipelines and visual diagnostic overlays on real photographs.

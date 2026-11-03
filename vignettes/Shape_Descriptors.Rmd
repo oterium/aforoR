@@ -156,6 +156,6 @@ process_images(
 
 ## References
 
-- Kuhl, F.P. and Giardina, C.R. (1982). Elliptic Fourier features of a closed contour. *Computer Graphics and Image Processing*.
-- Mokhtarian, F. and Mackworth, A.K. (1986). Scale-based description and recognition of planar curves and two-dimensional shapes. *IEEE*.
-- Parisi-Baradad, V. et al. (2005). Otolith shape contour analysis using mathematical descriptors. *Computers in Biology and Medicine*.
+- Kuhl, F. P., & Giardina, C. R. (1982). Elliptic Fourier features of a closed contour. *Computer Graphics and Image Processing*, 18(3), 236–258. https://doi.org/10.1016/0146-664X(82)90034-X
+- Mokhtarian, F., & Mackworth, A. K. (1986). Scale-based description and recognition of planar curves and two-dimensional shapes. *IEEE Transactions on Pattern Analysis and Machine Intelligence*, PAMI-8(1), 34–43. https://doi.org/10.1109/TPAMI.1986.4767750
+- Parisi-Baradad, V., Lombarte, A., García-Ladona, E., Cabestany, J., Piera, J., & Chic, O. (2005). Otolith shape contour analysis using affine transformation invariant wavelet transforms and curvature scale space representation. *Marine and Freshwater Research*, 56(5), 795–804. https://doi.org/10.1071/MF04162

@@ -37,8 +37,8 @@ leaves, statoliths, beaks, and shells.
   analysis.
 - **Curvature Scale Space (CSS)**: Geometric approach for detecting
   inflection points at multiple smoothing scales.
-- **Optimal Point Selection**: Implementation of the Hall &
-  Bathia (2012) algorithm for identifying the most discriminative points
+- **Optimal Point Selection**: Implementation of the Delaigle, Hall &
+  Bathia (2012) sequential selection algorithm for identifying the most discriminative points
   in functional data.
 - **Batch Processing**: Efficiently process entire directories of images
   with automated output generation.
