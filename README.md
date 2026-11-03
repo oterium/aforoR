@@ -5,12 +5,9 @@
 
 <!-- badges: start -->
 
-[![CRAN
-status](https://www.r-pkg.org/badges/version/aforoR)](https://CRAN.R-project.org/package=aforoR)
 [![R-CMD-check](https://github.com/oterium/aforoR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/oterium/aforoR/actions/workflows/R-CMD-check.yaml)
 [![DOI](https://zenodo.org/badge/856873008.svg)](https://doi.org/10.5281/zenodo.18449478)
-
-------------------------------------------------------------------------
+<!-- badges: end -->
 
 ### Overview
 

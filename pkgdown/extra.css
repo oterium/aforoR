@@ -1,0 +1,10 @@
+/* Prevent page-header border from cutting through the floated logo */
+.page-header {
+  border-bottom: none !important;
+  margin-bottom: 1.5rem;
+  display: flow-root;
+}
+
+.page-header img.logo {
+  margin-bottom: 1rem;
+}
